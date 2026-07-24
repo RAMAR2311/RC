@@ -44,8 +44,8 @@ def vendedores():
         return redirect(url_for('admin_bp.vendedores'))
         
     # Se pasa la lista para poblar la tabla HTML de gestión de personal
-    # Mostramos todos los usuarios que no son admin ni eliminados para gestión centralizada
-    lista_vendedores = User.query.filter(~User.rol.in_(['admin', 'eliminado'])).order_by(User.nombre).all()
+    # Mostramos todos los usuarios que no son eliminados
+    lista_vendedores = User.query.filter(User.rol != 'eliminado').order_by(User.nombre).all()
     return render_template('admin/vendedores.html', vendedores=lista_vendedores)
 
 @admin_bp.route('/vendedores/<int:id>/eliminar', methods=['POST'])
@@ -53,8 +53,8 @@ def vendedores():
 @admin_required
 def eliminar_vendedor(id):
     usuario = User.query.get_or_404(id)
-    if usuario.rol == 'admin':
-        flash("No puedes eliminar al administrador.", "danger")
+    if usuario.id == current_user.id:
+        flash("No puedes eliminar tu propia cuenta.", "danger")
         return redirect(url_for('admin_bp.vendedores'))
         
     try:
@@ -74,15 +74,16 @@ def eliminar_vendedor(id):
 @admin_required
 def editar_vendedor(id):
     usuario = User.query.get_or_404(id)
-    if usuario.rol == 'admin':
-        flash("No puedes editar al administrador desde esta vista.", "danger")
-        return redirect(url_for('admin_bp.vendedores'))
         
     nombre = request.form.get('nombre')
     telefono = request.form.get('telefono')
     rol = request.form.get('rol')
     sucursal = request.form.get('sucursal')
     password = request.form.get('password')
+    
+    if usuario.id == current_user.id and rol and rol != 'admin':
+        flash("No puedes quitarte tus propios permisos de administrador.", "danger")
+        return redirect(url_for('admin_bp.vendedores'))
     
     try:
         if nombre:

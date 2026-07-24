@@ -39,11 +39,13 @@
                 
                 <div class="mb-3">
                     <label class="form-label text-brand-black fw-semibold small">Asignar Rol / Perfil de Usuario</label>
-                    <select name="rol" class="form-select bg-light border-0 py-2" required>
-                        <option value="vendedor">Vendedor (Cajas/Tienda)</option>
-                        <option value="bodega">Encargado de Bodega (Admin de Bodega)</option>
-                        <option value="vendedor_bodega">Vendedor de Bodega (Facturación)</option>
-                    </select>
+                                <select name="rol" class="form-select bg-light border-0 py-2" required>
+                                    <option value="" disabled selected>Selecciona un perfil...</option>
+                                    <option value="admin">Administrador del Sistema</option>
+                                    <option value="vendedor">Vendedor (Cajas/Tienda)</option>
+                                    <option value="bodega">Encargado de Bodega</option>
+                                    <option value="vendedor_bodega">Vendedor de Bodega</option>
+                                </select>
                 </div>
                 
                 <div class="mb-3">
@@ -101,6 +103,8 @@
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-2">Encargado Bodega</span>
                                 {% elif vendedor.rol == 'vendedor_bodega' %}
                                     <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-2">Vendedor Bodega</span>
+                                {% elif vendedor.rol == 'admin' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2">Administrador</span>
                                 {% else %}
                                     {{ vendedor.rol }}
                                 {% endif %}
@@ -146,6 +150,7 @@
                                             <div class="mb-3">
                                                 <label class="form-label text-brand-black fw-semibold small">Asignar Rol / Perfil</label>
                                                 <select name="rol" class="form-select bg-light border-0 py-2" required>
+                                                    <option value="admin" {% if vendedor.rol == 'admin' %}selected{% endif %}>Administrador del Sistema</option>
                                                     <option value="vendedor" {% if vendedor.rol == 'vendedor' %}selected{% endif %}>Vendedor (Cajas/Tienda)</option>
                                                     <option value="bodega" {% if vendedor.rol == 'bodega' %}selected{% endif %}>Encargado de Bodega</option>
                                                     <option value="vendedor_bodega" {% if vendedor.rol == 'vendedor_bodega' %}selected{% endif %}>Vendedor de Bodega</option>
