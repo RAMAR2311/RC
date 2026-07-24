@@ -118,21 +118,23 @@
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-dark rounded-pill fw-bold shadow-sm me-1" title="Gestionar Subcategorías" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
-                            <i class="fa-solid fa-sitemap me-1"></i> Variantes
-                        </button>
-                        <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle me-1 shadow-sm" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Ver Detalle">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle me-1 shadow-sm" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Editar Maestro">
-                            <i class="fa-solid fa-pen"></i>
-                        </a>
-                        <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" class="d-inline" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de que desea ELIMINAR PERMANENTEMENTE este producto del sistema en la Nube? Esto no se puede deshacer.');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm text-white bg-brand-pink rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Eliminar Producto">
-                                <i class="fa-solid fa-trash-can"></i>
+                        <div class="d-flex justify-content-center align-items-center gap-2 text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-dark rounded-pill fw-bold shadow-sm" title="Gestionar Subcategorías" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
+                                <i class="fa-solid fa-sitemap me-1"></i> Variantes
                             </button>
-                        </form>
+                            <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm flex-shrink-0" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Ver Detalle">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm flex-shrink-0" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Editar Maestro">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" class="d-inline m-0 flex-shrink-0" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de que desea ELIMINAR PERMANENTEMENTE este producto del sistema en la Nube? Esto no se puede deshacer.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm text-white bg-brand-pink rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Eliminar Producto">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% if p.variantes %}
