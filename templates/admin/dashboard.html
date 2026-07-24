@@ -7,12 +7,13 @@
         <p class="text-muted">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
     <div>
-        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-flex align-items-center me-3 d-inline-block">
-            <label class="fw-bold text-brand-black me-2 mb-0 small">Filtrar por Mes:</label>
-            <input type="month" name="mes" class="form-control form-control-sm rounded-pill shadow-sm" value="{{ mes_filtro }}" onchange="this.form.submit()" style="max-width: 150px;">
+        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-inline-flex align-items-center me-3 bg-white border rounded-pill px-3 py-2 shadow-sm">
+            <i class="fa-regular fa-calendar text-brand-pink me-2"></i>
+            <span class="fw-bold text-brand-black me-2 small">Mes:</span>
+            <input type="month" name="mes" class="form-control form-control-sm border-0 shadow-none bg-transparent p-0 text-brand-black fw-bold" style="max-width: 120px; outline: none; cursor: pointer;" value="{{ mes_filtro }}" onchange="this.form.submit()">
         </form>
-        <button type="button" class="btn btn-blue rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
-            <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
+        <button type="button" class="btn btn-dark rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
+            <i class="fa-solid fa-scale-balanced text-brand-pink me-2"></i>Generar Balance
         </button>
     </div>
 </div>
@@ -22,7 +23,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--brand-blue);"></i>Balance Financiero</h5>
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2 text-brand-pink"></i>Balance Financiero</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
@@ -39,7 +40,7 @@
           </div>
           <div class="modal-footer border-top-0 pt-0">
             <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-blue rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular y Validar</button>
+            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf text-brand-pink me-1"></i> Calcular y Validar</button>
           </div>
       </form>
     </div>
@@ -50,103 +51,103 @@
 <div class="row g-3 mb-4">
     <!-- 1. Tarjeta: Ingresos Totales (Botones/Textos Azul Turquesa / .btn-blue) -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-sack-dollar fs-1" style="color: var(--brand-blue);"></i>
-                <span class="badge bg-brand-blue rounded-pill">{{ texto_periodo }}</span>
+                <i class="fa-solid fa-sack-dollar fs-1 text-brand-pink"></i>
+                <span class="badge bg-dark rounded-pill">{{ texto_periodo }}</span>
             </div>
             <h5 class="text-brand-black fw-bold">Ingresos (Mensual)</h5>
-            <h2 class="fw-bolder" style="color: var(--brand-blue);">${{ (total_ventas)|cop }}</h2>
-            <p class="text-muted small mb-0"><i class="fa-solid fa-receipt me-1"></i> {{ conteo_ventas }} ventas realizadas</p>
+            <h2 class="fw-bolder text-brand-black">${{ (total_ventas)|cop }}</h2>
+            <p class="text-muted small mb-0"><i class="fa-solid fa-receipt text-brand-pink me-1"></i> {{ conteo_ventas }} ventas realizadas</p>
             <div class="mt-auto pt-3">
-                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-blue w-100 rounded-pill"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Ver Historial</a>
+                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-file-invoice-dollar text-brand-pink me-2"></i> Ver Historial</a>
             </div>
         </div>
     </div>
 
     <!-- 2. Tarjeta: Productos en Catálogo (Rosa Pastel / .btn-pink) -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-cubes fs-1" style="color: var(--brand-pink);"></i>
+                <i class="fa-solid fa-cubes fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Productos en Catálogo</h5>
             <h2 class="fw-bolder text-brand-black">{{ total_productos }} uds.</h2>
             <div class="mt-auto pt-4">
-                <a href="/inventory/" class="btn btn-pink w-100 rounded-pill text-brand-black"><i class="fa-solid fa-sliders me-2"></i> Gestionar Inventario</a>
+                <a href="/inventory/" class="btn btn-dark w-100 rounded-pill text-white fw-bold"><i class="fa-solid fa-sliders text-brand-pink me-2"></i> Gestionar Inventario</a>
             </div>
         </div>
     </div>
 
     <!-- 3. Tarjeta: Alertas de Stock (Danger Colors / Bootstrap Nativo) -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-danger border-2">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i>
+                <i class="fa-solid fa-triangle-exclamation fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Alertas Críticas de Stock</h5>
-            <h2 class="fw-bolder text-danger">{{ productos_bajo_stock }} productos</h2>
+            <h2 class="fw-bolder text-brand-pink">{{ productos_bajo_stock }} productos</h2>
             <p class="text-muted small">Tienen existencias limitadas (10 o menos unidades).</p>
             <div class="mt-auto pt-3">
-                <a href="/inventory/" class="btn btn-outline-danger w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Revisar Urgencias</a>
+                <a href="/inventory/" class="btn btn-outline-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Revisar Urgencias</a>
             </div>
         </div>
     </div>
 
     <!-- 4. Tarjeta: Maneos de Mercancía -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-warning border-2">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-handshake fs-1 text-warning"></i>
+                <i class="fa-solid fa-handshake fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Maneos Activos</h5>
-            <h2 class="fw-bolder text-warning">{{ maneos_activos }} docs.</h2>
+            <h2 class="fw-bolder text-brand-black">{{ maneos_activos }} docs.</h2>
             <p class="text-muted small">Préstamos vecinos esperando resolución.</p>
             <div class="mt-auto pt-3">
-                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-outline-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Ver Maneos</a>
+                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Maneos</a>
             </div>
         </div>
     </div>
     <!-- 5. Tarjeta: Proveedores -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-success border-2">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-truck-fast fs-1 text-success"></i>
+                <i class="fa-solid fa-truck-fast fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Proveedores Activos</h5>
-            <h2 class="fw-bolder text-success">{{ proveedores_activos }} cuentas</h2>
+            <h2 class="fw-bolder text-brand-black">{{ proveedores_activos }} cuentas</h2>
             <p class="text-muted small">Cuentas por pagar a proveedores.</p>
             <div class="mt-auto pt-3">
-                <a href="{{ url_for('providers_bp.list_providers') }}" class="btn btn-outline-success text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Ver Cuentas</a>
+                <a href="{{ url_for('providers_bp.list_providers') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Cuentas</a>
             </div>
         </div>
     </div>
 
     <!-- 6. Tarjeta: Garantías -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-warning border-2" style="border-color: #ffc107 !important;">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-shield-halved fs-1 text-warning"></i>
+                <i class="fa-solid fa-shield-halved fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Garantías Pendientes</h5>
-            <h2 class="fw-bolder text-warning">{{ garantias_pendientes }} reportes</h2>
+            <h2 class="fw-bolder text-brand-black">{{ garantias_pendientes }} reportes</h2>
             <p class="text-muted small">Equipos en proceso de soporte.</p>
             <div class="mt-auto pt-3">
-                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-outline-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Gestionar</a>
+                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Gestionar</a>
             </div>
         </div>
     </div>
     <!-- 7. Tarjeta: Aprobaciones -->
     <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-info border-2" style="border-color: #0dcaf0 !important;">
+        <div class="card card-custom h-100 p-4 border border-dark border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-tags fs-1 text-info"></i>
+                <i class="fa-solid fa-tags fs-1 text-brand-pink"></i>
             </div>
             <h5 class="text-brand-black fw-bold">Aprobaciones Precio</h5>
-            <h2 class="fw-bolder text-info">{{ aprobaciones_pendientes }} solicitudes</h2>
+            <h2 class="fw-bolder text-brand-black">{{ aprobaciones_pendientes }} solicitudes</h2>
             <p class="text-muted small">Descuentos esperando autorización.</p>
             <div class="mt-auto pt-3">
-                <a href="{{ url_for('admin_bp.aprobaciones') }}" class="btn btn-outline-info text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Ver Solicitudes</a>
+                <a href="{{ url_for('admin_bp.aprobaciones') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Solicitudes</a>
             </div>
         </div>
     </div>
