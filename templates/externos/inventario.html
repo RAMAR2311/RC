@@ -60,20 +60,20 @@
 <div class="card card-custom p-0 shadow-sm border-0">
     <div class="table-responsive">
         <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
-            <thead class="bg-light text-nowrap" style="font-size: 0.8rem;">
+            <thead class="bg-dark text-white text-nowrap" style="font-size: 0.8rem;">
                 <tr>
-                    <th class="ps-3 py-2 text-start">MARCA</th>
-                    <th class="py-2 text-start">REFERENCIA</th>
-                    <th class="py-2">CAP.</th>
-                    <th class="py-2">BAT.</th>
-                    <th class="py-2">COLOR</th>
-                    <th class="py-2">IMEI</th>
-                    <th class="py-2">IMEI 2</th>
-                    <th class="py-2">PROVEEDOR</th>
-                    <th class="py-2">FECHA</th>
-                    <th class="py-2">COSTO</th>
-                    <th class="py-2">SUGERIDO</th>
-                    <th class="pe-3 py-2 text-center">ACCIONES</th>
+                    <th class="ps-3 py-2 text-start fw-bold">MARCA</th>
+                    <th class="py-2 text-start fw-bold">REFERENCIA</th>
+                    <th class="py-2 fw-bold">CAP.</th>
+                    <th class="py-2 fw-bold">BAT.</th>
+                    <th class="py-2 fw-bold">COLOR</th>
+                    <th class="py-2 fw-bold">IMEI</th>
+                    <th class="py-2 fw-bold">IMEI 2</th>
+                    <th class="py-2 fw-bold">PROVEEDOR</th>
+                    <th class="py-2 fw-bold">FECHA</th>
+                    <th class="py-2 fw-bold">COSTO</th>
+                    <th class="py-2 fw-bold">SUGERIDO</th>
+                    <th class="pe-3 py-2 text-center fw-bold">ACCIONES</th>
                 </tr>
             </thead>
             <tbody class="text-nowrap">
@@ -89,27 +89,27 @@
                     <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
                     <td>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
                     
-                    <td class="text-danger fw-bold">${{ c.precio_costo|cop }}</td>
-                    <td class="text-success fw-bold">${{ c.precio_sugerido|cop }}</td>
+                    <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>
+                    <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
                     
                     <td class="pe-3 text-center">
                         {% if c.estado_celular == 'Enviado' %}
-                            <span class="badge bg-secondary rounded-pill shadow-sm"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                            <span class="badge bg-dark rounded-pill shadow-sm"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
                         {% else %}
-                            <div class="d-flex justify-content-center gap-1">
+                            <div class="d-flex justify-content-center gap-2">
                                 <form method="POST" action="{{ url_for('externos_bp.enviar_inventario', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Enviar este equipo al inventario principal de celulares?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2" title="Enviar a Inventario Principal">
-                                        <i class="fa-solid fa-truck-fast" style="font-size: 0.8rem;"></i>
+                                    <button type="submit" class="btn btn-sm btn-outline-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Enviar a Inventario Principal">
+                                        <i class="fa-solid fa-truck-fast" style="font-size: 0.75rem;"></i>
                                     </button>
                                 </form>
-                                <a href="{{ url_for('externos_bp.editar_externo', id=c.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar">
-                                    <i class="fa-solid fa-pen" style="font-size: 0.8rem;"></i>
+                                <a href="{{ url_for('externos_bp.editar_externo', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar">
+                                    <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
                                 </a>
                                 <form method="POST" action="{{ url_for('externos_bp.eliminar_externo', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar permanente?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Eliminar">
-                                        <i class="fa-solid fa-trash-can" style="font-size: 0.8rem;"></i>
+                                    <button type="submit" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar">
+                                        <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
                                     </button>
                                 </form>
                             </div>
