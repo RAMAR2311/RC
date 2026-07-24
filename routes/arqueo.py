@@ -129,33 +129,36 @@ def nuevo():
         fecha_seleccionada = obtener_hora_bogota().date()
         fecha_str = fecha_seleccionada.strftime('%Y-%m-%d')
 
-    # Calcular ventas del día usando el sistema híbrido (SalePayment + legacy)
+    # Calcular ventas del día de la sucursal actual
     ventas_del_dia = Sale.query.filter(
         db.func.date(Sale.fecha_venta) == fecha_seleccionada,
-        Sale.tipo_venta.in_(['general', 'celulares'])
+        Sale.tipo_venta.in_(['general', 'celulares']),
+        Sale.sucursal == current_user.sucursal
     ).order_by(Sale.fecha_venta.asc()).all()
     total_efectivo, total_transferencia, total_retomas = calcular_totales_dia(ventas_del_dia)
 
     # Calcular gastos automáticos del día
     gastos_diarios_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
-        Expense.tipo_gasto == 'Gasto Diario'
+        Expense.tipo_gasto == 'Gasto Diario',
+        Expense.sucursal == current_user.sucursal
     ).all()
     gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
 
     # Calcular gastos por productos externos del día
     gastos_externos_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
-        Expense.categoria == 'Pago Prod. Externo'
+        Expense.categoria == 'Pago Prod. Externo',
+        Expense.sucursal == current_user.sucursal
     ).all()
     gastos_externos = float(sum(g.monto for g in gastos_externos_registros))
 
-    # Verificar si ya existe un arqueo GLOBAL para esa fecha (unificado para todos los usuarios)
-    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general').first()
+    # Verificar si ya existe un arqueo para esa sucursal en esa fecha
+    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=current_user.sucursal).first()
 
     if request.method == 'POST':
         # Doble verificación en el backend para evitar duplicados por concurrencia
-        if ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general').first():
+        if ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=current_user.sucursal).first():
             flash('Ya existe un arqueo cerrado para esta fecha. No se puede duplicar.', 'warning')
             return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
 
@@ -164,7 +167,8 @@ def nuevo():
         # Recalcular gastos automáticos por seguridad en el backend
         gastos_recalculados = Expense.query.filter(
             db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
-            Expense.tipo_gasto == 'Gasto Diario'
+            Expense.tipo_gasto == 'Gasto Diario',
+            Expense.sucursal == current_user.sucursal
         ).all()
         gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
         
@@ -181,7 +185,8 @@ def nuevo():
             total_unidades_ch=procesar_unidades_ch(ventas_del_dia)[1],
             total_celulares=procesar_celulares(ventas_del_dia),
             total_retomas_sistema=total_retomas,
-            tipo_arqueo='general'
+            tipo_arqueo='general',
+            sucursal=current_user.sucursal
         )
 
         try:
@@ -227,12 +232,15 @@ def reporte():
         fecha_inicio_str = hoy.strftime('%Y-%m-%d')
         fecha_fin_str = hoy.strftime('%Y-%m-%d')
 
-    # Arqueo unificado: todos los usuarios ven los mismos arqueos (ya no se filtra por vendedor)
+    # Arqueo unificado: los administradores ven todos los locales, los vendedores solo su local
     query = ArqueoCaja.query.filter(
         ArqueoCaja.fecha_arqueo >= fecha_inicio,
         ArqueoCaja.fecha_arqueo <= fecha_fin,
         ArqueoCaja.tipo_arqueo == 'general'
     )
+    
+    if current_user.rol != 'admin':
+        query = query.filter(ArqueoCaja.sucursal == current_user.sucursal)
 
     arqueos = query.order_by(ArqueoCaja.fecha_arqueo.desc()).all()
 
@@ -252,7 +260,10 @@ def reporte():
         db.func.date(Expense.fecha_gasto) >= fecha_inicio,
         db.func.date(Expense.fecha_gasto) <= fecha_fin,
         Expense.categoria == 'Pago Prod. Externo'
-    ).all()
+    )
+    if current_user.rol != 'admin':
+        gastos_externos_query = gastos_externos_query.filter(Expense.sucursal == current_user.sucursal)
+    gastos_externos_query = gastos_externos_query.all()
     resumen['total_gastos_externos'] = sum(g.monto for g in gastos_externos_query)
     
     resumen['total_recaudado_bruto'] = resumen['total_efectivo'] + resumen['total_transferencia']
@@ -265,7 +276,10 @@ def reporte():
         db.func.date(Expense.fecha_gasto) <= fecha_fin,
         Expense.tipo_gasto == 'Gasto Diario',
         Expense.metodo_pago == 'efectivo'
-    ).all()
+    )
+    if current_user.rol != 'admin':
+        gastos_efectivo_query = gastos_efectivo_query.filter(Expense.sucursal == current_user.sucursal)
+    gastos_efectivo_query = gastos_efectivo_query.all()
     resumen['total_gastos_efectivo'] = sum(g.monto for g in gastos_efectivo_query)
 
     # El efectivo esperado en caja descuenta gastos en EFECTIVO, celulares y CH
@@ -277,6 +291,8 @@ def reporte():
         db.func.date(Sale.fecha_venta) <= fecha_fin,
         Sale.tipo_venta.in_(['general', 'celulares'])
     )
+    if current_user.rol != 'admin':
+        ventas_query = ventas_query.filter(Sale.sucursal == current_user.sucursal)
     
     ventas_periodo = ventas_query.order_by(Sale.fecha_venta.asc()).all()
 
@@ -286,10 +302,13 @@ def reporte():
     desglose_ch, total_general_ch = procesar_unidades_ch(ventas_periodo)
     
     # Obtener todos los gastos del periodo para el reporte detallado
-    gastos_periodo = Expense.query.filter(
+    gastos_query = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) >= fecha_inicio,
         db.func.date(Expense.fecha_gasto) <= fecha_fin
-    ).order_by(Expense.fecha_gasto.asc()).all()
+    )
+    if current_user.rol != 'admin':
+        gastos_query = gastos_query.filter(Expense.sucursal == current_user.sucursal)
+    gastos_periodo = gastos_query.order_by(Expense.fecha_gasto.asc()).all()
 
     return render_template(
         'arqueo/reporte.html',

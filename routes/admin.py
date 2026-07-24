@@ -18,6 +18,7 @@ def vendedores():
         telefono = request.form.get('telefono')
         password = request.form.get('password')
         rol = request.form.get('rol', 'vendedor')
+        sucursal = request.form.get('sucursal', 'LOCAL 136')
         
         # Se previene registrar vendedores con un mismo email para preservar la unicidad de las credenciales de acceso
         if User.query.filter_by(email=email).first():
@@ -30,7 +31,8 @@ def vendedores():
                     email=email.strip(),
                     telefono=telefono.strip() if telefono else None,
                     password_hash=generate_password_hash(password),
-                    rol=rol
+                    rol=rol,
+                    sucursal=sucursal
                 )
                 db.session.add(nuevo_usuario)
                 db.session.commit()

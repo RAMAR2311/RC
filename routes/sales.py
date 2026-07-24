@@ -94,7 +94,8 @@ def procesar_venta():
             monto_total=Decimal('0.00'),
             metodo_pago=metodo_pago_principal,
             fecha_venta=fecha_venta_obj,
-            tipo_venta=tipo_venta_detectado
+            tipo_venta=tipo_venta_detectado,
+            sucursal=current_user.sucursal
         )
         db.session.add(nueva_venta)
         db.session.flush()
@@ -137,7 +138,8 @@ def procesar_venta():
                         categoria='Pago Prod. Externo',
                         descripcion=f"Pago por producto manual prestado: {nombre_manual}",
                         monto=(precio_costo_manual * cantidad_vendida),
-                        fecha_gasto=fecha_venta_obj
+                        fecha_gasto=fecha_venta_obj,
+                        sucursal=current_user.sucursal
                     )
                     db.session.add(gasto_externo)
             else:
