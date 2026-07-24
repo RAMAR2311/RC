@@ -13,25 +13,35 @@ def obtener_hora_bogota():
     return datetime.now(pytz.timezone('America/Bogota')).replace(tzinfo=None)
 
 def calcular_totales_dia(ventas_del_dia):
-    """Calcula los totales de efectivo y transferencias del día.
+    """Calcula los totales de efectivo, transferencias y retomas del día.
     Usa SalePayment si está disponible, de lo contrario usa metodo_pago legacy."""
     total_efectivo = Decimal('0')
     total_transferencia = Decimal('0')
+    total_retomas = Decimal('0')
     
     for v in ventas_del_dia:
         if v.pagos:  # Ventas nuevas con tabla sale_payments
             for pago in v.pagos:
                 if pago.metodo_pago == 'efectivo':
                     total_efectivo += pago.monto
-                else:  # nequi, bancolombia, daviplata, transferencia
+                elif pago.metodo_pago == 'retoma':
+                    total_retomas += pago.monto
+                else:  # nequi, bancolombia, daviplata, transferencia, etc
                     total_transferencia += pago.monto
         else:  # Retrocompatibilidad con ventas antiguas
             if v.metodo_pago == 'efectivo':
                 total_efectivo += v.monto_total
-            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata']:
+            elif v.metodo_pago == 'retoma':
+                total_retomas += v.monto_total
+            elif v.metodo_pago in ['addi', 'sitecredito', 'bancolombia', 'davivienda', 'tarjeta_credito', 'transferencia']:
                 total_transferencia += v.monto_total
+
+        # Sumar retomas registradas en la nueva tabla (como descuento)
+        if getattr(v, 'retomas_asociadas', None):
+            for retoma in v.retomas_asociadas:
+                total_retomas += retoma.valor_retoma
     
-    return total_efectivo, total_transferencia
+    return total_efectivo, total_transferencia, total_retomas
 
 def procesar_unidades_ch(ventas):
     desglose = []
@@ -124,7 +134,7 @@ def nuevo():
         db.func.date(Sale.fecha_venta) == fecha_seleccionada,
         Sale.tipo_venta == 'general'
     ).all()
-    total_efectivo, total_transferencia = calcular_totales_dia(ventas_del_dia)
+    total_efectivo, total_transferencia, total_retomas = calcular_totales_dia(ventas_del_dia)
 
     # Calcular gastos automáticos del día
     gastos_diarios_registros = Expense.query.filter(
@@ -170,6 +180,7 @@ def nuevo():
             total_transferencia_sistema=total_transferencia,
             total_unidades_ch=procesar_unidades_ch(ventas_del_dia)[1],
             total_celulares=Decimal('0.00'), # Ya no aplica al general
+            total_retomas_sistema=total_retomas,
             tipo_arqueo='general'
         )
 

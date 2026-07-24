@@ -48,9 +48,14 @@ class Product(db.Model):
     
     # Campos específicos para módulo de celulares (tipo_inventario='celulares')
     imei = db.Column(db.String(50), unique=True, nullable=True, index=True)
+    imei2 = db.Column(db.String(50), nullable=True)
     marca = db.Column(db.String(100), nullable=True)
     modelo_celular = db.Column(db.String(100), nullable=True)
     estado_celular = db.Column(db.String(50), nullable=True, default='Nuevo') # Nuevo, Usado
+    color = db.Column(db.String(50), nullable=True)
+    bateria = db.Column(db.String(20), nullable=True) # % o descripción
+    memoria = db.Column(db.String(50), nullable=True) # Capacidad (Ej: 128GB)
+    proveedor = db.Column(db.String(150), nullable=True)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
@@ -210,6 +215,33 @@ class StockAdjustment(db.Model):
     def __init__(self, **kwargs):
         super(StockAdjustment, self).__init__(**kwargs)
 
+class Retoma(db.Model):
+    __tablename__ = 'retomas'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
+    modelo = db.Column(db.String(150), nullable=False)
+    marca = db.Column(db.String(100), nullable=True)
+    proveedor = db.Column(db.String(150), nullable=True, default='Cliente')
+    valor_retoma = db.Column(db.Numeric(10, 2), nullable=False)
+    imei1 = db.Column(db.String(50), nullable=False, unique=True)
+    imei2 = db.Column(db.String(50), nullable=True)
+    color = db.Column(db.String(50), nullable=True)
+    bateria = db.Column(db.String(50), nullable=True)
+    memoria = db.Column(db.String(50), nullable=True)
+    observaciones = db.Column(db.Text, nullable=True)
+    estado = db.Column(db.String(50), nullable=False, default='en_evaluacion') # en_evaluacion, aprobado
+    producto_generado_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
+    vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    venta = db.relationship('Sale', backref='retomas_asociadas', lazy=True)
+    vendedor = db.relationship('User', backref='retomas_registradas', lazy=True)
+    producto_generado = db.relationship('Product', backref='retoma_origen', lazy=True)
+
+    def __init__(self, **kwargs):
+        super(Retoma, self).__init__(**kwargs)
+
 class ArqueoCaja(db.Model):
     __tablename__ = 'arqueo_caja'
     
@@ -224,6 +256,7 @@ class ArqueoCaja(db.Model):
     total_transferencia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_unidades_ch = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_celulares = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    total_retomas_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     def __init__(self, **kwargs):
@@ -364,3 +397,5 @@ class AbonoBodega(db.Model):
 
     def __init__(self, **kwargs):
         super(AbonoBodega, self).__init__(**kwargs)
+
+

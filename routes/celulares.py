@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant
 from decorators import admin_required
@@ -29,12 +29,17 @@ def nuevo_celular():
         marca = request.form.get('marca', '').strip()
         modelo_celular = request.form.get('modelo_celular', '').strip()
         color = request.form.get('color', '').strip()
+        bateria = request.form.get('bateria', '').strip()
+        memoria = request.form.get('memoria', '').strip()
+        imei = request.form.get('imei', '').strip()
+        imei2 = request.form.get('imei2', '').strip()
+        proveedor = request.form.get('proveedor', '').strip()
         
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
         precio_minimo_str = request.form.get('precio_minimo', '0').replace(',', '')
         
-        nombre_completo = f"Celular {marca} {modelo_celular} {color}".strip()
+        nombre_completo = f"Celular {marca} {modelo_celular} {color} {memoria}".strip()
         sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         imagen_filename = None
@@ -49,30 +54,34 @@ def nuevo_celular():
                 file.save(os.path.join(upload_folder, filename))
                 imagen_filename = filename
         
-        # El producto base actúa como agrupadory contenedor
         nuevo = Product(
             nombre=nombre_completo,
             sku=sku_base,
             tipo_inventario='celulares',
-            cantidad_stock=0, # Se calculará por las variantes
+            cantidad_stock=1, # Siempre 1 porque es un registro único
             precio_costo=float(precio_costo_str) if precio_costo_str else 0.0,
             precio_minimo=float(precio_minimo_str) if precio_minimo_str else 0.0,
             precio_sugerido=float(precio_sugerido_str) if precio_sugerido_str else 0.0,
             marca=marca,
             modelo_celular=modelo_celular,
-            observacion=f"Color: {color}" if color else "",
+            color=color,
+            bateria=bateria,
+            memoria=memoria,
+            imei=imei,
+            imei2=imei2,
+            proveedor=proveedor,
             imagen=imagen_filename
         )
         
         try:
             db.session.add(nuevo)
             db.session.commit()
-            flash('Modelo base creado exitosamente. Ahora puede agregar los IMEIs desde el inventario.', 'success')
+            flash('Celular ingresado al inventario exitosamente.', 'success')
             return redirect(url_for('celulares_bp.inventario'))
             
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al registrar: {str(e)}', 'danger')
+            flash(f'Error al registrar el celular: {str(e)}', 'danger')
 
     return render_template('celulares/form_celular.html', celular=None)
 
@@ -88,11 +97,14 @@ def editar_celular(id):
     if request.method == 'POST':
         celular.marca = request.form.get('marca', '').strip()
         celular.modelo_celular = request.form.get('modelo_celular', '').strip()
-        color = request.form.get('color', '').strip()
+        celular.color = request.form.get('color', '').strip()
+        celular.bateria = request.form.get('bateria', '').strip()
+        celular.memoria = request.form.get('memoria', '').strip()
+        celular.imei = request.form.get('imei', '').strip()
+        celular.imei2 = request.form.get('imei2', '').strip()
+        celular.proveedor = request.form.get('proveedor', '').strip()
         
-        celular.nombre = f"Celular {celular.marca} {celular.modelo_celular} {color}".strip()
-        if color:
-            celular.observacion = f"Color: {color}"
+        celular.nombre = f"Celular {celular.marca} {celular.modelo_celular} {celular.color} {celular.memoria}".strip()
             
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
@@ -115,122 +127,13 @@ def editar_celular(id):
             
         try:
             db.session.commit()
-            flash('Modelo base actualizado exitosamente.', 'success')
+            flash('Celular actualizado exitosamente.', 'success')
             return redirect(url_for('celulares_bp.inventario'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error al actualizar: {str(e)}', 'danger')
             
     return render_template('celulares/form_celular.html', celular=celular)
-
-@celulares_bp.route('/gestionar_imeis/<int:id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def gestionar_imeis(id):
-    celular = Product.query.get_or_404(id)
-    if celular.tipo_inventario != 'celulares':
-        flash('El producto seleccionado no es un celular.', 'danger')
-        return redirect(url_for('celulares_bp.inventario'))
-        
-    if request.method == 'POST':
-        imeis = request.form.getlist('imeis[]')
-        estados = request.form.getlist('estados[]')
-        costos = request.form.getlist('costos[]')
-        sugeridos = request.form.getlist('sugeridos[]')
-        minimos = request.form.getlist('minimos[]')
-        observaciones = request.form.getlist('observaciones[]')
-        
-        # Opcional: Recibir IDs de IMEIs a eliminar
-        eliminar_ids = request.form.getlist('eliminar_ids[]')
-        
-        try:
-            stock_modificado = 0
-            
-            # 1. Eliminar variantes marcadas
-            for del_id in eliminar_ids:
-                if not del_id: continue
-                vari = ProductVariant.query.get(int(del_id))
-                if vari and vari.product_id == celular.id:
-                    if vari.cantidad_stock <= 0:
-                        db.session.rollback()
-                        flash(f'No se puede eliminar el IMEI {vari.nombre_variante} porque ya fue vendido.', 'danger')
-                        return redirect(url_for('celulares_bp.gestionar_imeis', id=id))
-                    db.session.delete(vari)
-                    stock_modificado -= 1
-                    
-            # 2. Agregar nuevos IMEIs
-            for i in range(len(imeis)):
-                imei_val = imeis[i].strip()
-                if not imei_val: continue
-                
-                # Validar existencia
-                existente = ProductVariant.query.filter(ProductVariant.nombre_variante.like(f"%{imei_val}%")).first()
-                if existente:
-                    db.session.rollback()
-                    flash(f'El IMEI {imei_val} ya existe en el sistema.', 'danger')
-                    return redirect(url_for('celulares_bp.gestionar_imeis', id=id))
-                    
-                estado_val = estados[i] if i < len(estados) else 'Nuevo'
-                costo_val = float(costos[i].replace(',', '')) if i < len(costos) and costos[i] else celular.precio_costo
-                sugerido_val = float(sugeridos[i].replace(',', '')) if i < len(sugeridos) and sugeridos[i] else celular.precio_sugerido
-                minimo_val = float(minimos[i].replace(',', '')) if i < len(minimos) and minimos[i] else celular.precio_minimo
-                obs_val = observaciones[i] if i < len(observaciones) else ''
-                
-                nombre_var = f"IMEI: {imei_val} - {estado_val}"
-                if obs_val:
-                    nombre_var += f" ({obs_val})"
-                    
-                nueva_var = ProductVariant(
-                    product_id=celular.id,
-                    nombre_variante=nombre_var,
-                    cantidad_stock=1,
-                    precio_costo=costo_val,
-                    precio_sugerido=sugerido_val,
-                    precio_minimo=minimo_val
-                )
-                db.session.add(nueva_var)
-                stock_modificado += 1
-                
-            # 3. Recalcular Stock
-            db.session.flush()
-            celular.cantidad_stock = sum([v.cantidad_stock for v in celular.variantes if v.cantidad_stock > 0])
-            
-            db.session.commit()
-            flash('Inventario de IMEIs actualizado exitosamente.', 'success')
-            return redirect(url_for('celulares_bp.inventario'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al guardar IMEIs: {str(e)}', 'danger')
-            
-    return render_template('celulares/gestionar_imeis.html', celular=celular)
-
-@celulares_bp.route('/editar_imei/<int:id>', methods=['POST'])
-@login_required
-@admin_required
-def editar_imei(id):
-    variante = ProductVariant.query.get_or_404(id)
-    
-    nuevo_nombre = request.form.get('nombre_variante', '').strip()
-    costo_str = request.form.get('precio_costo', '0').replace(',', '')
-    sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
-    minimo_str = request.form.get('precio_minimo', '0').replace(',', '')
-    
-    if nuevo_nombre:
-        variante.nombre_variante = nuevo_nombre
-    
-    variante.precio_costo = float(costo_str) if costo_str else 0.0
-    variante.precio_sugerido = float(sugerido_str) if sugerido_str else 0.0
-    variante.precio_minimo = float(minimo_str) if minimo_str else 0.0
-    
-    try:
-        db.session.commit()
-        flash('IMEI actualizado correctamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error al actualizar el IMEI: {str(e)}', 'danger')
-        
-    return redirect(url_for('celulares_bp.gestionar_imeis', id=variante.product_id))
 
 @celulares_bp.route('/eliminar/<int:id>', methods=['POST'])
 @login_required
@@ -260,12 +163,45 @@ def eliminar_celular(id):
 @login_required
 @admin_required
 def clientes():
-    # Obtener todas las ventas de celulares con cliente asociado
     from models import SaleClient, SaleDetail
-    
-    clientes_lista = db.session.query(SaleClient, SaleDetail).join(Sale, SaleClient.sale_id == Sale.id).join(SaleDetail, Sale.id == SaleDetail.sale_id).join(Product, SaleDetail.product_id == Product.id).filter(Product.tipo_inventario == 'celulares').order_by(SaleClient.id.desc()).all()
-    
+    # Group by documento to get unique clients with their last sale
+    clientes_lista = db.session.query(SaleClient, SaleDetail)\
+        .join(Sale, SaleClient.sale_id == Sale.id)\
+        .join(SaleDetail, Sale.id == SaleDetail.sale_id)\
+        .join(Product, SaleDetail.product_id == Product.id)\
+        .order_by(SaleClient.id.desc()).all()
     return render_template('celulares/clientes.html', clientes=clientes_lista)
+
+@celulares_bp.route('/clientes/detalle/<documento>')
+@login_required
+@admin_required
+def detalle_cliente(documento):
+    from models import SaleClient, SaleDetail, SalePayment
+    # All sales for this client document
+    registros = db.session.query(SaleClient, SaleDetail)\
+        .join(Sale, SaleClient.sale_id == Sale.id)\
+        .join(SaleDetail, Sale.id == SaleDetail.sale_id)\
+        .filter(SaleClient.documento == documento)\
+        .order_by(SaleClient.id.desc()).all()
+    if not registros:
+        flash('Cliente no encontrado.', 'warning')
+        return redirect(url_for('celulares_bp.clientes'))
+    cliente_info = registros[0][0]  # First SaleClient record for name/phone
+    return render_template('celulares/detalle_cliente.html',
+                           cliente=cliente_info,
+                           registros=registros)
+
+@celulares_bp.route('/api/cliente/buscar')
+@login_required
+def api_buscar_cliente():
+    from models import SaleClient
+    documento = request.args.get('documento', '').strip()
+    if not documento:
+        return jsonify({'encontrado': False})
+    cliente = SaleClient.query.filter_by(documento=documento).order_by(SaleClient.id.desc()).first()
+    if cliente:
+        return jsonify({'encontrado': True, 'nombre': cliente.nombre, 'telefono': cliente.telefono})
+    return jsonify({'encontrado': False})
 
 @celulares_bp.route('/venta', methods=['GET', 'POST'])
 @login_required
@@ -392,18 +328,28 @@ def arqueo_nuevo():
     
     total_efectivo = Decimal('0')
     total_transferencia = Decimal('0')
+    total_retomas = Decimal('0')
     for v in ventas_del_dia:
         if v.pagos:
             for pago in v.pagos:
                 if pago.metodo_pago == 'efectivo':
                     total_efectivo += pago.monto
+                elif pago.metodo_pago == 'retoma':
+                    total_retomas += pago.monto
                 else:
                     total_transferencia += pago.monto
         else:
             if v.metodo_pago == 'efectivo':
                 total_efectivo += v.monto_total
-            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata']:
+            elif v.metodo_pago == 'retoma':
+                total_retomas += v.monto_total
+            elif v.metodo_pago in ['addi', 'sitecredito', 'bancolombia', 'davivienda', 'tarjeta_credito', 'transferencia']:
                 total_transferencia += v.monto_total
+
+        # Sumar retomas registradas en la nueva tabla (como descuento)
+        if getattr(v, 'retomas_asociadas', None):
+            for retoma in v.retomas_asociadas:
+                total_retomas += retoma.valor_retoma
 
     # Verificar si ya existe un arqueo de CELULARES para esa fecha
     arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='celulares').first()
@@ -422,7 +368,8 @@ def arqueo_nuevo():
             total_efectivo_sistema=total_efectivo,
             total_transferencia_sistema=total_transferencia,
             total_unidades_ch=Decimal('0.00'),
-            total_celulares=Decimal('0.00')
+            total_celulares=Decimal('0.00'),
+            total_retomas_sistema=total_retomas
         )
 
         try:
@@ -492,4 +439,147 @@ def arqueo_reporte():
         fecha_generacion=fecha_generacion,
         ventas_periodo=ventas_periodo
     )
+
+import pandas as pd
+import io
+
+@celulares_bp.route('/descargar_plantilla')
+@login_required
+@admin_required
+def descargar_plantilla():
+    # Definir las cabeceras exactas
+    columnas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
+    df = pd.DataFrame(columns=columnas)
+    
+    # Crear un buffer en memoria
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Plantilla Celulares')
+    
+    output.seek(0)
+    return send_file(output, download_name='plantilla_celulares.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@celulares_bp.route('/importar_excel', methods=['POST'])
+@login_required
+@admin_required
+def importar_excel():
+    if 'archivo_excel' not in request.files:
+        flash('No se subió ningún archivo.', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+        
+    file = request.files['archivo_excel']
+    if file.filename == '':
+        flash('El archivo está vacío.', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+        
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        flash('Formato de archivo no válido. Debe ser Excel (.xlsx o .xls).', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+        
+    try:
+        df = pd.read_excel(file)
+        # Limpiar nombres de columnas (quitar espacios extra y pasarlas a mayúsculas)
+        df.columns = df.columns.str.strip().str.upper()
+        
+        columnas_esperadas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
+        
+        for col in columnas_esperadas:
+            if col not in df.columns:
+                flash(f'El archivo no tiene la columna requerida: {col}', 'danger')
+                return redirect(url_for('celulares_bp.inventario'))
+                
+        # Limpiar NaNs
+        df = df.fillna('')
+        
+        exitosos = 0
+        omitidos = 0
+        
+        for index, row in df.iterrows():
+            imei1 = str(row['IMEI 1']).strip()
+            # Si el IMEI está vacío, omitimos la fila
+            if not imei1:
+                continue
+                
+            # Limpiamos decimales en caso de que pandas haya leido el IMEI como float e.g. 123456.0
+            if imei1.endswith('.0'):
+                imei1 = imei1[:-2]
+                
+            # Verificar si existe el IMEI
+            existente = Product.query.filter_by(imei=imei1, tipo_inventario='celulares').first()
+            if existente:
+                omitidos += 1
+                continue
+                
+            marca = str(row['MARCA']).strip()
+            referencia = str(row['REFERENCIA']).strip()
+            memoria = str(row['CAPACIDAD']).strip()
+            bateria_raw = str(row['BATERIA']).strip()
+            bateria = bateria_raw
+            if bateria_raw:
+                if not bateria_raw.endswith('%'):
+                    try:
+                        val = float(bateria_raw)
+                        if val <= 1.0 and val > 0:
+                            bateria = f"{int(val * 100)}%"
+                        else:
+                            bateria = f"{int(val)}%"
+                    except ValueError:
+                        pass
+            color = str(row['COLOR']).strip()
+            
+            imei2 = str(row['IMEI 2']).strip()
+            if imei2.endswith('.0'):
+                imei2 = imei2[:-2]
+                
+            proveedor = str(row['PROVEEDOR']).strip()
+            
+            # Limpiar precios (quitar $ y comas/puntos si vienen como texto)
+            def clean_price(val):
+                val = str(val).strip().replace('$', '').replace(',', '').replace(' ', '')
+                try:
+                    return float(val) if val else 0.0
+                except:
+                    return 0.0
+                    
+            costo = clean_price(row['COSTO'])
+            minimo = clean_price(row['P. MINIMO'])
+            sugerido = clean_price(row['P. SUGERIDO'])
+            
+            nombre_completo = f"Celular {marca} {referencia} {color} {memoria}".strip()
+            sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S%f')}" # %f para evitar skus duplicados en el mismo segundo
+            
+            nuevo = Product(
+                nombre=nombre_completo,
+                sku=sku_base,
+                tipo_inventario='celulares',
+                cantidad_stock=1,
+                precio_costo=costo,
+                precio_minimo=minimo,
+                precio_sugerido=sugerido,
+                marca=marca,
+                modelo_celular=referencia,
+                color=color,
+                bateria=bateria,
+                memoria=memoria,
+                imei=imei1,
+                imei2=imei2,
+                proveedor=proveedor
+            )
+            
+            db.session.add(nuevo)
+            exitosos += 1
+            
+        db.session.commit()
+        
+        mensaje = f'Carga Masiva completada: {exitosos} equipos subidos exitosamente.'
+        if omitidos > 0:
+            mensaje += f' Se omitieron {omitidos} equipos porque el IMEI 1 ya existía en el sistema.'
+            
+        flash(mensaje, 'success' if exitosos > 0 else 'warning')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ocurrió un error procesando el Excel: {str(e)}', 'danger')
+        
+    return redirect(url_for('celulares_bp.inventario'))
 

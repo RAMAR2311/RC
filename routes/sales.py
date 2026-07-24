@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -185,6 +185,15 @@ def procesar_venta():
                 
                 monto_total += (precio_venta_final * cantidad_vendida)
 
+        # Manejar información de Retoma (ahora es un descuento sobre el monto total)
+        retoma_info = data.get('retoma_data')
+        monto_retoma = Decimal('0.00')
+        if retoma_info:
+            monto_retoma = Decimal(str(retoma_info.get('valor_retoma', 0)))
+            if monto_retoma <= 0:
+                raise ValueError("El monto acreditado por la retoma debe ser mayor a 0.")
+            monto_total = max(Decimal('0.00'), monto_total - monto_retoma)
+
         nueva_venta.monto_total = monto_total
 
         # Registrar los pagos mixtos en la tabla sale_payments
@@ -200,6 +209,8 @@ def procesar_venta():
                 monto_pago = Decimal(str(monto_pago))
             
             if monto_pago <= 0:
+                if monto_total == 0:
+                    continue # Salto el pago si el total a pagar es 0 (ej. cubierto 100% por retoma)
                 raise ValueError(f"El monto del pago por '{metodo}' debe ser mayor a 0.")
             
             pago = SalePayment(
@@ -213,6 +224,29 @@ def procesar_venta():
         # Validar que la suma de pagos cubra el total de la venta
         if total_pagos != monto_total:
             raise ValueError(f"La suma de los pagos (${total_pagos}) no coincide con el total de la venta (${monto_total}). Diferencia: ${monto_total - total_pagos}.")
+
+        # Crear el registro de Retoma si aplica
+        if retoma_info:
+            # Note: Retoma expects usuario_id, not vendedor_id (as defined in models.py)
+            retoma_registro = Retoma(
+                sale_id=nueva_venta.id,
+                modelo=retoma_info.get('modelo', '').strip(),
+                marca=retoma_info.get('marca', '').strip(),
+                proveedor='Cliente',
+                valor_retoma=monto_retoma,
+                imei1=retoma_info.get('imei1', '').strip(),
+                imei2=retoma_info.get('imei2', '').strip(),
+                color=retoma_info.get('color', '').strip(),
+                bateria=retoma_info.get('bateria', '').strip(),
+                memoria=retoma_info.get('memoria', '').strip(),
+                observaciones=retoma_info.get('observaciones', '').strip(),
+                vendedor_id=current_user.id
+            )
+            
+            if not retoma_registro.modelo or not retoma_registro.imei1:
+                raise ValueError("El modelo y el IMEI 1 son obligatorios para la retoma.")
+                
+            db.session.add(retoma_registro)
 
         # Guardar datos del cliente si se vendió un celular
         cliente_data = data.get('cliente')
@@ -246,7 +280,14 @@ def procesar_venta():
 @sales_bp.route('/api/producto/<path:sku>', methods=['GET'])
 @login_required
 def api_buscar_producto(sku):
-    producto = Product.query.filter(Product.sku == sku, Product.tipo_inventario.in_(['tienda', 'celulares'])).first()
+    producto = Product.query.filter(
+        Product.tipo_inventario.in_(['tienda', 'celulares', 'externos']),
+        or_(
+            Product.sku == sku,
+            Product.imei == sku,
+            Product.imei2 == sku
+        )
+    ).first()
     auto_select_variant = None
     
     if not producto:
@@ -317,6 +358,7 @@ def historial():
     total_bancolombia = Decimal('0')
     total_daviplata = Decimal('0')
     total_transferencia_legacy = Decimal('0')
+    total_retomas = Decimal('0')
     total_mixto = 0  # Contador de ventas con pago mixto
 
     for v in ventas:
@@ -332,6 +374,8 @@ def historial():
                     total_daviplata += pago.monto
                 elif pago.metodo_pago == 'transferencia':
                     total_transferencia_legacy += pago.monto
+                elif pago.metodo_pago == 'retoma':
+                    total_retomas += pago.monto
             if len(v.pagos) > 1:
                 total_mixto += 1
         else:  # Retrocompatibilidad con ventas antiguas sin SalePayment
@@ -345,6 +389,8 @@ def historial():
                 total_daviplata += v.monto_total
             elif v.metodo_pago == 'transferencia':
                 total_transferencia_legacy += v.monto_total
+            elif v.metodo_pago == 'retoma':
+                total_retomas += v.monto_total
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
@@ -354,6 +400,7 @@ def historial():
                            total_bancolombia=total_bancolombia,
                            total_daviplata=total_daviplata,
                            total_transferencia_legacy=total_transferencia_legacy,
+                           total_retomas=total_retomas,
                            total_mixto=total_mixto,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
@@ -447,11 +494,21 @@ def eliminar_venta(sale_id):
                     )
                     db.session.add(ajuste)
                     
+        # Verificar y eliminar Retomas asociadas
+        if hasattr(venta, 'retomas_asociadas') and venta.retomas_asociadas:
+            for retoma in venta.retomas_asociadas:
+                if retoma.estado == 'aprobado':
+                    raise ValueError("No se puede anular la venta porque tiene una retoma asociada que ya fue aprobada e ingresada al inventario.")
+                db.session.delete(retoma)
+
         # Eliminar Venta y Detalles (Cascada)
         db.session.delete(venta)
         db.session.commit()
         flash('Venta anulada y stock devuelto exitosamente.', 'success')
         
+    except ValueError as ve:
+        db.session.rollback()
+        flash(str(ve), 'warning')
     except Exception as e:
         db.session.rollback()
         flash('Ocurrió un error al anular la venta.', 'danger')

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Clientes de Celulares - cases.com{% endblock %}
+{% block title %}Clientes de Celulares - redcover.com{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -28,6 +28,7 @@
                             <th>Contacto</th>
                             <th>Equipo Adquirido</th>
                             <th>Fecha y Venta</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,6 +58,13 @@
                                 <div class="small text-muted">{{ cliente.venta.fecha_venta.strftime('%I:%M %p') }}</div>
                                 <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=cliente.sale_id) }}" target="_blank" class="badge bg-primary text-decoration-none mt-1">
                                     Factura #{{ cliente.sale_id }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('celulares_bp.detalle_cliente', documento=cliente.documento) }}"
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                   title="Ver historial completo">
+                                    <i class="fa-solid fa-eye me-1"></i> Detalle
                                 </a>
                             </td>
                         </tr>

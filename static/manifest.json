@@ -1,6 +1,6 @@
 {
-    "name": "Cases App",
-    "short_name": "Cases",
+    "name": "Red Cover App",
+    "short_name": "Red Cover",
     "description": "Sistema de gestión y punto de venta web",
     "start_url": "/",
     "display": "standalone",

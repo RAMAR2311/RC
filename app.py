@@ -15,7 +15,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
     
     # Para la conexión a PostgreSQL, psycopg2 es el default de SQLALchemy al usar postgresql://
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/crm_cases')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/RC')
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
@@ -57,6 +57,14 @@ def create_app():
     # Registro de Blueprint Celulares
     from routes.celulares import celulares_bp
     app.register_blueprint(celulares_bp, url_prefix='/celulares')
+
+    # Registro de Blueprint Externos
+    from routes.externos import externos_bp
+    app.register_blueprint(externos_bp, url_prefix='/externos')
+
+    # Registro de Blueprint Retomas
+    from routes.retomas import retomas_bp
+    app.register_blueprint(retomas_bp, url_prefix='/retomas')
 
 
     @app.template_filter('cop')
@@ -106,15 +114,15 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         
         # Verificamos e instanciamos al Administrador si no existe
-        if not User.query.filter_by(email='admin@cases.com').first():
+        if not User.query.filter_by(email='admin@redcover.com').first():
             master_admin = User(
                 nombre='Administrador Principal',
-                email='admin@cases.com',
+                email='admin@redcover.com',
                 password_hash=generate_password_hash('Admin123'),
                 rol='admin' # Rol dictaminado por los requerimientos
             )
             db.session.add(master_admin)
             db.session.commit()
-            print("🚀 [INFO] Usuario maestro 'admin@cases.com' fue creado automáticamente.")
+            print("🚀 [INFO] Usuario maestro 'admin@redcover.com' fue creado automáticamente.")
             
     app.run(debug=True)

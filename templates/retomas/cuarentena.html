@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-recycle text-brand-pink me-2"></i> Registro de Retomas</h2>
+</div>
+
+<!-- Barra de Búsqueda -->
+<form method="GET" action="{{ url_for('retomas_bp.cuarentena') }}" id="filtroForm" class="mb-4">
+    <div class="input-group shadow-sm" style="max-width: 480px;">
+        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+        <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
+               placeholder="Buscar por IMEI, Marca, Modelo..."
+               value="{{ q }}">
+        {% if q %}
+        <a href="{{ url_for('retomas_bp.cuarentena') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+        {% endif %}
+    </div>
+</form>
+
+<div class="card card-custom p-0 shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
+            <thead class="bg-light text-nowrap" style="font-size: 0.8rem;">
+                <tr>
+                    <th class="ps-3 py-2 text-start">MARCA</th>
+                    <th class="py-2 text-start">REFERENCIA</th>
+                    <th class="py-2">CAP.</th>
+                    <th class="py-2">BAT.</th>
+                    <th class="py-2">COLOR</th>
+                    <th class="py-2">IMEI</th>
+                    <th class="py-2">IMEI 2</th>
+                    <th class="py-2">PROVEEDOR</th>
+                    <th class="py-2">FECHA</th>
+                    <th class="py-2">VALOR RETOMA</th>
+                    <th class="pe-3 py-2 text-center">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody class="text-nowrap">
+                {% for r in retomas %}
+                <tr>
+                    <td class="ps-3 fw-bold text-dark text-start">{{ r.marca or '-' }}</td>
+                    <td class="fw-semibold text-start">{{ r.modelo or '-' }}</td>
+                    <td>{{ r.memoria or '-' }}</td>
+                    <td>{{ r.bateria or '-' }}</td>
+                    <td>{{ r.color or '-' }}</td>
+                    <td class="text-muted">{{ r.imei1 or '-' }}</td>
+                    <td class="text-muted">{{ r.imei2 or '-' }}</td>
+                    <td class="text-truncate" style="max-width: 100px;" title="{{ r.proveedor or 'Cliente' }}">{{ r.proveedor or 'Cliente' }}</td>
+                    <td>{{ r.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-success fw-bold">${{ r.valor_retoma|cop }}</td>
+                    <td class="pe-3 text-center">
+                        {% if r.estado == 'aprobado' %}
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                <span class="badge bg-success rounded-pill shadow-sm"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                                {% if r.observaciones %}
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalObs{{ r.id }}"
+                                        title="Ver Observación">
+                                    <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold shadow-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalAprobar{{ r.id }}"
+                                        title="Pasar al Inventario">
+                                    <i class="fa-solid fa-boxes-packing" style="font-size: 0.8rem;"></i>
+                                </button>
+                                {% if r.observaciones %}
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalObs{{ r.id }}"
+                                        title="Ver Observación">
+                                    <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- Modal Aprobar/Pasar al Inventario -->
+                            <div class="modal fade text-start" id="modalAprobar{{ r.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-header bg-primary text-white border-0">
+                                            <h5 class="modal-title fw-bold"><i class="fa-solid fa-boxes-packing me-2"></i> Ingresar al Inventario</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ url_for('retomas_bp.aprobar_retoma', id=r.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <div class="modal-body p-4">
+                                                <div class="alert alert-info border-0 small py-2 mb-4">
+                                                    Al confirmar, este equipo se convertirá en un producto disponible para la venta en el módulo de celulares.
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Nombre Definitivo (Visible en Venta)</label>
+                                                    <input type="text" name="nombre_definitivo" class="form-control bg-light" value="{{ (r.marca or '') + ' ' + r.modelo + ' (Usado)' }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Costo de Retoma (Info)</label>
+                                                    <input type="text" class="form-control bg-light" value="${{ r.valor_retoma|cop }}" readonly>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-bold">Precio Sugerido Venta</label>
+                                                        <input type="text" name="precio_sugerido" class="form-control bg-light format-price" value="{{ r.valor_retoma|int + 50000 }}" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-bold">Precio Mínimo Permitido</label>
+                                                        <input type="text" name="precio_minimo" class="form-control bg-light format-price" value="{{ r.valor_retoma|int }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 bg-light">
+                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="cleanPrices(this.form)"><i class="fa-solid fa-check me-1"></i> Confirmar Ingreso</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Modal Observación (visible para todos los estados) -->
+                        {% if r.observaciones %}
+                        <div class="modal fade text-start" id="modalObs{{ r.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header bg-dark text-white border-0 py-2">
+                                        <h6 class="modal-title fw-bold"><i class="fa-solid fa-comment-dots me-2"></i>Observación</h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body p-3">
+                                        <p class="mb-1 small text-muted"><strong>{{ (r.marca or '') }} {{ r.modelo }}</strong> · {{ r.imei1 }}</p>
+                                        <hr class="my-2">
+                                        <p class="mb-0" style="white-space: pre-wrap;">{{ r.observaciones }}</p>
+                                    </div>
+                                    <div class="modal-footer border-0 py-2">
+                                        <button class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-folder-open fs-3 mb-2 opacity-50"></i>
+                        <p class="mb-0">No hay retomas registradas para este rango de fechas.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if paginacion.pages > 1 %}
+<nav aria-label="Paginación de retomas" class="mt-4">
+    <ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
+        <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+            <a class="page-link rounded-pill px-3 shadow-sm"
+               href="{% if paginacion.has_prev %}{{ url_for('retomas_bp.cuarentena', page=paginacion.prev_num, q=q) }}{% else %}#{% endif %}"
+               aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></a>
+        </li>
+        {% for p_num in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+            {% if p_num %}
+                <li class="page-item {% if p_num == paginacion.page %}active{% endif %}">
+                    <a class="page-link rounded-pill px-3 shadow-sm"
+                       href="{{ url_for('retomas_bp.cuarentena', page=p_num, q=q) }}">{{ p_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link rounded-pill px-3">…</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+            <a class="page-link rounded-pill px-3 shadow-sm"
+               href="{% if paginacion.has_next %}{{ url_for('retomas_bp.cuarentena', page=paginacion.next_num, q=q) }}{% else %}#{% endif %}"
+               aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    // Search: submit form on typing (debounced)
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            document.getElementById('filtroForm').submit();
+        }, 500);
+    });
+
+    // Price formatter
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price')) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value !== '') {
+                e.target.value = parseInt(value, 10).toLocaleString('es-CO');
+            } else {
+                e.target.value = '';
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.format-price').forEach(input => {
+            if (input.value) {
+                let value = input.value.replace(/\D/g, '');
+                input.value = parseInt(value, 10).toLocaleString('es-CO');
+            }
+        });
+    });
+
+    function cleanPrices(form) {
+        form.querySelectorAll('.format-price').forEach(input => {
+            input.value = input.value.replace(/\D/g, '');
+        });
+    }
+</script>
+{% endblock %}

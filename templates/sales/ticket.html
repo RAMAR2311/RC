@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket de Compra #{{ venta.id }} - cases.com</title>
+    <title>Ticket de Compra #{{ venta.id }} - redcover.com</title>
     <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 80mm) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -128,7 +128,7 @@
 
 <div class="ticket">
     <div class="header">
-        <h1 class="logo">cases.com</h1>
+        <h1 class="logo">redcover.com</h1>
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
@@ -141,6 +141,14 @@
                 Método de Pago: {{ venta.metodo_pago|upper }}
             {% endif %}
         </p>
+        {% if venta.cliente %}
+        <div style="border-top: 1px dashed #1A1A1A; margin-top: 8px; padding-top: 8px; text-align: left;">
+            <p class="info" style="font-weight: bold; margin-bottom: 2px; text-transform: uppercase; font-size: 0.8rem;">Datos del Cliente:</p>
+            <p class="info">Nombre: {{ venta.cliente.nombre }}</p>
+            <p class="info">Documento: {{ venta.cliente.documento }}</p>
+            <p class="info">Teléfono: {{ venta.cliente.telefono }}</p>
+        </div>
+        {% endif %}
     </div>
 
     <table class="table-items">
@@ -164,6 +172,16 @@
                         {% if detalle.variante %}
                             <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
                         {% endif %}
+                        {% if detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
+                            <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
+                                {% if detalle.producto.memoria %}Cap: {{ detalle.producto.memoria }} {% endif %}
+                                {% if detalle.producto.bateria %}Bat: {{ detalle.producto.bateria }}% {% endif %}
+                                {% if detalle.producto.color %}Col: {{ detalle.producto.color }}{% endif %}
+                                {% if detalle.producto.imei or detalle.producto.imei2 %}<br>{% endif %}
+                                {% if detalle.producto.imei %}IMEI 1: {{ detalle.producto.imei }}{% endif %}
+                                {% if detalle.producto.imei2 %}| IMEI 2: {{ detalle.producto.imei2 }}{% endif %}
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </td>
                 <td class="col-sub">
@@ -179,6 +197,30 @@
     </table>
 
     <div class="totals">
+        {% set ns = namespace(subtotal=venta.monto_total) %}
+        {% for retoma in venta.retomas_asociadas %}
+            {% set ns.subtotal = ns.subtotal + retoma.valor_retoma %}
+        {% endfor %}
+        
+        {% if venta.retomas_asociadas %}
+        <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">
+            <span>SUBTOTAL:</span>
+            <span>${{ ns.subtotal|cop }}</span>
+        </div>
+        
+        <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
+            <p style="font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;">EQUIPOS EN RETOMA (DESCUENTO):</p>
+            {% for retoma in venta.retomas_asociadas %}
+            <div style="font-size: 0.85rem; padding: 3px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>{{ retoma.modelo }} (IMEI: {{ retoma.imei1 }})</span>
+                    <span style="font-weight: 700;">-${{ retoma.valor_retoma|cop }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="total-row">
             <span>TOTAL:</span>
             <span>${{ (venta.monto_total)|cop }}</span>
@@ -201,7 +243,7 @@
     <div class="footer">
         <p style="font-size: 1rem; font-weight: bold;">¡Gracias por tu compra!</p>
         <p>Políticas de Tienda: Devoluciones únicamente presentando ticket impreso o digital.</p>
-        <p>Soporte: ventas@cases.com</p>
+        <p>Soporte: ventas@redcover.com</p>
     </div>
 
     <button class="btn-print" onclick="window.print()">

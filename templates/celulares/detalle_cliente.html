@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Cliente - {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{{ url_for('celulares_bp.clientes') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="fa-solid fa-arrow-left me-1"></i> Volver
+    </a>
+    <div>
+        <h2 class="fw-bold m-0 text-brand-black"><i class="fa-solid fa-user-circle text-brand-blue me-2"></i>{{ cliente.nombre }}</h2>
+        <span class="text-muted small"><i class="fa-regular fa-id-card me-1"></i> CC: {{ cliente.documento }} &nbsp;·&nbsp; <i class="fa-solid fa-phone me-1"></i>{{ cliente.telefono }}</span>
+    </div>
+    <a href="https://wa.me/57{{ cliente.telefono|replace(' ', '') }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 ms-auto">
+        <i class="fa-brands fa-whatsapp me-1"></i> Contactar
+    </a>
+</div>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+            <div class="fs-1 fw-bold text-brand-blue">{{ registros|length }}</div>
+            <div class="text-muted small">Compras Registradas</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+            <div class="fs-1 fw-bold text-success">${{ registros | sum(attribute='1.precio_venta_final') | cop }}</div>
+            <div class="text-muted small">Total Gastado</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+            <div class="fs-1 fw-bold text-dark">{{ registros[0][0].venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+            <div class="text-muted small">Última Compra</div>
+        </div>
+    </div>
+</div>
+
+<!-- Historial de Compras -->
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 py-3 ps-4">
+        <h5 class="fw-bold m-0"><i class="fa-solid fa-clock-rotate-left me-2 text-brand-blue"></i>Historial de Facturas</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Factura</th>
+                    <th>Producto</th>
+                    <th>Fecha</th>
+                    <th class="text-end pe-4">Total</th>
+                    <th class="text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente_rec, detalle in registros %}
+                <tr>
+                    <td class="ps-4">
+                        <span class="badge bg-primary rounded-pill">#{{ cliente_rec.sale_id }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ detalle.producto.nombre }}</div>
+                        {% if detalle.producto.imei %}
+                        <div class="small text-muted">IMEI: {{ detalle.producto.imei }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div>{{ cliente_rec.venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+                        <div class="small text-muted">{{ cliente_rec.venta.fecha_venta.strftime('%I:%M %p') }}</div>
+                    </td>
+                    <td class="text-end pe-4 fw-bold text-success">${{ detalle.precio_venta_final|cop }}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=cliente_rec.sale_id) }}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="fa-solid fa-receipt me-1"></i> Ver Factura
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No hay facturas registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

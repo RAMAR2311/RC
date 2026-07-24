@@ -217,10 +217,12 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Medio de Pago</label>
                             <select name="metodo_pago" class="form-select bg-light border-0" required>
-                                <option value="efectivo">💵 Efectivo Físico</option>
-                                <option value="nequi">📱 Nequi</option>
+                                <option value="addi">🛍️ Addi</option>
+                                <option value="sitecredito">💳 Sitecredito</option>
                                 <option value="bancolombia">🏦 Bancolombia</option>
-                                <option value="daviplata">📱 Daviplata</option>
+                                <option value="davivienda">🏦 Davivienda</option>
+                                <option value="efectivo">💵 Efectivo Físico</option>
+                                <option value="tarjeta_credito">💳 Tarjeta Crédito</option>
                                 <option value="transferencia">🏦 Otra Transferencia</option>
                             </select>
                         </div>
@@ -341,10 +343,12 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Medio de Pago</label>
                         <select name="metodo_pago" class="form-select bg-light border-0" required>
-                            <option value="efectivo">💵 Efectivo Físico</option>
-                            <option value="nequi">📱 Nequi</option>
+                            <option value="addi">🛍️ Addi</option>
+                            <option value="sitecredito">💳 Sitecredito</option>
                             <option value="bancolombia">🏦 Bancolombia</option>
-                            <option value="daviplata">📱 Daviplata</option>
+                            <option value="davivienda">🏦 Davivienda</option>
+                            <option value="efectivo">💵 Efectivo Físico</option>
+                            <option value="tarjeta_credito">💳 Tarjeta Crédito</option>
                             <option value="transferencia">🏦 Otra Transferencia</option>
                         </select>
                     </div>
@@ -391,10 +395,12 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Medio de Pago</label>
                         <select name="metodo_pago" class="form-select bg-light border-0" required>
-                            <option value="efectivo" {% if abono.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo Físico</option>
-                            <option value="nequi" {% if abono.metodo_pago == 'nequi' %}selected{% endif %}>📱 Nequi</option>
+                            <option value="addi" {% if abono.metodo_pago == 'addi' %}selected{% endif %}>🛍️ Addi</option>
+                            <option value="sitecredito" {% if abono.metodo_pago == 'sitecredito' %}selected{% endif %}>💳 Sitecredito</option>
                             <option value="bancolombia" {% if abono.metodo_pago == 'bancolombia' %}selected{% endif %}>🏦 Bancolombia</option>
-                            <option value="daviplata" {% if abono.metodo_pago == 'daviplata' %}selected{% endif %}>📱 Daviplata</option>
+                            <option value="davivienda" {% if abono.metodo_pago == 'davivienda' %}selected{% endif %}>🏦 Davivienda</option>
+                            <option value="efectivo" {% if abono.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo Físico</option>
+                            <option value="tarjeta_credito" {% if abono.metodo_pago == 'tarjeta_credito' %}selected{% endif %}>💳 Tarjeta Crédito</option>
                             <option value="transferencia" {% if abono.metodo_pago == 'transferencia' %}selected{% endif %}>🏦 Otra Transferencia</option>
                         </select>
                     </div>
