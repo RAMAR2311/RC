@@ -31,13 +31,13 @@
     </div>
     <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-            <div class="fs-1 fw-bold text-success">${{ registros | sum(attribute='1.precio_venta_final') | cop }}</div>
+            <div class="fs-1 fw-bold text-success">${{ registros | sum(attribute='venta.monto_total') | cop }}</div>
             <div class="text-muted small">Total Gastado</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
-            <div class="fs-1 fw-bold text-dark">{{ registros[0][0].venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+            <div class="fs-1 fw-bold text-dark">{{ registros[0].venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
             <div class="text-muted small">Última Compra</div>
         </div>
     </div>
@@ -60,28 +60,75 @@
                 </tr>
             </thead>
             <tbody>
-                {% for cliente_rec, detalle in registros %}
-                <tr>
+                {% for cliente_rec in registros %}
+                <tr class="fw-semibold">
                     <td class="ps-4">
+                        <button class="btn btn-sm btn-light rounded-circle me-2 d-inline-flex align-items-center justify-content-center toggle-details-btn" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#details-{{ cliente_rec.sale_id }}" 
+                                aria-expanded="false" 
+                                style="width: 28px; height: 28px;">
+                            <i class="fa-solid fa-chevron-down transition-transform" style="font-size: 0.75rem;"></i>
+                        </button>
                         <span class="badge bg-primary rounded-pill">#{{ cliente_rec.sale_id }}</span>
                     </td>
                     <td>
-                        <div class="fw-semibold">{{ detalle.producto.nombre }}</div>
-                        {% if detalle.producto.imei %}
-                        <div class="small text-muted">IMEI: {{ detalle.producto.imei }}</div>
+                        {% if cliente_rec.venta.detalles|length == 1 %}
+                            {{ cliente_rec.venta.detalles[0].producto.nombre if cliente_rec.venta.detalles[0].producto else (cliente_rec.venta.detalles[0].nombre_manual or 'Producto') }}
+                        {% else %}
+                            <span class="text-brand-pink">{{ cliente_rec.venta.detalles|length }} Productos</span>
                         {% endif %}
                     </td>
                     <td>
                         <div>{{ cliente_rec.venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
                         <div class="small text-muted">{{ cliente_rec.venta.fecha_venta.strftime('%I:%M %p') }}</div>
                     </td>
-                    <td class="text-end pe-4 fw-bold text-success">${{ detalle.precio_venta_final|cop }}</td>
+                    <td class="text-end pe-4 fw-bold text-success">${{ cliente_rec.venta.monto_total|cop }}</td>
                     <td class="text-center">
                         <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=cliente_rec.sale_id) }}"
                            target="_blank"
                            class="btn btn-sm btn-outline-primary rounded-pill px-3">
                             <i class="fa-solid fa-receipt me-1"></i> Ver Factura
                         </a>
+                    </td>
+                </tr>
+                
+                <!-- Fila de colapso con el desglose de productos -->
+                <tr>
+                    <td colspan="5" class="p-0 border-0">
+                        <div class="collapse bg-light bg-opacity-50 px-4 py-3 border-bottom" id="details-{{ cliente_rec.sale_id }}">
+                            <h6 class="fw-bold mb-2 text-secondary small"><i class="fa-solid fa-boxes-stacked me-1"></i> Desglose de Productos Comprados:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0 bg-white" style="font-size: 0.82rem;">
+                                    <thead class="table-light text-muted">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th width="15%" class="text-center">Cantidad</th>
+                                            <th width="25%" class="text-end">Precio Unitario</th>
+                                            <th width="25%" class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detalle in cliente_rec.venta.detalles %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    {{ detalle.producto.nombre if detalle.producto else (detalle.nombre_manual or 'N/A') }}
+                                                </div>
+                                                {% if detalle.producto and detalle.producto.imei %}
+                                                <div class="small text-muted text-uppercase" style="font-size: 0.72rem;">IMEI: {{ detalle.producto.imei }}</div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">{{ detalle.cantidad_vendida }}</td>
+                                            <td class="text-end">${{ detalle.precio_venta_final|cop }}</td>
+                                            <td class="text-end fw-bold">${{ (detalle.precio_venta_final * detalle.cantidad_vendida)|cop }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
@@ -93,4 +140,13 @@
         </table>
     </div>
 </div>
+
+<style>
+    .toggle-details-btn[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+    .transition-transform {
+        transition: transform 0.2s ease-in-out;
+    }
+</style>
 {% endblock %}

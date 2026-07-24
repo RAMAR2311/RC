@@ -228,17 +228,13 @@ def clientes():
 @login_required
 @admin_required
 def detalle_cliente(documento):
-    from models import SaleClient, SaleDetail, SalePayment
-    # All sales for this client document
-    registros = db.session.query(SaleClient, SaleDetail)\
-        .join(Sale, SaleClient.sale_id == Sale.id)\
-        .join(SaleDetail, Sale.id == SaleDetail.sale_id)\
-        .filter(SaleClient.documento == documento)\
-        .order_by(SaleClient.id.desc()).all()
+    from models import SaleClient
+    # Obtener todas las compras asociadas a este documento
+    registros = SaleClient.query.filter_by(documento=documento).order_by(SaleClient.id.desc()).all()
     if not registros:
         flash('Cliente no encontrado.', 'warning')
         return redirect(url_for('celulares_bp.clientes'))
-    cliente_info = registros[0][0]  # First SaleClient record for name/phone
+    cliente_info = registros[0]
     return render_template('celulares/detalle_cliente.html',
                            cliente=cliente_info,
                            registros=registros)
