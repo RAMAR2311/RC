@@ -38,7 +38,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted fw-bold mb-1" style="font-size: 0.8rem;">EFECTIVO SISTEMA</h6>
-                                <h4 class="fw-bolder text-success mb-0">${{ (total_efectivo - total_general_ch - total_celulares)|cop }}</h4>
+                                <h4 class="fw-bolder text-success mb-0">${{ total_efectivo|cop }}</h4>
                             </div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
                     <label class="form-label text-muted fw-bold small mb-1">Efectivo Sistema (Esperado)</label>
                     <div class="input-group mb-2 shadow-sm">
                         <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-money-bill-wave"></i></span>
-                        <input type="text" class="form-control border-0 fw-bold bg-light" value="${{ (total_efectivo - total_general_ch - total_celulares)|cop }}" readonly disabled>
+                        <input type="text" class="form-control border-0 fw-bold bg-light" value="${{ total_efectivo|cop }}" readonly disabled>
                     </div>
 
                     <label class="form-label text-muted fw-bold small mb-1 mt-2">Digital Sistema</label>
@@ -228,7 +228,7 @@
         const btnGuardar = document.getElementById('btn_guardar');
 
         // Valores fijos del sistema
-        const efectivoSistema = parseFloat("{{ (total_efectivo - total_general_ch - total_celulares) }}") || 0;
+        const efectivoSistema = parseFloat("{{ total_efectivo }}") || 0;
 
         function formatCurrency(val) {
             return '$' + Math.abs(val).toLocaleString('es-CO');
