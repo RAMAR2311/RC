@@ -6,10 +6,19 @@
         <i class="fa-solid fa-cash-register text-brand-blue me-2"></i> Módulo de Arqueo y Cierre Diario
     </h2>
     
-    <!-- Seleccionador de Fecha -->
-    <form id="fechaForm" action="{{ url_for('arqueo_bp.nuevo') }}" method="GET" class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border">
-        <label for="fecha" class="fw-bold ms-3 me-2 text-muted small mb-0">Fecha:</label>
+    <!-- Seleccionador de Fecha y Local -->
+    <form id="fechaForm" action="{{ url_for('arqueo_bp.nuevo') }}" method="GET" class="d-flex align-items-center bg-white p-2 rounded-pill shadow-sm border gap-1">
+        <label for="fecha" class="fw-bold ms-3 me-1 text-muted small mb-0">Fecha:</label>
         <input type="date" id="fecha" name="fecha" value="{{ fecha }}" class="form-control form-control-sm border-0 bg-transparent fw-bold text-brand-black" onchange="this.form.submit()" required style="width: 140px; box-shadow: none;">
+
+        {% if current_user.rol == 'admin' %}
+        <span class="text-muted">|</span>
+        <label for="sucursal" class="fw-bold me-1 text-muted small mb-0">Local:</label>
+        <select name="sucursal" id="sucursal" class="form-select form-select-sm border-0 bg-transparent fw-bold text-brand-black" onchange="this.form.submit()" style="width: 130px; box-shadow: none; padding-right: 25px;">
+            <option value="LOCAL 136" {% if sucursal_seleccionada == 'LOCAL 136' %}selected{% endif %}>LOCAL 136</option>
+            <option value="LOCAL 137" {% if sucursal_seleccionada == 'LOCAL 137' %}selected{% endif %}>LOCAL 137</option>
+        </select>
+        {% endif %}
     </form>
 </div>
 
@@ -20,7 +29,7 @@
 </div>
 {% endif %}
 
-<form action="{{ url_for('arqueo_bp.nuevo') }}?fecha={{ fecha }}" method="POST" id="formArqueo">
+<form action="{{ url_for('arqueo_bp.nuevo') }}?fecha={{ fecha }}{% if current_user.rol == 'admin' %}&sucursal={{ sucursal_seleccionada }}{% endif %}" method="POST" id="formArqueo">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="row g-4">

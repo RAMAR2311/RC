@@ -129,11 +129,16 @@ def nuevo():
         fecha_seleccionada = obtener_hora_bogota().date()
         fecha_str = fecha_seleccionada.strftime('%Y-%m-%d')
 
+    # Determinar la sucursal a arqueár
+    sucursal_actual = current_user.sucursal
+    if current_user.rol == 'admin':
+        sucursal_actual = request.values.get('sucursal', current_user.sucursal)
+
     # Calcular ventas del día de la sucursal actual
     ventas_del_dia = Sale.query.filter(
         db.func.date(Sale.fecha_venta) == fecha_seleccionada,
         Sale.tipo_venta.in_(['general', 'celulares']),
-        Sale.sucursal == current_user.sucursal
+        Sale.sucursal == sucursal_actual
     ).order_by(Sale.fecha_venta.asc()).all()
     total_efectivo, total_transferencia, total_retomas = calcular_totales_dia(ventas_del_dia)
 
@@ -141,7 +146,7 @@ def nuevo():
     gastos_diarios_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
         Expense.tipo_gasto == 'Gasto Diario',
-        Expense.sucursal == current_user.sucursal
+        Expense.sucursal == sucursal_actual
     ).all()
     gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
 
@@ -149,17 +154,17 @@ def nuevo():
     gastos_externos_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
         Expense.categoria == 'Pago Prod. Externo',
-        Expense.sucursal == current_user.sucursal
+        Expense.sucursal == sucursal_actual
     ).all()
     gastos_externos = float(sum(g.monto for g in gastos_externos_registros))
 
     # Verificar si ya existe un arqueo para esa sucursal en esa fecha
-    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=current_user.sucursal).first()
+    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=sucursal_actual).first()
 
     if request.method == 'POST':
         # Doble verificación en el backend para evitar duplicados por concurrencia
-        if ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=current_user.sucursal).first():
-            flash('Ya existe un arqueo cerrado para esta fecha. No se puede duplicar.', 'warning')
+        if ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, tipo_arqueo='general', sucursal=sucursal_actual).first():
+            flash('Ya existe un arqueo cerrado para esta fecha y sucursal. No se puede duplicar.', 'warning')
             return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
 
         base_inicial = float(request.form.get('base_inicial', 0.0))
@@ -168,7 +173,7 @@ def nuevo():
         gastos_recalculados = Expense.query.filter(
             db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
             Expense.tipo_gasto == 'Gasto Diario',
-            Expense.sucursal == current_user.sucursal
+            Expense.sucursal == sucursal_actual
         ).all()
         gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
         
@@ -186,7 +191,7 @@ def nuevo():
             total_celulares=Decimal('0.00'),
             total_retomas_sistema=total_retomas,
             tipo_arqueo='general',
-            sucursal=current_user.sucursal
+            sucursal=sucursal_actual
         )
 
         try:
@@ -206,7 +211,8 @@ def nuevo():
         arqueo_existente=arqueo_existente,
         gastos_automaticos=gastos_automaticos,
         gastos_externos=gastos_externos,
-        ventas_del_dia=ventas_del_dia
+        ventas_del_dia=ventas_del_dia,
+        sucursal_seleccionada=sucursal_actual
     )
 
 @arqueo_bp.route('/reporte', methods=['GET'])
