@@ -20,7 +20,7 @@ def inventario():
     q = request.args.get('q', '').strip()
     estado = request.args.get('estado', 'activos').strip()
     page = request.args.get('page', 1, type=int)
-    per_page = 30
+    per_page = 20
 
     # Query for all celulares to calculate KPIs
     todos_celulares = Product.query.filter_by(tipo_inventario='celulares').all()

@@ -19,7 +19,7 @@ def obtener_hora_bogota():
 def inventario():
     q = request.args.get('q', '').strip()
     page = request.args.get('page', 1, type=int)
-    per_page = 30
+    per_page = 20
 
     base_query = Product.query.filter_by(tipo_inventario='externos')
 
