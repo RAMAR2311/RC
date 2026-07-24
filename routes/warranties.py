@@ -98,13 +98,12 @@ def create_warranty():
 
     product_id = int(product_id_str) if product_id_str != 'None' else None
 
-    warranty = Warranty(
-        sale_id=sale_id,
-        product_id=product_id,
-        nombre_manual=nombre_manual,
-        quantity=1,
-        reason=reason
-    )
+    warranty = Warranty()
+    warranty.sale_id = sale_id
+    warranty.product_id = product_id
+    warranty.nombre_manual = nombre_manual
+    warranty.quantity = 1
+    warranty.reason = reason
     db.session.add(warranty)
     db.session.commit()
 
