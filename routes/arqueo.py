@@ -282,8 +282,8 @@ def reporte():
     gastos_efectivo_query = gastos_efectivo_query.all()
     resumen['total_gastos_efectivo'] = sum(g.monto for g in gastos_efectivo_query)
 
-    # El efectivo esperado en caja descuenta gastos en EFECTIVO, celulares y CH
-    resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos_efectivo'] - resumen['total_unidades_ch'] - resumen['total_celulares']
+    # El efectivo esperado en caja descuenta gastos en EFECTIVO
+    resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos_efectivo']
 
     # Obtener todas las ventas del periodo para el detalle en la "tirilla" (unificado)
     ventas_query = Sale.query.filter(
