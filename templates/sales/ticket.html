@@ -116,8 +116,25 @@
 
         /* MEDIA QUERY DE IMPRESIÓN RIGUROSA: Las reglas CSS aquí omiten UI inútil al imprimir en papel */
         @media print {
+            @page {
+                size: auto;
+                margin: 0;
+            }
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+            }
             body { background-color: #FFFFFF; padding: 0; display: block; }
-            .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 80mm; border: none; }
+            .ticket { 
+                box-shadow: none; 
+                max-width: 100%; 
+                padding: 0; 
+                margin: 0 auto; 
+                width: 80mm; 
+                border: none;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
             .btn-print { display: none !important; }
             .d-print-none { display: none !important; }
             .total-row { background-color: transparent !important; border: none !important; padding: 10px 0 !important; }
@@ -249,6 +266,7 @@
             <strong>Políticas de Garantía:</strong> Equipos nuevos: garantía de 1 año. Equipos de exhibición: garantía de 8 meses. La remoción, rotura o alteración del sticker de seguridad de la tienda en el equipo anula automáticamente la garantía. No cubre equipos con garantía vencida, reportados por operador, IMEI o serial alterado, daños por golpes, caídas, humedad, líquidos, polvo, manipulación indebida, software modificado, instalaciones o actualizaciones no autorizadas, equipos intervenidos por terceros, pantallas despegadas, manchas negras, líneas en pantalla, rayones o cualquier daño físico. Para hacer efectiva la garantía es obligatorio presentar la factura original. El tiempo de revisión y diagnóstico es de 2 a 3 días hábiles. Si la garantía procede, se reemplazará la pieza defectuosa; si el equipo no puede ser reparado, se realizará el cambio del mismo. El tiempo máximo de reparación es de hasta 15 días hábiles, de conformidad con la Ley 1480 de 2011.
         </p>
         <p style="font-size: 0.8rem; margin-top: 5px;">Soporte: ventas@redcover.com</p>
+        <p style="font-size: 0.7rem; color: #666; margin-top: 10px; font-weight: bold;">Aliado tecnológico ZENIC SAS</p>
     </div>
 
     <div style="display: flex; gap: 10px;" class="d-print-none">
