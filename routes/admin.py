@@ -69,6 +69,41 @@ def eliminar_vendedor(id):
         
     return redirect(url_for('admin_bp.vendedores'))
 
+@admin_bp.route('/vendedores/<int:id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def editar_vendedor(id):
+    usuario = User.query.get_or_404(id)
+    if usuario.rol == 'admin':
+        flash("No puedes editar al administrador desde esta vista.", "danger")
+        return redirect(url_for('admin_bp.vendedores'))
+        
+    nombre = request.form.get('nombre')
+    telefono = request.form.get('telefono')
+    rol = request.form.get('rol')
+    sucursal = request.form.get('sucursal')
+    password = request.form.get('password')
+    
+    try:
+        if nombre:
+            usuario.nombre = nombre.strip()
+        if telefono is not None:
+            usuario.telefono = telefono.strip()
+        if rol:
+            usuario.rol = rol
+        if sucursal:
+            usuario.sucursal = sucursal
+        if password and password.strip():
+            usuario.password_hash = generate_password_hash(password)
+            
+        db.session.commit()
+        flash(f"¡Usuario '{usuario.nombre}' actualizado exitosamente!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Ocurrió un error al intentar actualizar el usuario.", "danger")
+        
+    return redirect(url_for('admin_bp.vendedores'))
+
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required

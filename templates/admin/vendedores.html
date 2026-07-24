@@ -108,7 +108,10 @@
                             <td class="text-center">
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 w-100">Activo</span>
                             </td>
-                            <td class="text-center pe-4">
+                            <td class="text-center pe-4 d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" title="Editar trabajador" data-bs-toggle="modal" data-bs-target="#editModal{{ vendedor.id }}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
                                 <form action="{{ url_for('admin_bp.eliminar_vendedor', id=vendedor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar a este trabajador? Esta acción no se puede deshacer.');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm" title="Eliminar trabajador">
@@ -117,6 +120,59 @@
                                 </form>
                             </td>
                         </tr>
+                        
+                        <!-- Edit Modal for {{ vendedor.nombre }} -->
+                        <div class="modal fade" id="editModal{{ vendedor.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ vendedor.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-light">
+                                        <h5 class="modal-title fw-bold text-brand-black" id="editModalLabel{{ vendedor.id }}">Editar Trabajador: {{ vendedor.nombre }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin_bp.editar_vendedor', id=vendedor.id) }}" method="POST">
+                                        <div class="modal-body text-start">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label text-brand-black fw-semibold small">Nombre Completo</label>
+                                                <input type="text" name="nombre" class="form-control bg-light border-0 py-2" value="{{ vendedor.nombre }}" required>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label text-brand-black fw-semibold small">Celular / Móvil de Contacto</label>
+                                                <input type="text" name="telefono" class="form-control bg-light border-0 py-2" value="{{ vendedor.telefono or '' }}">
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label text-brand-black fw-semibold small">Asignar Rol / Perfil</label>
+                                                <select name="rol" class="form-select bg-light border-0 py-2" required>
+                                                    <option value="vendedor" {% if vendedor.rol == 'vendedor' %}selected{% endif %}>Vendedor (Cajas/Tienda)</option>
+                                                    <option value="bodega" {% if vendedor.rol == 'bodega' %}selected{% endif %}>Encargado de Bodega</option>
+                                                    <option value="vendedor_bodega" {% if vendedor.rol == 'vendedor_bodega' %}selected{% endif %}>Vendedor de Bodega</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label text-brand-black fw-semibold small">Sucursal Asignada</label>
+                                                <select name="sucursal" class="form-select bg-light border-0 py-2" required>
+                                                    <option value="LOCAL 136" {% if vendedor.sucursal == 'LOCAL 136' %}selected{% endif %}>LOCAL 136</option>
+                                                    <option value="LOCAL 137" {% if vendedor.sucursal == 'LOCAL 137' %}selected{% endif %}>LOCAL 137</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label text-brand-black fw-semibold small">Nueva Contraseña (Opcional)</label>
+                                                <input type="password" name="password" class="form-control bg-light border-0 py-2" placeholder="Dejar en blanco para no cambiar">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                         {% else %}
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
