@@ -76,15 +76,31 @@ def dashboard():
     productos_bajo_stock = Product.query.filter(Product.cantidad_stock <= 10).count()
     maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
     
-    # Se filtran las ventas de la quincena actual (del 1 al 15 o del 16 al fin de mes)
+    mes_filtro = request.args.get('mes')
     hoy = obtener_hora_bogota()
-    if hoy.day <= 15:
-        inicio_quincena = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:
-        inicio_quincena = hoy.replace(day=16, hour=0, minute=0, second=0, microsecond=0)
     
-    total_ventas = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= inicio_quincena).scalar() or 0.0
-    conteo_ventas = Sale.query.filter(Sale.fecha_venta >= inicio_quincena).count()
+    if mes_filtro:
+        try:
+            año, mes = map(int, mes_filtro.split('-'))
+            inicio_periodo = datetime(año, mes, 1, 0, 0, 0)
+            if mes == 12:
+                fin_periodo = datetime(año + 1, 1, 1, 0, 0, 0)
+            else:
+                fin_periodo = datetime(año, mes + 1, 1, 0, 0, 0)
+            texto_periodo = f"{mes_filtro}"
+        except Exception:
+            inicio_periodo = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            fin_periodo = hoy.replace(year=hoy.year + 1, month=1, day=1) if hoy.month == 12 else hoy.replace(month=hoy.month + 1, day=1)
+            mes_filtro = hoy.strftime('%Y-%m')
+            texto_periodo = "Mes Actual"
+    else:
+        inicio_periodo = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        fin_periodo = hoy.replace(year=hoy.year + 1, month=1, day=1) if hoy.month == 12 else hoy.replace(month=hoy.month + 1, day=1)
+        mes_filtro = hoy.strftime('%Y-%m')
+        texto_periodo = "Mes Actual"
+    
+    total_ventas = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= inicio_periodo, Sale.fecha_venta < fin_periodo).scalar() or 0.0
+    conteo_ventas = Sale.query.filter(Sale.fecha_venta >= inicio_periodo, Sale.fecha_venta < fin_periodo).count()
 
     from models import Provider, Warranty, PriceApproval
     proveedores_activos = Provider.query.count()
@@ -96,6 +112,8 @@ def dashboard():
                            productos_bajo_stock=productos_bajo_stock,
                            total_ventas=total_ventas,
                            conteo_ventas=conteo_ventas,
+                           mes_filtro=mes_filtro,
+                           texto_periodo=texto_periodo,
                            maneos_activos=maneos_activos,
                            proveedores_activos=proveedores_activos,
                            garantias_pendientes=garantias_pendientes,

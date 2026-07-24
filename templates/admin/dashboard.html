@@ -7,6 +7,10 @@
         <p class="text-muted">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
     <div>
+        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-flex align-items-center me-3 d-inline-block">
+            <label class="fw-bold text-brand-black me-2 mb-0 small">Filtrar por Mes:</label>
+            <input type="month" name="mes" class="form-control form-control-sm rounded-pill shadow-sm" value="{{ mes_filtro }}" onchange="this.form.submit()" style="max-width: 150px;">
+        </form>
         <button type="button" class="btn btn-blue rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
             <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
         </button>
@@ -49,9 +53,9 @@
         <div class="card card-custom h-100 p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-sack-dollar fs-1" style="color: var(--brand-blue);"></i>
-                <span class="badge bg-brand-blue rounded-pill">Quincena Actual</span>
+                <span class="badge bg-brand-blue rounded-pill">{{ texto_periodo }}</span>
             </div>
-            <h5 class="text-brand-black fw-bold">Ingresos (Quincena)</h5>
+            <h5 class="text-brand-black fw-bold">Ingresos (Mensual)</h5>
             <h2 class="fw-bolder" style="color: var(--brand-blue);">${{ (total_ventas)|cop }}</h2>
             <p class="text-muted small mb-0"><i class="fa-solid fa-receipt me-1"></i> {{ conteo_ventas }} ventas realizadas</p>
             <div class="mt-auto pt-3">
