@@ -117,12 +117,14 @@
         /* MEDIA QUERY DE IMPRESIÓN RIGUROSA: Las reglas CSS aquí omiten UI inútil al imprimir en papel */
         @media print {
             @page {
-                size: auto;
+                size: 80mm auto;
                 margin: 0;
             }
             html, body {
                 height: auto !important;
                 overflow: visible !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             body { background-color: #FFFFFF; padding: 0; display: block; }
             .ticket { 
@@ -132,6 +134,8 @@
                 margin: 0 auto; 
                 width: 80mm; 
                 border: none;
+            }
+            * {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }

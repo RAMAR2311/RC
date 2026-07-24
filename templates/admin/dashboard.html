@@ -10,7 +10,7 @@
         <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-inline-flex align-items-center me-3 bg-white border rounded-pill px-3 py-2 shadow-sm">
             <i class="fa-regular fa-calendar text-brand-pink me-2"></i>
             <span class="fw-bold text-brand-black me-2 small">Mes:</span>
-            <input type="month" name="mes" class="form-control form-control-sm border-0 shadow-none bg-transparent p-0 text-brand-black fw-bold" style="max-width: 120px; outline: none; cursor: pointer;" value="{{ mes_filtro }}" onchange="this.form.submit()">
+            <input type="month" name="mes" class="form-control form-control-sm border-0 shadow-none bg-transparent p-0 text-brand-black fw-bold" style="max-width: 180px; outline: none; cursor: pointer;" value="{{ mes_filtro }}" onchange="this.form.submit()">
         </form>
         <button type="button" class="btn btn-dark rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
             <i class="fa-solid fa-scale-balanced text-brand-pink me-2"></i>Generar Balance

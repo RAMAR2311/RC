@@ -444,8 +444,20 @@ def balance_financiero():
     # 1. Ventas Totales
     ventas_query = Sale.query.filter(Sale.fecha_venta >= inicio_dt, Sale.fecha_venta < fin_dt_query).all()
     
-    ventas_efectivo = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'efectivo')
-    ventas_transferencia = sum(v.monto_total for v in ventas_query if v.metodo_pago in ['addi', 'sitecredito', 'bancolombia', 'davivienda', 'tarjeta_credito', 'transferencia'])
+    ventas_efectivo = Decimal('0.00')
+    ventas_transferencia = Decimal('0.00')
+    for v in ventas_query:
+        if v.pagos:
+            for pago in v.pagos:
+                if pago.metodo_pago == 'efectivo':
+                    ventas_efectivo += Decimal(str(pago.monto))
+                else:
+                    ventas_transferencia += Decimal(str(pago.monto))
+        else:
+            if v.metodo_pago == 'efectivo':
+                ventas_efectivo += Decimal(str(v.monto_total))
+            else:
+                ventas_transferencia += Decimal(str(v.monto_total))
     total_ingresos = ventas_efectivo + ventas_transferencia
 
     # 2. Costo de Mercancía Vendida (COGS)
