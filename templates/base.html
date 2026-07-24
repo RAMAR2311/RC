@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>redcover.com - CRM & POS</title>
+    <title>redcover.com - Telefonía y Accesorios</title>
     <!-- Favicon y PWA -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/redcover.png') }}?v=2">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2">
@@ -272,6 +272,9 @@
                     
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-brand-black me-2" style="width:20px; text-align:center;"></i> Personal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink me-2" style="width:20px; text-align:center;"></i> Venta Vendedores</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved text-brand-pink me-2" style="width:20px; text-align:center;"></i> Garantías</a>

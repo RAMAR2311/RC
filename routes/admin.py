@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
 from decimal import Decimal
+from datetime import datetime
 
 admin_bp = Blueprint('admin_bp', __name__)
 
@@ -497,4 +498,56 @@ def balance_financiero():
         fecha_fin=fecha_fin_str,
         fecha_generacion=hoy.strftime('%Y-%m-%d %H:%M'),
         datos=datos_financieros
+    )
+
+@admin_bp.route('/ventas-vendedores', methods=['GET'])
+@login_required
+@admin_required
+def ventas_vendedores():
+    from models import User, Sale
+    import calendar
+    from datetime import datetime
+    
+    # Obtener todos los usuarios con rol vendedor o admin (activos, no eliminados)
+    vendedores_lista = User.query.filter(User.rol != 'eliminado').order_by(User.nombre).all()
+    
+    vendedor_id = request.args.get('vendedor_id', type=int)
+    mes_seleccionado = request.args.get('mes', '').strip()
+    
+    # Si no hay mes seleccionado, por defecto usar el mes actual
+    if not mes_seleccionado:
+        mes_seleccionado = obtener_hora_bogota().strftime('%Y-%m')
+        
+    ventas = []
+    vendedor_filtro = None
+    total_ventas_mes = Decimal('0.0')
+    
+    if vendedor_id:
+        vendedor_filtro = User.query.get(vendedor_id)
+        if vendedor_filtro:
+            try:
+                year, month = map(int, mes_seleccionado.split('-'))
+                last_day = calendar.monthrange(year, month)[1]
+                start_date = datetime(year, month, 1, 0, 0, 0)
+                end_date = datetime(year, month, last_day, 23, 59, 59)
+                
+                # Obtener todas las ventas del vendedor en ese rango de fechas
+                ventas = Sale.query.filter(
+                    Sale.vendedor_id == vendedor_id,
+                    Sale.fecha_venta >= start_date,
+                    Sale.fecha_venta <= end_date
+                ).order_by(Sale.fecha_venta.desc()).all()
+                
+                total_ventas_mes = sum(v.monto_total for v in ventas)
+            except Exception as e:
+                flash(f"Error al procesar las fechas del mes seleccionado: {str(e)}", 'danger')
+                
+    return render_template(
+        'admin/ventas_vendedores.html',
+        vendedores=vendedores_lista,
+        vendedor_id=vendedor_id,
+        vendedor_filtro=vendedor_filtro,
+        mes_seleccionado=mes_seleccionado,
+        ventas=ventas,
+        total_ventas_mes=total_ventas_mes
     )
