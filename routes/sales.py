@@ -550,7 +550,10 @@ def catalogo():
     if query_str:
         # Motor de similitud Case-Insensitive (Like)
         search_term = f"%{query_str}%"
-        productos = Product.query.filter(Product.tipo_inventario.in_(['tienda', 'celulares'])).filter(
+        productos = Product.query.filter(
+            Product.tipo_inventario.in_(['tienda', 'celulares']),
+            Product.cantidad_stock > 0
+        ).filter(
             or_(
                 Product.sku.ilike(search_term), 
                 Product.nombre.ilike(search_term)
@@ -558,7 +561,10 @@ def catalogo():
         ).limit(50).all()
     else:
         # Límite pasivo de 50 ítems para ahorrar memoria RAM de BD en carga inicial
-        productos = Product.query.filter(Product.tipo_inventario.in_(['tienda', 'celulares'])).limit(50).all()
+        productos = Product.query.filter(
+            Product.tipo_inventario.in_(['tienda', 'celulares']),
+            Product.cantidad_stock > 0
+        ).limit(50).all()
         
     return render_template('sales/catalogo.html', productos=productos, q=query_str)
 
