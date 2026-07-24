@@ -445,10 +445,16 @@ def ventas_hoy():
     fin_dt = datetime.combine(hoy_bogota, datetime.max.time())
     
     # Consultar todas las ventas de este día (sin importar si es admin o vendedor)
-    ventas = Sale.query.options(joinedload(Sale.vendedor)).filter(
+    query = Sale.query.options(joinedload(Sale.vendedor)).filter(
         Sale.fecha_venta >= inicio_dt,
         Sale.fecha_venta <= fin_dt
-    ).order_by(Sale.fecha_venta.desc()).all()
+    )
+    
+    # Si no es admin, solo ve sus propias ventas
+    if current_user.rol != 'admin':
+        query = query.filter(Sale.vendedor_id == current_user.id)
+        
+    ventas = query.order_by(Sale.fecha_venta.desc()).all()
     
     # Acumuladores de las ventas de hoy
     total_efectivo = Decimal('0')
