@@ -182,8 +182,8 @@ def nuevo():
             observaciones_gastos=observaciones_gastos,
             total_efectivo_sistema=total_efectivo,
             total_transferencia_sistema=total_transferencia,
-            total_unidades_ch=procesar_unidades_ch(ventas_del_dia)[1],
-            total_celulares=procesar_celulares(ventas_del_dia),
+            total_unidades_ch=Decimal('0.00'),
+            total_celulares=Decimal('0.00'),
             total_retomas_sistema=total_retomas,
             tipo_arqueo='general',
             sucursal=current_user.sucursal
@@ -206,8 +206,6 @@ def nuevo():
         arqueo_existente=arqueo_existente,
         gastos_automaticos=gastos_automaticos,
         gastos_externos=gastos_externos,
-        total_general_ch=procesar_unidades_ch(ventas_del_dia)[1],
-        total_celulares=procesar_celulares(ventas_del_dia),
         ventas_del_dia=ventas_del_dia
     )
 
@@ -252,8 +250,7 @@ def reporte():
         'total_gastos': sum(a.gastos_del_dia for a in arqueos)
     }
     
-    resumen['total_unidades_ch'] = sum(a.total_unidades_ch for a in arqueos)
-    resumen['total_celulares'] = sum(a.total_celulares for a in arqueos)
+
     
     # Calcular los gastos por productos externos en este rango de fechas
     gastos_externos_query = Expense.query.filter(
@@ -267,8 +264,7 @@ def reporte():
     resumen['total_gastos_externos'] = sum(g.monto for g in gastos_externos_query)
     
     resumen['total_recaudado_bruto'] = resumen['total_efectivo'] + resumen['total_transferencia']
-    # Restar Unidades CH, Celulares y TOTAL DE GASTOS de la venta neta (Los gastos externos ya están incluidos en total_gastos si se registran como Gasto Diario)
-    resumen['total_recaudado_neto'] = resumen['total_recaudado_bruto'] - resumen['total_unidades_ch'] - resumen['total_celulares'] - resumen['total_gastos']
+    resumen['total_recaudado_neto'] = resumen['total_recaudado_bruto'] - resumen['total_gastos']
     
     # Calcular los gastos que fueron pagados en EFECTIVO
     gastos_efectivo_query = Expense.query.filter(
@@ -298,8 +294,7 @@ def reporte():
 
     fecha_generacion = obtener_hora_bogota().strftime('%Y-%m-%d %H:%M')
 
-    # Procesar lógica de unidades CH
-    desglose_ch, total_general_ch = procesar_unidades_ch(ventas_periodo)
+
     
     # Obtener todos los gastos del periodo para el reporte detallado
     gastos_query = Expense.query.filter(
@@ -318,8 +313,6 @@ def reporte():
         fecha_fin=fecha_fin_str,
         fecha_generacion=fecha_generacion,
         ventas_periodo=ventas_periodo,
-        desglose_ch=desglose_ch,
-        total_general_ch=total_general_ch,
         gastos_periodo=gastos_periodo
     )
 

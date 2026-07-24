@@ -5,7 +5,7 @@
     <!-- Navbar y Filtros: Ocultos en Impresión -->
     <div class="col-12 d-print-none mb-4">
         <div class="card card-custom p-4 border-0 shadow-sm d-flex justify-content-between align-items-center flex-row">
-            <h4 class="fw-bold m-0" style="color: #A3D8DE;">
+            <h4 class="fw-bold m-0 text-brand-pink">
                 <i class="fa-solid fa-file-invoice me-1"></i> Reporte Arqueo Caja
             </h4>
             
@@ -27,7 +27,7 @@
             </div>
             {% endif %}
 
-            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-dark border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
+            <button onclick="window.print()" class="btn btn-pink px-4 rounded-pill fw-bold">
                 <i class="fa-solid fa-print me-1"></i> Imprimir Tirilla
             </button>
         </div>
@@ -54,47 +54,33 @@
             <!-- Resumen Consolidado de Totales -->
             <h5 class="fw-bold text-brand-black mb-3">📍 Resumen General del Período Recaudado</h5>
             <div class="row g-3 mb-5 resumen-totales">
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm text-center h-100" style="background-color: #d4edda; border-left: 4px solid #28a745 !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1" style="color: #155724;">Venta + Banco</small>
-                        <h4 class="mb-0 fw-bold" style="color: #155724;">
+                <div class="col-12 col-md-3">
+                    <div class="card p-3 border rounded shadow-sm text-center h-100" style="border-left: 4px solid var(--brand-red) !important;">
+                        <small class="fw-bold text-uppercase d-block mb-1 text-muted">Venta + Banco Neto</small>
+                        <h4 class="mb-0 fw-bold text-brand-black">
                             ${{ (resumen.total_recaudado_neto)|cop }}
                         </h4>
-                        <small class="d-block mt-1 opacity-75" style="font-size:0.7rem; color: #155724;">Total - CH - Celulares - Gastos</small>
+                        <small class="d-block mt-1 text-muted" style="font-size:0.7rem;">Total - Gastos</small>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
+                <div class="col-12 col-md-3">
+                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #dc3545 !important;">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Total Gastos Operativos</small>
                         <h4 class="mb-0 text-danger fw-bold">$-{{ (resumen.total_gastos)|cop }}</h4>
                         <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Efectivo: ${{ (resumen.total_gastos_efectivo)|cop }})</small>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #F9C8D3 !important;">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Total Unidades CH</small>
-                        <h4 class="mb-0 text-brand-pink fw-bold" style="font-size: 1.6rem;">${{ (resumen.total_unidades_ch)|cop }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">Valor descontado de la venta</small>
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #6c757d !important;">
+                <div class="col-12 col-md-3">
+                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid var(--brand-black) !important;">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Venta Total</small>
                         <h4 class="mb-0 text-dark fw-bold" style="font-size: 1.6rem;">${{ (resumen.total_recaudado_bruto)|cop }}</h4>
                         <small class="text-muted d-block mt-1" style="font-size:0.7rem;">Suma de Cash + Bancos</small>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #6f42c1 !important;">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Total Celulares</small>
-                        <h4 class="mb-0 fw-bold" style="font-size: 1.6rem; color: #6f42c1;">${{ (resumen.total_celulares)|cop }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">Valor descontado de la venta</small>
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #A3D8DE !important;">
+                <div class="col-12 col-md-3">
+                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid var(--brand-red) !important;">
                         <small class="text-secondary fw-bold d-block mb-1">CAJA FÍSICA ESPERADA FINAL</small>
-                        <h4 class="mb-0 text-dark fw-bold">${{ (resumen.efectivo_esperado)|cop }}</h4>
+                        <h4 class="mb-0 text-brand-pink fw-bold">${{ (resumen.efectivo_esperado)|cop }}</h4>
                         <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Base + VtasEfectivo) - GastosEfec</small>
                     </div>
                 </div>
@@ -113,8 +99,6 @@
                             <th width="10%" class="text-dark bg-light border-start border-end">Venta Total</th>
                             <th width="10%" class="text-success">Ventas Efectivo</th>
                             <th width="10%" class="text-info">Bancos</th>
-                            <th width="10%" style="color: #e83e8c;">Unid. CH</th>
-                            <th width="10%" style="color: #6f42c1;">Celulares</th>
                             <th width="12%" class="text-danger">Gastos</th>
                             <th width="24%">Detalle del Gasto</th>
                             {% if current_user.rol == 'admin' %}
@@ -132,8 +116,6 @@
                             <td class="text-end text-dark fw-bolder bg-light border-start border-end">${{ (arqueo.total_efectivo_sistema + arqueo.total_transferencia_sistema)|cop }}</td>
                              <td class="text-end text-success fw-bold">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
                             <td class="text-end text-info fw-bold">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
-                            <td class="text-end fw-bold" style="color: #e83e8c;">${{ (arqueo.total_unidades_ch)|cop }}</td>
-                            <td class="text-end fw-bold" style="color: #6f42c1;">${{ (arqueo.total_celulares)|cop }}</td>
                             
                             <td class="text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
                                 ${{ (arqueo.gastos_del_dia)|cop }}
@@ -155,7 +137,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="12" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
+                            <td colspan="10" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -283,53 +265,7 @@
             </div>
             {% endif %}
 
-            <!-- DESGLOSE POR UNIDADES CH (Nuevo Requerimiento) -->
-            {% if desglose_ch %}
-            <div class="mt-5 pt-4 border-top">
-                <h4 class="fw-bold text-brand-black mb-3">
-                    <i class="fa-solid fa-tags me-2 text-brand-pink"></i> DESGLOSE POR UNIDADES CH
-                </h4>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle">
-                        <thead class="table-light text-center" style="font-size: 0.8rem;">
-                            <tr>
-                                <th>Nombre del Producto / Subcategoría</th>
-                                <th width="10%">Ctd</th>
-                                <th width="20%">Valor Unitario CH</th>
-                                <th width="20%">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody style="font-size: 0.85rem;">
-                            {% for item in desglose_ch %}
-                            <tr>
-                                <td>{{ item.nombre }}</td>
-                                <td class="text-center">{{ item.cantidad }}</td>
-                                <td class="text-end">
-                                    {% if item.error %}
-                                        <span class="text-danger small fw-bold">{{ item.error }}</span>
-                                    {% else %}
-                                        ${{ item.valor_unitario|cop }}
-                                    {% endif %}
-                                </td>
-                                <td class="text-end fw-bold">
-                                    ${{ item.subtotal|cop }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="3" class="text-end fw-bold text-uppercase">TOTAL GENERAL CH:</td>
-                                <td class="text-end fw-bold text-brand-pink fs-5">${{ total_general_ch|cop }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <small class="text-muted d-block mt-1">
-                    <i class="fa-solid fa-circle-info me-1"></i> Este desglose se calcula extrayendo el valor numérico del patrón <strong>CHx</strong> en el nombre o subcategoría y multiplicándolo por 1.000.
-                </small>
-            </div>
-            {% endif %}
+
 
             <!-- Firmas Contables (Solo visibles al imprimir el PDF de tamaño carta) -->
             <div class="row mt-5 pt-5 d-none d-print-flex">
