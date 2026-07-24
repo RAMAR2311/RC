@@ -26,13 +26,13 @@
                         <tr>
                             <th class="ps-4">Cliente</th>
                             <th>Contacto</th>
-                            <th>Equipo Adquirido</th>
-                            <th>Fecha y Venta</th>
+                            <th>Correo Electrónico</th>
+                            <th>Dirección</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for cliente, detalle in clientes %}
+                        {% for cliente in clientes %}
                         <tr>
                             <td class="ps-4">
                                 <div class="fw-bold text-dark">{{ cliente.nombre }}</div>
@@ -46,19 +46,11 @@
                                     </a>
                                 </div>
                             </td>
-                            <td>
-                                <div class="fw-bold">{{ detalle.producto.nombre }}</div>
-                                {% if detalle.variante %}
-                                <div class="small text-muted" style="max-width: 250px;">{{ detalle.variante.nombre_variante }}</div>
-                                {% endif %}
-                                <div class="small fw-bold text-success mt-1">Total: ${{ detalle.precio_venta_final|cop }}</div>
+                            <td class="text-muted">
+                                {{ cliente.email or '—' }}
                             </td>
-                            <td>
-                                <div class="fw-bold">{{ cliente.venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
-                                <div class="small text-muted">{{ cliente.venta.fecha_venta.strftime('%I:%M %p') }}</div>
-                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=cliente.sale_id) }}" target="_blank" class="badge bg-primary text-decoration-none mt-1">
-                                    Factura #{{ cliente.sale_id }}
-                                </a>
+                            <td class="text-muted">
+                                {{ cliente.direccion or '—' }}
                             </td>
                             <td class="text-center">
                                 <a href="{{ url_for('celulares_bp.detalle_cliente', documento=cliente.documento) }}"
@@ -70,7 +62,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="text-center py-5">
+                            <td colspan="5" class="text-center py-5">
                                 <div class="text-muted fs-5"><i class="fa-solid fa-folder-open mb-3 fs-1 d-block text-secondary"></i>No hay clientes registrados aún.</div>
                             </td>
                         </tr>

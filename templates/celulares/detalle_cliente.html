@@ -9,7 +9,12 @@
     </a>
     <div>
         <h2 class="fw-bold m-0 text-brand-black"><i class="fa-solid fa-user-circle text-brand-blue me-2"></i>{{ cliente.nombre }}</h2>
-        <span class="text-muted small"><i class="fa-regular fa-id-card me-1"></i> CC: {{ cliente.documento }} &nbsp;·&nbsp; <i class="fa-solid fa-phone me-1"></i>{{ cliente.telefono }}</span>
+        <span class="text-muted small">
+            <i class="fa-regular fa-id-card me-1"></i> CC: {{ cliente.documento }} &nbsp;·&nbsp; 
+            <i class="fa-solid fa-phone me-1"></i>{{ cliente.telefono }}
+            {% if cliente.email %} &nbsp;·&nbsp; <i class="fa-solid fa-envelope me-1"></i>{{ cliente.email }}{% endif %}
+            {% if cliente.direccion %} &nbsp;·&nbsp; <i class="fa-solid fa-location-dot me-1"></i>{{ cliente.direccion }}{% endif %}
+        </span>
     </div>
     <a href="https://wa.me/57{{ cliente.telefono|replace(' ', '') }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 ms-auto">
         <i class="fa-brands fa-whatsapp me-1"></i> Contactar

@@ -211,13 +211,17 @@ def eliminar_celular(id):
 @login_required
 @admin_required
 def clientes():
-    from models import SaleClient, SaleDetail
-    # Group by documento to get unique clients with their last sale
-    clientes_lista = db.session.query(SaleClient, SaleDetail)\
-        .join(Sale, SaleClient.sale_id == Sale.id)\
-        .join(SaleDetail, Sale.id == SaleDetail.sale_id)\
-        .join(Product, SaleDetail.product_id == Product.id)\
-        .order_by(SaleClient.id.desc()).all()
+    from models import SaleClient
+    # Subconsulta para obtener el ID de registro más reciente para cada documento único
+    subquery = db.session.query(
+        db.func.max(SaleClient.id)
+    ).group_by(SaleClient.documento).subquery()
+    
+    # Obtener los clientes correspondientes a esos IDs ordenados por nombre
+    clientes_lista = SaleClient.query.filter(
+        SaleClient.id.in_(subquery)
+    ).order_by(SaleClient.nombre).all()
+    
     return render_template('celulares/clientes.html', clientes=clientes_lista)
 
 @celulares_bp.route('/clientes/detalle/<documento>')
