@@ -132,8 +132,8 @@ def nuevo():
     # Calcular ventas del día usando el sistema híbrido (SalePayment + legacy)
     ventas_del_dia = Sale.query.filter(
         db.func.date(Sale.fecha_venta) == fecha_seleccionada,
-        Sale.tipo_venta == 'general'
-    ).all()
+        Sale.tipo_venta.in_(['general', 'celulares'])
+    ).order_by(Sale.fecha_venta.asc()).all()
     total_efectivo, total_transferencia, total_retomas = calcular_totales_dia(ventas_del_dia)
 
     # Calcular gastos automáticos del día
@@ -179,7 +179,7 @@ def nuevo():
             total_efectivo_sistema=total_efectivo,
             total_transferencia_sistema=total_transferencia,
             total_unidades_ch=procesar_unidades_ch(ventas_del_dia)[1],
-            total_celulares=Decimal('0.00'), # Ya no aplica al general
+            total_celulares=procesar_celulares(ventas_del_dia),
             total_retomas_sistema=total_retomas,
             tipo_arqueo='general'
         )
@@ -202,7 +202,8 @@ def nuevo():
         gastos_automaticos=gastos_automaticos,
         gastos_externos=gastos_externos,
         total_general_ch=procesar_unidades_ch(ventas_del_dia)[1],
-        total_celulares=Decimal('0.00')
+        total_celulares=procesar_celulares(ventas_del_dia),
+        ventas_del_dia=ventas_del_dia
     )
 
 @arqueo_bp.route('/reporte', methods=['GET'])
@@ -274,7 +275,7 @@ def reporte():
     ventas_query = Sale.query.filter(
         db.func.date(Sale.fecha_venta) >= fecha_inicio,
         db.func.date(Sale.fecha_venta) <= fecha_fin,
-        Sale.tipo_venta == 'general'
+        Sale.tipo_venta.in_(['general', 'celulares'])
     )
     
     ventas_periodo = ventas_query.order_by(Sale.fecha_venta.asc()).all()

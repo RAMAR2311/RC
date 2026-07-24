@@ -66,6 +66,18 @@ def create_app():
     from routes.retomas import retomas_bp
     app.register_blueprint(retomas_bp, url_prefix='/retomas')
 
+    # Registro de Blueprint Proveedores
+    from routes.providers import providers_bp
+    app.register_blueprint(providers_bp, url_prefix='/proveedores')
+
+    # Registro de Blueprint Garantías
+    from routes.warranties import warranties_bp
+    app.register_blueprint(warranties_bp, url_prefix='/garantias')
+
+    # Registro de Blueprint Aprobaciones
+    from routes.approvals import approvals_bp
+    app.register_blueprint(approvals_bp)
+
 
     @app.template_filter('cop')
     def cop_filter(value):

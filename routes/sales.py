@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -54,6 +54,9 @@ def procesar_venta():
         tipo_venta_detectado = None
         for item in items:
             es_manual = item.get('es_manual', False)
+            precio_venta_final = Decimal(str(item.get('precio_final', '0.00')))
+            variant_id = item.get('variant_id')
+
             if es_manual:
                 tipo_item = 'general'
             else:
@@ -61,6 +64,22 @@ def procesar_venta():
                 producto_check = Product.query.get(prod_id)
                 if not producto_check:
                     return jsonify({'error': f"El producto con ID {prod_id} no existe."}), 400
+                
+                # Validar precio mínimo y consultar aprobaciones remotas si es menor
+                if current_user.rol != 'admin' and precio_venta_final < producto_check.precio_minimo:
+                    aprobacion = PriceApproval.query.filter_by(
+                        vendedor_id=current_user.id,
+                        product_id=prod_id,
+                        variant_id=variant_id,
+                        estado='aprobado'
+                    ).filter(PriceApproval.precio_aprobado <= precio_venta_final).first()
+                    
+                    if not aprobacion:
+                        return jsonify({'error': f'El precio de {producto_check.nombre} (${precio_venta_final}) es inferior al mínimo permitido y no tiene aprobación remota válida.'}), 400
+                    else:
+                        # Marcar la aprobación como 'completada'
+                        aprobacion.estado = 'completada'
+                
                 tipo_item = 'celulares' if producto_check.tipo_inventario == 'celulares' else 'general'
             
             if tipo_venta_detectado is None:
@@ -541,6 +560,10 @@ def catalogo():
 def caja_visual():
     from models import obtener_hora_bogota
     hoy_bogota = obtener_hora_bogota()
-    productos = Product.query.filter(Product.tipo_inventario.in_(['tienda', 'celulares'])).order_by(Product.nombre.asc()).all()
+    productos_query = Product.query.filter(Product.tipo_inventario.in_(['tienda', 'celulares'])).order_by(Product.nombre.asc()).all()
+    
+    # Filtrar para mostrar solo los que tienen stock
+    productos = [p for p in productos_query if p.total_stock > 0]
+    
     return render_template('sales/caja_visual.html', productos=productos, hoy=hoy_bogota.strftime('%Y-%m-%d'))
 

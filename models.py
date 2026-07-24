@@ -399,3 +399,113 @@ class AbonoBodega(db.Model):
         super(AbonoBodega, self).__init__(**kwargs)
 
 
+class Provider(db.Model):
+    __tablename__ = 'providers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), nullable=False)
+    empresa = db.Column(db.String(150), nullable=True)
+    telefono = db.Column(db.String(50), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    # Relaciones en cascada
+    facturas = db.relationship('ProviderInvoice', backref='provider', lazy=True, cascade='all, delete-orphan')
+    pagos = db.relationship('ProviderPayment', backref='provider', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def total_facturado(self):
+        return sum(f.monto_total for f in self.facturas)
+    
+    @property
+    def total_abonado(self):
+        return sum(p.monto_abonado for p in self.pagos)
+    
+    @property
+    def saldo_pendiente(self):
+        return self.total_facturado - self.total_abonado
+
+class ProviderInvoice(db.Model):
+    __tablename__ = 'provider_invoices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    monto_total = db.Column(db.Numeric(12, 2), nullable=False)
+    numero_factura = db.Column(db.String(100), nullable=True)
+    descripcion = db.Column(db.String(255), nullable=True)
+    comprobante = db.Column(db.String(255), nullable=True)
+    fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+class ProviderPayment(db.Model):
+    __tablename__ = 'provider_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    monto_abonado = db.Column(db.Numeric(12, 2), nullable=False)
+    observacion = db.Column(db.String(255), nullable=True)
+    fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+class Warranty(db.Model):
+    __tablename__ = 'warranties'
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    nombre_manual = db.Column(db.String(200), nullable=True)
+    quantity = db.Column(db.Integer, default=1)
+    reason = db.Column(db.Text, nullable=False)
+    resolution = db.Column(db.String(50), default='Pendiente')
+    admin_notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    # Relaciones
+    sale = db.relationship('Sale', backref=db.backref('warranties', lazy=True))
+    product = db.relationship('Product', backref=db.backref('warranties', lazy=True))
+
+    @property
+    def tiempo_transcurrido(self):
+        tz = pytz.timezone('America/Bogota')
+        now = datetime.now(tz).replace(tzinfo=None)
+        
+        diff = now - self.created_at
+        days = diff.days
+        seconds = diff.seconds
+        
+        if days > 0:
+            return f"Hace {days} día{'s' if days > 1 else ''}"
+        elif seconds >= 3600:
+            hours = seconds // 3600
+            return f"Hace {hours} hora{'s' if hours > 1 else ''}"
+        elif seconds >= 60:
+            minutes = seconds // 60
+            return f"Hace {minutes} minuto{'s' if minutes > 1 else ''}"
+        else:
+            return "Hace un momento"
+    @property
+    def estado_actual(self):
+        tz = pytz.timezone('America/Bogota')
+        now = datetime.now(tz).replace(tzinfo=None)
+        diff = now - self.created_at
+        
+        # Si sigue pendiente y pasaron más de 5 días, está demorado
+        if self.resolution.lower() == 'pendiente' and diff.days > 5:
+            return 'Demorado'
+        return self.resolution
+
+class PriceApproval(db.Model):
+    __tablename__ = 'price_approvals'
+    id = db.Column(db.Integer, primary_key=True)
+    vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, nullable=True) # opcional
+    precio_original = db.Column(db.Numeric(10, 2), nullable=False)
+    precio_solicitado = db.Column(db.Numeric(10, 2), nullable=False)
+    precio_aprobado = db.Column(db.Numeric(10, 2), nullable=True)
+    estado = db.Column(db.String(20), default='pendiente', index=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    motivo_rechazo = db.Column(db.String(255), nullable=True)
+    fecha_solicitud = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_resolucion = db.Column(db.DateTime, nullable=True)
+
+    # Relaciones
+    vendedor = db.relationship('User', foreign_keys=[vendedor_id])
+    admin = db.relationship('User', foreign_keys=[admin_id])
+    product = db.relationship('Product')

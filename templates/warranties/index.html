@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-shield-halved text-warning me-2"></i> Gestión de Garantías</h2>
+    <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaGarantia">
+        <i class="fa-solid fa-plus me-1"></i> Registrar Garantía
+    </button>
+</div>
+
+<div class="card card-custom p-0 shadow-sm border-0">
+    <div class="card-header bg-white border-0 py-3 ps-4">
+        <h5 class="fw-bold m-0 text-muted">Historial de Garantías Registradas</h5>
+    </div>
+    <div class="table-responsive" style="overflow: visible;">
+        <table class="table table-hover align-middle mb-0 text-center w-100" style="font-size: 0.9rem;">
+            <thead class="bg-light text-nowrap">
+                <tr>
+                    <th class="ps-4 text-start">RECIBIDO</th>
+                    <th class="text-start">FACTURA / CLIENTE</th>
+                    <th>ARTÍCULO / IMEI</th>
+                    <th>MOTIVO (CLIENTE)</th>
+                    <th>ESTADO</th>
+                    <th class="text-end pe-4">TICKET</th>
+                </tr>
+            </thead>
+            <tbody class="text-nowrap">
+                {% for w in warranties %}
+                <tr>
+                    <td class="ps-4 text-start">
+                        <div class="fw-bold text-dark">{{ w.created_at.strftime('%d/%m/%Y') }}</div>
+                        <div class="small text-muted">{{ w.tiempo_transcurrido }}</div>
+                    </td>
+                    <td class="text-start">
+                        <div class="fw-bold">Fac #{{ w.sale_id }}</div>
+                        <div class="small text-muted">{{ w.sale.cliente.nombre if w.sale and w.sale.cliente else 'Sin cliente' }}</div>
+                    </td>
+                    <td class="text-start" style="max-width: 200px;">
+                        <div class="text-truncate" title="{{ w.product.nombre if w.product else w.nombre_manual }}">
+                            {{ w.product.nombre if w.product else w.nombre_manual }}
+                        </div>
+                    </td>
+                    <td class="text-start" style="max-width: 250px;">
+                        <div class="text-truncate text-muted" title="{{ w.reason }}">{{ w.reason }}</div>
+                        {% if w.admin_notes %}
+                        <div class="text-truncate text-danger small mt-1" title="{{ w.admin_notes }}"><i class="fa-solid fa-comment-dots"></i> {{ w.admin_notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set estado = w.estado_actual %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle rounded-pill px-3 fw-bold
+                                {% if estado == 'Pendiente' %}btn-warning text-dark
+                                {% elif estado == 'Demorado' %}btn-danger
+                                {% elif estado == 'Entregada' %}btn-success
+                                {% else %}btn-secondary{% endif %}" 
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ estado }}
+                            </button>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><a class="dropdown-item fw-bold text-warning" href="#" onclick="updateWarrantyStatus({{ w.id }}, 'Pendiente')"><i class="fa-solid fa-clock me-2"></i> Pendiente</a></li>
+                                <li><a class="dropdown-item fw-bold text-success" href="#" onclick="updateWarrantyStatus({{ w.id }}, 'Entregada')"><i class="fa-solid fa-check me-2"></i> Entregada</a></li>
+                                <li><a class="dropdown-item fw-bold text-danger" href="#" onclick="updateWarrantyStatus({{ w.id }}, 'Rechazada')"><i class="fa-solid fa-xmark me-2"></i> Rechazada</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{{ url_for('warranties_bp.ticket', id=w.id) }}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3" title="Imprimir Ticket">
+                            <i class="fa-solid fa-print"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-shield-cat fs-1 mb-3 opacity-50"></i>
+                        <h5>No hay garantías en el historial.</h5>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nueva Garantía (Ajax Flow) -->
+<div class="modal fade" id="modalNuevaGarantia" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-magnifying-glass me-2"></i> Buscar Compra para Garantía</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetWarrantyForm()"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                <!-- Paso 1: Buscador -->
+                <div id="step1-search">
+                    <label class="form-label fw-bold">Buscar Factura Original</label>
+                    <div class="input-group mb-3 shadow-sm">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-barcode text-muted"></i></span>
+                        <input type="text" id="searchQuery" class="form-control border-start-0" placeholder="Ingrese ID de Factura, Cédula del cliente o IMEI..." onkeypress="handleEnter(event)">
+                        <button class="btn btn-dark fw-bold px-4" type="button" onclick="searchSale()" id="btnSearch">Buscar</button>
+                    </div>
+                    <div id="searchFeedback" class="small text-danger fw-bold" style="display:none;"></div>
+                </div>
+
+                <!-- Paso 2: Formulario (Oculto inicialmente) -->
+                <div id="step2-form" style="display:none;" class="mt-4 border-top pt-4">
+                    <form action="{{ url_for('warranties_bp.create_warranty') }}" method="POST" id="warrantyForm" target="_blank">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="sale_id" id="formSaleId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <div class="text-muted small fw-bold">FACTURA ENCONTRADA</div>
+                                <div class="fs-5 fw-bold text-brand-blue" id="lblSaleId">Fac #--</div>
+                            </div>
+                            <div class="col-sm-6 text-end">
+                                <div class="text-muted small fw-bold">CLIENTE</div>
+                                <div class="fw-bold" id="lblClient">--</div>
+                                <div class="small" id="lblClientDoc">--</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-success"><i class="fa-solid fa-check-circle me-1"></i> Seleccione el artículo a ingresar a garantía:</label>
+                            <select name="detail_index" id="selectProduct" class="form-select border-success shadow-sm" required>
+                                <option value="" disabled selected>-- Seleccione un producto de esta factura --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descripción de la falla (Reporte del Cliente) <span class="text-danger">*</span></label>
+                            <textarea name="reason" class="form-control bg-light shadow-sm" rows="3" placeholder="Ej: El equipo no enciende después de la actualización, pantalla con rayas, pin de carga suelto..." required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="resetWarrantyForm()">Cancelar</button>
+                            <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" onclick="closeModalAfterSubmit()"><i class="fa-solid fa-ticket me-1"></i> Registrar y Emitir Ticket</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleEnter(e) {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            searchSale();
+        }
+    }
+
+    function resetWarrantyForm() {
+        document.getElementById('step2-form').style.display = 'none';
+        document.getElementById('searchQuery').value = '';
+        document.getElementById('searchQuery').disabled = false;
+        document.getElementById('btnSearch').disabled = false;
+        document.getElementById('searchFeedback').style.display = 'none';
+        document.getElementById('warrantyForm').reset();
+    }
+    
+    function closeModalAfterSubmit() {
+        // Delay slighty so the form can submit to _blank target
+        setTimeout(() => {
+            let myModal = bootstrap.Modal.getInstance(document.getElementById('modalNuevaGarantia'));
+            myModal.hide();
+            resetWarrantyForm();
+            window.location.reload();
+        }, 500);
+    }
+
+    async function searchSale() {
+        const query = document.getElementById('searchQuery').value.trim();
+        const feedback = document.getElementById('searchFeedback');
+        
+        if(!query) {
+            feedback.innerText = "Por favor ingrese un valor de búsqueda.";
+            feedback.style.display = 'block';
+            return;
+        }
+
+        feedback.style.display = 'none';
+        const btn = document.getElementById('btnSearch');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`{{ url_for('warranties_bp.search_sale') }}?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if(!data.success) {
+                feedback.innerText = data.message;
+                feedback.style.display = 'block';
+                btn.innerHTML = 'Buscar';
+                btn.disabled = false;
+                return;
+            }
+
+            // Poblamos el form
+            document.getElementById('formSaleId').value = data.sale.id;
+            document.getElementById('lblSaleId').innerText = `Fac #${data.sale.id} (${data.sale.fecha})`;
+            document.getElementById('lblClient').innerText = data.sale.cliente_nombre;
+            document.getElementById('lblClientDoc').innerText = `CC: ${data.sale.cliente_doc}`;
+
+            const select = document.getElementById('selectProduct');
+            select.innerHTML = '<option value="" disabled selected>-- Seleccione un producto de esta factura --</option>';
+            data.details.forEach(d => {
+                let opt = document.createElement('option');
+                // Value is product_id|nombre_manual
+                let valId = d.product_id ? d.product_id : 'None';
+                opt.value = `${valId}|${d.nombre}`;
+                opt.text = `${d.nombre} (Cant: ${d.cantidad}, $${d.precio})`;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('searchQuery').disabled = true;
+            document.getElementById('step2-form').style.display = 'block';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> OK';
+        } catch(e) {
+            feedback.innerText = "Error de red al consultar el servidor.";
+            feedback.style.display = 'block';
+            btn.innerHTML = 'Buscar';
+            btn.innerHTML = 'Buscar';
+            btn.disabled = false;
+        }
+    }
+
+    async function updateWarrantyStatus(id, newStatus) {
+        let adminNotes = null;
+        if(newStatus === 'Rechazada') {
+            adminNotes = prompt(`¿Motivo del rechazo de la garantía? (Obligatorio)`);
+            if(adminNotes === null) return; // Canceló
+            if(adminNotes.trim() === '') {
+                alert("Debes ingresar un motivo para rechazar la garantía.");
+                return;
+            }
+        } else {
+            if(!confirm(`¿Cambiar el estado de la garantía a "${newStatus}"?`)) return;
+        }
+        
+        try {
+            const res = await fetch(`/garantias/api/update_status/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus, admin_notes: adminNotes })
+            });
+            const data = await res.json();
+            if(data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Error al actualizar el estado.');
+            }
+        } catch(e) {
+            alert('Error de red al conectar con el servidor.');
+        }
+    }
+</script>
+{% endblock %}

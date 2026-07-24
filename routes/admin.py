@@ -86,13 +86,31 @@ def dashboard():
     total_ventas = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= inicio_quincena).scalar() or 0.0
     conteo_ventas = Sale.query.filter(Sale.fecha_venta >= inicio_quincena).count()
 
+    from models import Provider, Warranty, PriceApproval
+    proveedores_activos = Provider.query.count()
+    garantias_pendientes = Warranty.query.filter_by(resolution='Pendiente').count()
+    aprobaciones_pendientes = PriceApproval.query.filter_by(estado='pendiente').count()
+
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            productos_bajo_stock=productos_bajo_stock,
                            total_ventas=total_ventas,
                            conteo_ventas=conteo_ventas,
-                           maneos_activos=maneos_activos)
+                           maneos_activos=maneos_activos,
+                           proveedores_activos=proveedores_activos,
+                           garantias_pendientes=garantias_pendientes,
+                           aprobaciones_pendientes=aprobaciones_pendientes)
 
+@admin_bp.route('/aprobaciones')
+@login_required
+@admin_required
+def aprobaciones():
+    from models import PriceApproval
+    from flask import request
+    
+    page = request.args.get('page', 1, type=int)
+    paginated_lista = PriceApproval.query.order_by(PriceApproval.fecha_solicitud.desc()).paginate(page=page, per_page=25, error_out=False)
+    return render_template('admin/aprobaciones.html', aprobaciones=paginated_lista)
 @admin_bp.route('/maneos')
 @login_required
 def maneos():

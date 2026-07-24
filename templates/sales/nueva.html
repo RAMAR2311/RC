@@ -713,14 +713,16 @@
 
         if (campo === 'precio_final') {
             const nuevoPrecio = parseFloat(valor);
-            
-            // Regla de Negocio: Control de precio según Autoridad
-            if (!item.es_obsequio && nuevoPrecio < item.precio_limite) {
-                alert(`¡OPERACIÓN BLOQUEADA! El precio pactado ($${nuevoPrecio}) es INFERIOR al Mínimo Autorizado para tu nivel de usuario ($${item.precio_limite}). No se puede vender a este precio para evitar pérdidas.`);
-                renderizarCarrito(); // Re-renderizar ignorando el valor digitado
-                return;
-            }
             item.precio_final = nuevoPrecio;
+            
+            // Regla de Negocio: Disparar aprobación inmediatamente si es muy bajo
+            if (!item.es_obsequio && nuevoPrecio < item.precio_limite) {
+                if (!item.aprobacion_remota || item.aprobacion_remota < nuevoPrecio) {
+                    renderizarCarrito(); // Redibujar antes de mostrar modal
+                    startApprovalProcess(index, item);
+                    return;
+                }
+            }
         }
         
         renderizarCarrito(); // Redibujar siempre al procesar total
@@ -801,6 +803,15 @@
             let isObsequioClass = item.es_obsequio ? 'text-success' : 'text-muted';
             let precioInputState = item.es_obsequio ? 'disabled' : '';
 
+            let approvalBadgeHtml = '';
+            if (item.estado_aprobacion === 'pendiente') {
+                approvalBadgeHtml = `<div class="mt-1"><span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill"><i class="fa-solid fa-clock fa-spin me-1"></i>Falta Aprobación</span></div>`;
+            } else if (item.estado_aprobacion === 'aprobado') {
+                approvalBadgeHtml = `<div class="mt-1"><span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill"><i class="fa-solid fa-check me-1"></i>Aprobado</span></div>`;
+            } else if (item.estado_aprobacion === 'rechazado') {
+                approvalBadgeHtml = `<div class="mt-1"><span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill"><i class="fa-solid fa-xmark me-1"></i>Rechazado</span></div>`;
+            }
+
             tr.innerHTML = `
                 <td>
                     <div class="fw-bold text-brand-black">${item.nombre}</div>
@@ -817,6 +828,7 @@
                         <span class="input-group-text bg-light border-end-0">$</span>
                         <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)" ${precioInputState}>
                     </div>
+                    ${approvalBadgeHtml}
                     ` : `
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-end-0">$</span>
@@ -842,6 +854,7 @@
                             <li><div class="px-3 py-1 small text-muted">Límite Permitido: ${formatoCOP(item.precio_limite)}</div></li>
                         </ul>
                     </div>
+                    ${approvalBadgeHtml}
                     `}
                 </td>
                 <td class="text-end fw-bold text-brand-black" width="120">
@@ -874,7 +887,7 @@
             return alert('Agregue un número de serie válido. El carrito está vacío.');
         }
 
-        verificarClienteCelular();
+        checkApprovalsAndProceed();
     });
 
     function abrirModalRetoma() {
@@ -1200,5 +1213,146 @@
             btn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Guardar y Vender';
         });
     });
+</script>
+
+<!-- Modal Aprobación de Precio -->
+<div class="modal fade" id="modalPriceApproval" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-lock me-2"></i> Aprobación de Precio Requerida</h5>
+            </div>
+            <div class="modal-body text-center p-4">
+                <i class="fa-solid fa-clock-rotate-left fa-spin text-danger mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-2 text-dark" id="approvalProductName">Producto</h5>
+                <p class="text-muted small mb-3">Estás intentando vender este producto por debajo del precio mínimo autorizado. Hemos enviado una solicitud remota al administrador.</p>
+                <div class="d-flex justify-content-center gap-4 mb-3">
+                    <div>
+                        <div class="small text-muted fw-bold">Mínimo</div>
+                        <div class="fw-bold text-decoration-line-through text-danger" id="approvalMinPrice">--</div>
+                    </div>
+                    <div>
+                        <div class="small text-muted fw-bold">Solicitado</div>
+                        <div class="fw-bold text-success" id="approvalReqPrice">--</div>
+                    </div>
+                </div>
+                <div class="alert alert-warning border-0 fw-bold small">
+                    <i class="fa-solid fa-spinner fa-pulse me-2"></i> Esperando autorización del administrador...
+                </div>
+                <div id="approvalError" class="alert alert-danger fw-bold text-start small border-0 mt-2" style="display: none;"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-dark rounded-pill fw-bold px-4" onclick="cancelApprovalPolling()">Cancelar Venta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global polling interval for async approvals
+    setInterval(async () => {
+        let updateUI = false;
+        for (let i = 0; i < carrito.length; i++) {
+            let item = carrito[i];
+            if (item.estado_aprobacion === 'pendiente' && item.solicitud_id) {
+                try {
+                    const res = await fetch(`/api/precio/estado/${item.solicitud_id}`);
+                    const data = await res.json();
+                    
+                    if (data.estado === 'aprobado') {
+                        item.estado_aprobacion = 'aprobado';
+                        item.aprobacion_remota = parseFloat(data.precio_aprobado);
+                        // Fix item price if admin modified it
+                        if(item.aprobacion_remota > parseFloat(item.precio_final)) {
+                            item.precio_final = item.aprobacion_remota;
+                        }
+                        updateUI = true;
+                    } else if (data.estado === 'rechazado') {
+                        item.estado_aprobacion = 'rechazado';
+                        item.motivo_rechazo = data.motivo_rechazo;
+                        updateUI = true;
+                    }
+                } catch(e) {
+                    console.error("Polling error", e);
+                }
+            }
+        }
+        if (updateUI) renderizarCarrito();
+    }, 3000);
+
+    function checkApprovalsAndProceed() {
+        if (carrito.length === 0) {
+            return alert('Agregue un número de serie válido. El carrito está vacío.');
+        }
+
+        // Buscar si algún ítem está rechazado
+        const rechazados = carrito.filter(i => i.estado_aprobacion === 'rechazado');
+        if (rechazados.length > 0) {
+            return alert('Existen productos con el descuento rechazado por el administrador. Ajusta los precios o elimina los productos para continuar.');
+        }
+
+        // Buscar si algún ítem sigue pendiente
+        const pendientes = carrito.filter(i => i.estado_aprobacion === 'pendiente');
+        if (pendientes.length > 0) {
+            return alert('Aún hay productos esperando la aprobación de descuento por el administrador. Por favor espera.');
+        }
+
+        // Check if there's any item that requires approval but hasn't started yet
+        let pendingNew = false;
+        for (let i = 0; i < carrito.length; i++) {
+            let item = carrito[i];
+            if (!item.es_manual && !item.es_obsequio) {
+                if (parseFloat(item.precio_final) < parseFloat(item.precio_limite)) {
+                    if (!item.aprobacion_remota || item.aprobacion_remota < parseFloat(item.precio_final)) {
+                        if (item.estado_aprobacion !== 'pendiente') {
+                            startApprovalProcess(i, item);
+                            pendingNew = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (pendingNew) {
+            return alert('Se han detectado precios no autorizados y se enviaron a revisión. Por favor espera la aprobación.');
+        }
+
+        // Si llega aquí, todo está aprobado o válido. Proceder a la venta.
+        verificarClienteCelular();
+    }
+
+    async function startApprovalProcess(index, item) {
+        item.estado_aprobacion = 'pendiente';
+        renderizarCarrito();
+
+        try {
+            const res = await fetch('/api/precio/solicitar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf_token
+                },
+                body: JSON.stringify({
+                    product_id: item.id,
+                    variant_id: item.variant_id,
+                    precio_original: item.precio_minimo,
+                    precio_solicitado: item.precio_final
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                item.solicitud_id = data.solicitud_id;
+            } else {
+                item.estado_aprobacion = 'rechazado';
+                item.motivo_rechazo = data.error || "Error al solicitar aprobación.";
+                renderizarCarrito();
+            }
+        } catch(e) {
+            item.estado_aprobacion = 'rechazado';
+            item.motivo_rechazo = "Error de red.";
+            renderizarCarrito();
+        }
+    }
 </script>
 {% endblock %}

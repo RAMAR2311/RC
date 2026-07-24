@@ -44,6 +44,50 @@
     </div>
 </div>
 
+<!-- Tarjetas KPI -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0f8ff);">
+            <div class="fs-1 fw-bold text-brand-blue">{{ stock_activo }}</div>
+            <div class="text-muted small fw-bold">STOCK (UNIDADES ACTIVAS)</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #fff5f5);">
+            <div class="fs-1 fw-bold text-danger">${{ costo_total|cop }}</div>
+            <div class="text-muted small fw-bold">COSTO TOTAL DE MERCANCÍA</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0fff4);">
+            <div class="fs-1 fw-bold text-success">${{ ventas_estimadas|cop }}</div>
+            <div class="text-muted small fw-bold">VALOR ESTIMADO DE VENTAS</div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Barra de Búsqueda Server-Side -->
+    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex gap-2 w-100" style="max-width: 600px;">
+        <div class="input-group shadow-sm">
+            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+            <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
+                   placeholder="Buscar por Marca, Modelo, IMEI, Proveedor..."
+                   value="{{ q }}">
+            {% if q %}
+            <a href="{{ url_for('celulares_bp.inventario', estado=estado) }}" class="btn btn-outline-secondary border-start-0" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+        
+        <input type="hidden" name="estado" id="estadoInput" value="{{ estado }}">
+    </form>
+    
+    <div class="btn-group shadow-sm">
+        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q) }}" class="btn btn-outline-primary {% if estado == 'activos' %}active{% endif %}">Activos</a>
+        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q) }}" class="btn btn-outline-secondary {% if estado == 'vendidos' %}active{% endif %}">Vendidos</a>
+    </div>
+</div>
+
 <div class="card card-custom p-0 shadow-sm border-0">
     <div class="table-responsive">
         <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
@@ -111,4 +155,53 @@
         </table>
     </div>
 </div>
+
+<!-- Paginación -->
+{% if paginacion.pages > 1 %}
+<nav aria-label="Paginación celulares" class="mt-4">
+    <ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
+        <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+            <a class="page-link rounded-pill px-3 shadow-sm"
+               href="{% if paginacion.has_prev %}{{ url_for('celulares_bp.inventario', page=paginacion.prev_num, q=q, estado=estado) }}{% else %}#{% endif %}"
+               aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></a>
+        </li>
+        {% for p_num in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+            {% if p_num %}
+                <li class="page-item {% if p_num == paginacion.page %}active{% endif %}">
+                    <a class="page-link rounded-pill px-3 shadow-sm"
+                       href="{{ url_for('celulares_bp.inventario', page=p_num, q=q, estado=estado) }}">{{ p_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link rounded-pill px-3">…</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+            <a class="page-link rounded-pill px-3 shadow-sm"
+               href="{% if paginacion.has_next %}{{ url_for('celulares_bp.inventario', page=paginacion.next_num, q=q, estado=estado) }}{% else %}#{% endif %}"
+               aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchForm.submit();
+        }, 600);
+    });
+    
+    // Enfocar al final del input para que el usuario pueda seguir escribiendo tras el reload
+    window.addEventListener('DOMContentLoaded', () => {
+        if(searchInput.value) {
+            searchInput.focus();
+            searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+        }
+    });
+</script>
 {% endblock %}

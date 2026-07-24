@@ -1,6 +1,6 @@
 from flask import Blueprint, request, flash, redirect, render_template, url_for
 from flask_login import login_required
-from models import db, Product, Retoma
+from models import db, Product, Retoma, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
 from sqlalchemy import or_
