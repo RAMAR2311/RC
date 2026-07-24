@@ -291,6 +291,14 @@
                     <label class="form-label fw-bold">Teléfono / WhatsApp</label>
                     <input type="text" id="cliente_telefono" class="form-control bg-light" placeholder="Ej: 3001234567" required>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Correo Electrónico (Opcional)</label>
+                    <input type="email" id="cliente_email" class="form-control bg-light" placeholder="Ej: cliente@correo.com">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Dirección (Opcional)</label>
+                    <input type="text" id="cliente_direccion" class="form-control bg-light" placeholder="Ej: Calle 10 # 5-20">
+                </div>
             </div>
             <div class="modal-footer border-0 bg-light">
                 <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
@@ -761,6 +769,8 @@
         document.getElementById('cliente_documento').value = '';
         document.getElementById('cliente_nombre').value = '';
         document.getElementById('cliente_telefono').value = '';
+        document.getElementById('cliente_email').value = '';
+        document.getElementById('cliente_direccion').value = '';
         document.getElementById('cliente_found_badge').style.display = 'none';
         document.getElementById('cliente_lookup_msg').textContent = '';
         document.getElementById('cliente_documento').focus();
@@ -782,6 +792,8 @@
             if (data.encontrado) {
                 document.getElementById('cliente_nombre').value = data.nombre;
                 document.getElementById('cliente_telefono').value = data.telefono;
+                document.getElementById('cliente_email').value = data.email || '';
+                document.getElementById('cliente_direccion').value = data.direccion || '';
                 badge.style.display = 'flex';
                 msg.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Cliente encontrado y datos cargados.</span>';
             } else {
@@ -794,6 +806,8 @@
         const nombre = document.getElementById('cliente_nombre').value.trim();
         const doc = document.getElementById('cliente_documento').value.trim();
         const tel = document.getElementById('cliente_telefono').value.trim();
+        const email = document.getElementById('cliente_email').value.trim();
+        const direccion = document.getElementById('cliente_direccion').value.trim();
 
         if (!nombre || !doc || !tel) {
             return alert('Por favor completa todos los datos del cliente.');
@@ -802,7 +816,9 @@
         const datosCliente = {
             nombre: nombre,
             documento: doc,
-            telefono: tel
+            telefono: tel,
+            email: email,
+            direccion: direccion
         };
 
         const modalEl = document.getElementById('modalClienteCelular');

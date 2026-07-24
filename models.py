@@ -180,6 +180,8 @@ class SaleClient(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     documento = db.Column(db.String(50), nullable=False, index=True)
     telefono = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), nullable=True)
+    direccion = db.Column(db.String(200), nullable=True)
     
     # Relación configurada desde Sale
 

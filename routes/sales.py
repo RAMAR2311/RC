@@ -269,14 +269,15 @@ def procesar_venta():
                 
             db.session.add(retoma_registro)
 
-        # Guardar datos del cliente si se vendió un celular
         cliente_data = data.get('cliente')
         if cliente_data and isinstance(cliente_data, dict):
             cliente = SaleClient(
                 sale_id=nueva_venta.id,
                 nombre=cliente_data.get('nombre', 'Desconocido').strip(),
                 documento=cliente_data.get('documento', '0').strip(),
-                telefono=cliente_data.get('telefono', '').strip()
+                telefono=cliente_data.get('telefono', '').strip(),
+                email=cliente_data.get('email', '').strip() if cliente_data.get('email') else None,
+                direccion=cliente_data.get('direccion', '').strip() if cliente_data.get('direccion') else None
             )
             db.session.add(cliente)
 

@@ -248,7 +248,13 @@ def api_buscar_cliente():
         return jsonify({'encontrado': False})
     cliente = SaleClient.query.filter_by(documento=documento).order_by(SaleClient.id.desc()).first()
     if cliente:
-        return jsonify({'encontrado': True, 'nombre': cliente.nombre, 'telefono': cliente.telefono})
+        return jsonify({
+            'encontrado': True, 
+            'nombre': cliente.nombre, 
+            'telefono': cliente.telefono,
+            'email': cliente.email or '',
+            'direccion': cliente.direccion or ''
+        })
     return jsonify({'encontrado': False})
 
 @celulares_bp.route('/venta', methods=['GET', 'POST'])
