@@ -16,7 +16,7 @@
 
 <div class="row align-items-center justify-content-evenly" style="min-height: 85vh;">
     <!-- Columna Izquierda: Cuadro de Acceso Segregado -->
-    <div class="col-md-6 col-lg-5 mb-4">
+    <div class="col-md-6 col-lg-5 mb-4 order-2 order-md-1">
         <div class="card card-custom p-5 border-0 shadow-lg rounded-4" style="border-top: 5px solid var(--brand-red) !important;">
             <div class="text-center mb-5">
                 <h3 class="fw-bold text-brand-black">Acceso al Panel</h3>
@@ -45,9 +45,9 @@
     </div>
 
     <!-- Columna Derecha: Logo Central y Limpio -->
-    <div class="col-md-6 col-lg-6 d-none d-md-flex justify-content-center align-items-center text-center">
+    <div class="col-10 col-md-6 col-lg-6 d-flex justify-content-center align-items-center text-center order-1 order-md-2 mb-4 mb-md-0">
         <!-- Logo a la altura del usuario sin solapamiento -->
-        <img src="{{ url_for('static', filename='img/redcover.png') }}" alt="Identidad Visual redcover.com" class="img-fluid" style="max-height: 380px; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));">
+        <img src="{{ url_for('static', filename='img/redcover.png') }}" alt="Identidad Visual redcover.com" class="img-fluid" style="max-height: 280px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.08));">
     </div>
 </div>
 {% endblock %}
