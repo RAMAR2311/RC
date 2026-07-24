@@ -30,58 +30,76 @@
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
-                <h4 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ (total_efectivo)|cop }}</h4>
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid var(--brand-blue) !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
+                <h5 class="fw-bolder m-0" style="color: var(--brand-blue); font-size: 1.1rem;">${{ (total_efectivo)|cop }}</h5>
             </div>
         </div>
     </div>
     
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #6f42c1 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-button me-1"></i> Nequi</p>
-                <h4 class="fw-bolder m-0" style="color: #6f42c1;">${{ (total_nequi)|cop }}</h4>
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid #fd7e14 !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
+                <h5 class="fw-bolder m-0" style="color: #fd7e14; font-size: 1.1rem;">${{ (total_bancolombia)|cop }}</h5>
             </div>
         </div>
     </div>
 
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #fd7e14 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
-                <h4 class="fw-bolder m-0" style="color: #fd7e14;">${{ (total_bancolombia)|cop }}</h4>
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid #dc3545 !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
+                <h5 class="fw-bolder m-0" style="color: #dc3545; font-size: 1.1rem;">${{ (total_daviplata)|cop }}</h5>
             </div>
         </div>
     </div>
 
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #dc3545 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
-                <h4 class="fw-bolder m-0" style="color: #dc3545;">${{ (total_daviplata)|cop }}</h4>
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid #20c997 !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-credit-card me-1"></i> T. Crédito</p>
+                <h5 class="fw-bolder m-0" style="color: #20c997; font-size: 1.1rem;">${{ (total_tarjeta_credito)|cop }}</h5>
             </div>
         </div>
     </div>
 
-    {% if total_transferencia_legacy > 0 %}
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid #6f42c1 !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-cart-shopping me-1"></i> Addi</p>
+                <h5 class="fw-bolder m-0" style="color: #6f42c1; font-size: 1.1rem;">${{ (total_addi)|cop }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 4px solid #198754 !important;">
+            <div class="card-body py-2 ps-2">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-id-card me-1"></i> Sitecredito</p>
+                <h5 class="fw-bolder m-0" style="color: #198754; font-size: 1.1rem;">${{ (total_sitecredito)|cop }}</h5>
+            </div>
+        </div>
+    </div>
+
+    {% if total_otros > 0 %}
     <div class="col-12 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Transf. Históricas</p>
-                <h4 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ (total_transferencia_legacy)|cop }}</h4>
+        <div class="card card-custom h-100" style="border-left: 4px solid var(--brand-pink) !important;">
+            <div class="card-body py-2 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Otros / Históricos</p>
+                <h5 class="fw-bolder m-0" style="color: var(--brand-pink); font-size: 1.1rem;">${{ (total_otros)|cop }}</h5>
             </div>
         </div>
     </div>
     {% endif %}
     
     <!-- UI: Filtro de Fechas Oculto (Collapsible Bootstrap) -->
-    <div class="col-12 mt-2 mb-2 d-print-none">
-        <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
-            <i class="fa-solid fa-filter me-1"></i> Ver más filtros
-        </button>
+    <div class="col-12 mt-1 mb-3 d-print-none text-end">
+        <a href="#" class="text-muted small text-decoration-none opacity-50 text-hover-primary" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
+            <i class="fa-solid fa-filter me-1"></i> Mostrar filtros avanzados
+        </a>
         
         <div class="collapse mt-3" id="filtrosCollapse">
             <div class="card card-custom p-4 bg-light">

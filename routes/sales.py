@@ -373,10 +373,12 @@ def historial():
     # Auditar y cruzar sumatorios de métricas de pago
     # Sistema híbrido: usa SalePayment si existe, caso contrario cae al metodo_pago legacy
     total_efectivo = Decimal('0')
-    total_nequi = Decimal('0')
     total_bancolombia = Decimal('0')
     total_daviplata = Decimal('0')
-    total_transferencia_legacy = Decimal('0')
+    total_tarjeta_credito = Decimal('0')
+    total_addi = Decimal('0')
+    total_sitecredito = Decimal('0')
+    total_otros = Decimal('0')  # Para retomas, nequi viejo, etc.
     total_retomas = Decimal('0')
     total_mixto = 0  # Contador de ventas con pago mixto
 
@@ -385,41 +387,46 @@ def historial():
             for pago in v.pagos:
                 if pago.metodo_pago == 'efectivo':
                     total_efectivo += pago.monto
-                elif pago.metodo_pago == 'nequi':
-                    total_nequi += pago.monto
                 elif pago.metodo_pago == 'bancolombia':
                     total_bancolombia += pago.monto
                 elif pago.metodo_pago == 'daviplata':
                     total_daviplata += pago.monto
-                elif pago.metodo_pago == 'transferencia':
-                    total_transferencia_legacy += pago.monto
-                elif pago.metodo_pago == 'retoma':
-                    total_retomas += pago.monto
+                elif pago.metodo_pago == 'tarjeta_credito':
+                    total_tarjeta_credito += pago.monto
+                elif pago.metodo_pago == 'addi':
+                    total_addi += pago.monto
+                elif pago.metodo_pago == 'sitecredito':
+                    total_sitecredito += pago.monto
+                else:
+                    total_otros += pago.monto
             if len(v.pagos) > 1:
                 total_mixto += 1
         else:  # Retrocompatibilidad con ventas antiguas sin SalePayment
             if v.metodo_pago == 'efectivo':
                 total_efectivo += v.monto_total
-            elif v.metodo_pago == 'nequi':
-                total_nequi += v.monto_total
             elif v.metodo_pago == 'bancolombia':
                 total_bancolombia += v.monto_total
             elif v.metodo_pago == 'daviplata':
                 total_daviplata += v.monto_total
-            elif v.metodo_pago == 'transferencia':
-                total_transferencia_legacy += v.monto_total
-            elif v.metodo_pago == 'retoma':
-                total_retomas += v.monto_total
+            elif v.metodo_pago == 'tarjeta_credito':
+                total_tarjeta_credito += v.monto_total
+            elif v.metodo_pago == 'addi':
+                total_addi += v.monto_total
+            elif v.metodo_pago == 'sitecredito':
+                total_sitecredito += v.monto_total
+            else:
+                total_otros += v.monto_total
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
                            ventas=ventas, 
                            total_efectivo=total_efectivo,
-                           total_nequi=total_nequi,
                            total_bancolombia=total_bancolombia,
                            total_daviplata=total_daviplata,
-                           total_transferencia_legacy=total_transferencia_legacy,
-                           total_retomas=total_retomas,
+                           total_tarjeta_credito=total_tarjeta_credito,
+                           total_addi=total_addi,
+                           total_sitecredito=total_sitecredito,
+                           total_otros=total_otros,
                            total_mixto=total_mixto,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
