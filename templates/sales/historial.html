@@ -152,15 +152,10 @@
                     </td>
                     <td class="text-center align-middle">
                         {% if venta.pagos|length > 1 %}
-                            <!-- Pago Mixto: desglose en la celda -->
-                            <div class="d-flex flex-column align-items-center gap-1">
-                                <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-1">
-                                    <i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto
-                                </span>
-                                {% for p in venta.pagos %}
-                                    <small class="text-muted" style="font-size: 0.75rem;">- {{ p.metodo_pago|capitalize }}: ${{ p.monto|cop }}</small>
-                                {% endfor %}
-                            </div>
+                            <!-- Pago Mixto: solo la pastilla -->
+                            <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto
+                            </span>
                         {% elif venta.pagos|length == 1 %}
                             {% set metodo = venta.pagos[0].metodo_pago %}
                             {% if metodo == 'efectivo' %}
