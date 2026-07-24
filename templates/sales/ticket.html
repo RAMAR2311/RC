@@ -118,7 +118,8 @@
         @media print {
             body { background-color: #FFFFFF; padding: 0; display: block; }
             .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 80mm; border: none; }
-            .btn-print { display: none; }
+            .btn-print { display: none !important; }
+            .d-print-none { display: none !important; }
             .total-row { background-color: transparent !important; border: none !important; padding: 10px 0 !important; }
             .total-row * { color: #1A1A1A !important; } /* Desactivar Azul para impresiones monocromas */
         }
@@ -147,6 +148,8 @@
             <p class="info">Nombre: {{ venta.cliente.nombre }}</p>
             <p class="info">Documento: {{ venta.cliente.documento }}</p>
             <p class="info">Teléfono: {{ venta.cliente.telefono }}</p>
+            {% if venta.cliente.email %}<p class="info">Correo: {{ venta.cliente.email }}</p>{% endif %}
+            {% if venta.cliente.direccion %}<p class="info">Dirección: {{ venta.cliente.direccion }}</p>{% endif %}
         </div>
         {% endif %}
     </div>
@@ -213,7 +216,7 @@
             {% for retoma in venta.retomas_asociadas %}
             <div style="font-size: 0.85rem; padding: 3px 0;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span>{{ retoma.modelo }} (IMEI: {{ retoma.imei1 }})</span>
+                    <span>{{ retoma.modelo }} (IMEI 1: {{ retoma.imei1 }}{% if retoma.imei2 %} | IMEI 2: {{ retoma.imei2 }}{% endif %})</span>
                     <span style="font-weight: 700;">-${{ retoma.valor_retoma|cop }}</span>
                 </div>
             </div>
@@ -241,14 +244,31 @@
     </div>
 
     <div class="footer">
-        <p style="font-size: 1rem; font-weight: bold;">¡Gracias por tu compra!</p>
-        <p>Políticas de Tienda: Devoluciones únicamente presentando ticket impreso o digital.</p>
-        <p>Soporte: ventas@redcover.com</p>
+        <p style="font-size: 1rem; font-weight: bold; margin-bottom: 5px;">¡Gracias por tu compra!</p>
+        <p style="font-size: 0.72rem; line-height: 1.3; text-align: justify; margin: 10px 0; border-top: 1px dashed #1A1A1A; border-bottom: 1px dashed #1A1A1A; padding: 10px 0;">
+            <strong>Políticas de Garantía:</strong> Equipos nuevos: garantía de 1 año. Equipos de exhibición: garantía de 8 meses. No cubre equipos con garantía vencida, reportados por operador, IMEI o serial alterado, daños por golpes, caídas, humedad, líquidos, polvo, manipulación indebida, software modificado, instalaciones o actualizaciones no autorizadas, equipos intervenidos por terceros, pantallas despegadas, manchas negras, líneas en pantalla, rayones o cualquier daño físico. Para hacer efectiva la garantía es obligatorio presentar la factura original. El tiempo de revisión y diagnóstico es de 2 a 3 días hábiles. Si la garantía procede, se reemplazará la pieza defectuosa; si el equipo no puede ser reparado, se realizará el cambio del mismo. El tiempo máximo de reparación es de hasta 15 días hábiles, de conformidad con la Ley 1480 de 2011.
+        </p>
+        <p style="font-size: 0.8rem; margin-top: 5px;">Soporte: ventas@redcover.com</p>
     </div>
 
-    <button class="btn-print" onclick="window.print()">
-        [ IMPRIMIR TICKET ]
-    </button>
+    <div style="display: flex; gap: 10px;" class="d-print-none">
+        <button class="btn-print" onclick="window.print()" style="flex: 1; margin-top: 25px;">
+            [ IMPRIMIR TICKET ]
+        </button>
+        {% if venta.cliente and venta.cliente.telefono %}
+            {% set phone = venta.cliente.telefono|replace(' ', '')|replace('*', '')|replace('-', '')|replace('+', '') %}
+            {% if not phone.startswith('57') and phone|length == 10 %}
+                {% set phone = '57' ~ phone %}
+            {% endif %}
+            {% set mensaje = "Hola " ~ venta.cliente.nombre ~ "! Aquí tienes tu factura digital de Red Cover: " ~ request.url %}
+            <a href="https://wa.me/{{ phone }}?text={{ mensaje|urlencode }}" 
+               target="_blank" 
+               class="btn-print btn-wa" 
+               style="flex: 1; background-color: #25D366; border-color: #25D366; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 25px;">
+                [ ENVIAR WHATSAPP ]
+            </a>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Lógica de Auto-Impresión Reactiva -->

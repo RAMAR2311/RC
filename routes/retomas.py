@@ -50,10 +50,19 @@ def aprobar_retoma(id):
     nombre_definitivo = request.form.get('nombre_definitivo')
     precio_sugerido = request.form.get('precio_sugerido')
     precio_minimo = request.form.get('precio_minimo', precio_sugerido)
+    arreglos = request.form.get('arreglos', '0')
     
     if not nombre_definitivo or not precio_sugerido:
         flash('Faltan datos obligatorios para crear el producto.', 'danger')
         return redirect(url_for('retomas_bp.cuarentena'))
+
+    try:
+        arreglos_val = Decimal(arreglos)
+    except:
+        arreglos_val = Decimal('0')
+
+    # Guardar costo de arreglos en la retoma
+    retoma.arreglos = arreglos_val
 
     nuevo_sku = f"RET-{retoma.id}-{obtener_hora_bogota().strftime('%Y%m%d%H%M%S')}"
 
@@ -62,7 +71,7 @@ def aprobar_retoma(id):
         sku=nuevo_sku,
         tipo_inventario='celulares',
         cantidad_stock=1,
-        precio_costo=retoma.valor_retoma,
+        precio_costo=retoma.valor_retoma + arreglos_val,
         precio_minimo=Decimal(precio_minimo),
         precio_sugerido=Decimal(precio_sugerido),
         observacion=retoma.observaciones,

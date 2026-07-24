@@ -45,12 +45,32 @@
             padding-top: 5px;
         }
         .bg-dark { background-color: #000; color: #fff; padding: 2px; }
+        .d-print-none {
+            display: block;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .btn-wa {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #25D366;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+        @media print {
+            .d-print-none {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body onload="window.print()">
 
     <div class="ticket-header text-center border-bottom">
-        <h2 class="fw-bold">MARCA BLANCA</h2>
+        <h2 class="fw-bold">RedCover</h2>
         <p class="small">SOPORTE TÉCNICO Y GARANTÍAS</p>
     </div>
 
@@ -64,6 +84,11 @@
         <p class="fw-bold">DATOS DEL CLIENTE</p>
         <p>Cédula: {{ warranty.sale.cliente.documento if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
         <p>Nombre: {{ warranty.sale.cliente.nombre if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
+        {% if warranty.sale and warranty.sale.cliente %}
+            <p>Teléfono: {{ warranty.sale.cliente.telefono }}</p>
+            {% if warranty.sale.cliente.email %}<p>Correo: {{ warranty.sale.cliente.email }}</p>{% endif %}
+            {% if warranty.sale.cliente.direccion %}<p>Dirección: {{ warranty.sale.cliente.direccion }}</p>{% endif %}
+        {% endif %}
     </div>
 
     <div class="border-bottom mb-2">
@@ -89,6 +114,10 @@
     
     <div class="border-top mb-3">
         <p class="text-center fw-bold mt-1">ESTADO: {{ warranty.resolution.upper() }}</p>
+        {% if warranty.admin_notes %}
+        <p class="fw-bold mt-2">OBSERVACIÓN DE GARANTÍA:</p>
+        <p class="small mt-1" style="word-wrap: break-word;">{{ warranty.admin_notes }}</p>
+        {% endif %}
     </div>
 
     <div class="small text-justify" style="text-align: justify; margin-bottom: 20px;">
@@ -107,6 +136,21 @@
     <div class="text-center mt-3 small fw-bold">
         ¡Gracias por confiar en nosotros!
     </div>
+
+    {% if warranty.sale and warranty.sale.cliente and warranty.sale.cliente.telefono %}
+        {% set phone = warranty.sale.cliente.telefono|replace(' ', '')|replace('*', '')|replace('-', '')|replace('+', '') %}
+        {% if not phone.startswith('57') and phone|length == 10 %}
+            {% set phone = '57' ~ phone %}
+        {% endif %}
+        {% set mensaje = "Hola " ~ warranty.sale.cliente.nombre ~ "! Aquí tienes tu ticket de ingreso de garantía en RedCover: " ~ request.url %}
+        <div class="d-print-none text-center">
+            <a href="https://wa.me/{{ phone }}?text={{ mensaje|urlencode }}" 
+               target="_blank" 
+               class="btn-wa">
+                ENVIAR POR WHATSAPP
+            </a>
+        </div>
+    {% endif %}
 
 </body>
 </html>
