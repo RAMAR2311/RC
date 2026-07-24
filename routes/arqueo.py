@@ -322,3 +322,18 @@ def reporte():
         total_general_ch=total_general_ch,
         gastos_periodo=gastos_periodo
     )
+
+@arqueo_bp.route('/revertir/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def revertir_arqueo(id):
+    arqueo = ArqueoCaja.query.get_or_404(id)
+    fecha_str = arqueo.fecha_arqueo.strftime('%Y-%m-%d')
+    try:
+        db.session.delete(arqueo)
+        db.session.commit()
+        flash(f"El arqueo de caja del {fecha_str} en {arqueo.sucursal} ha sido revertido exitosamente.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Ocurrió un error al revertir el arqueo de caja.", "danger")
+    return redirect(url_for('arqueo_bp.reporte'))

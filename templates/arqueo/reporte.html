@@ -117,6 +117,9 @@
                             <th width="10%" style="color: #6f42c1;">Celulares</th>
                             <th width="12%" class="text-danger">Gastos</th>
                             <th width="24%">Detalle del Gasto</th>
+                            {% if current_user.rol == 'admin' %}
+                            <th width="10%" class="d-print-none">Acciones</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.9rem;">
@@ -139,10 +142,20 @@
                             <td class="text-muted fst-italic" style="font-size: 0.8rem;">
                                 {{ arqueo.observaciones_gastos if arqueo.observaciones_gastos else '-' }}
                             </td>
+                            {% if current_user.rol == 'admin' %}
+                            <td class="text-center d-print-none">
+                                <form action="{{ url_for('arqueo_bp.revertir_arqueo', id=arqueo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas revertir este arqueo de caja? Esto eliminará el cierre y permitirá volver a crear/modificar el arqueo para esta fecha y local.');" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger py-1 px-2 rounded-3 text-nowrap">
+                                        <i class="fa-solid fa-rotate-left"></i> Revertir
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="8" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
+                            <td colspan="12" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
