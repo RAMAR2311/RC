@@ -118,6 +118,17 @@
                 </select>
             </div>
 
+            <!-- Selector de Proveedor (Opcional, se muestra si hay celulares en el carrito) -->
+            <div class="mb-3 d-none" id="provider-section">
+                <label class="form-label fw-bold text-brand-black small text-uppercase mb-2"><i class="fa-solid fa-truck-fast me-1"></i> Proveedor (Consignación)</label>
+                <select id="proveedor-venta" class="form-select form-select-lg border-0 shadow-sm bg-light" style="cursor: pointer;">
+                    <option value="" selected>-- Seleccionar Proveedor (Opcional) --</option>
+                    {% for p in providers %}
+                        <option value="{{ p.id }}">{{ p.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <!-- Toggle: Pago Único vs Pago Dividido -->
             <div class="mb-3">
                 <div class="d-flex align-items-center gap-3 mb-3">
@@ -905,6 +916,18 @@
         totalAmountEl.innerText = formatoCOP(granTotal);
         totalItemsEl.innerText = totalItems;
 
+        // Mostrar u ocultar el selector de proveedor si hay celulares en el carrito
+        let hayCelular = carrito.some(item => item.tipo_inventario === 'celulares');
+        const provSec = document.getElementById('provider-section');
+        if (provSec) {
+            if (hayCelular) {
+                provSec.classList.remove('d-none');
+            } else {
+                provSec.classList.add('d-none');
+                document.getElementById('proveedor-venta').value = "";
+            }
+        }
+
         // Actualizar saldo restante si estamos en modo mixto
         if (document.getElementById('toggle_pago_mixto').checked) {
             actualizarSaldoRestante();
@@ -1116,9 +1139,13 @@
             });
         }
 
+        const provSelect = document.getElementById('proveedor-venta');
+        const providerId = provSelect && provSelect.value ? parseInt(provSelect.value) : null;
+
         // Enviar retomaActual en el payload
         const payload = {
             asesor_id: parseInt(asesorId),
+            provider_id: providerId,
             items: carrito.map(item => {
                 const base = {
                     product_id: item.id,

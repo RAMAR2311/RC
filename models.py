@@ -143,6 +143,8 @@ class Sale(db.Model):
     cliente = db.relationship('SaleClient', backref='venta', lazy=True, cascade="all, delete-orphan", uselist=False)
     asesor_id = db.Column(db.Integer, db.ForeignKey('asesores.id'), nullable=True)
     asesor = db.relationship('Asesor', backref=db.backref('ventas', lazy=True))
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=True)
+    provider = db.relationship('Provider', backref=db.backref('ventas', lazy=True))
 
     def __init__(self, **kwargs):
         super(Sale, self).__init__(**kwargs)
@@ -424,7 +426,15 @@ class Provider(db.Model):
 
     @property
     def total_facturado(self):
-        return sum(f.monto_total for f in self.facturas)
+        total_invoices = sum(f.monto_total for f in self.facturas)
+        total_sales_cost = 0
+        if self.ventas:
+            for s in self.ventas:
+                for d in s.detalles:
+                    if d.producto and d.producto.precio_costo:
+                        total_sales_cost += d.producto.precio_costo * d.cantidad_vendida
+        from decimal import Decimal
+        return Decimal(str(total_invoices or 0)) + Decimal(str(total_sales_cost or 0))
     
     @property
     def total_abonado(self):

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor, Provider
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -14,7 +14,8 @@ sales_bp = Blueprint('sales_bp', __name__)
 def procesar_venta():
     if request.method == 'GET':
         asesores = Asesor.query.filter_by(activo=True).order_by(Asesor.nombre).all()
-        return render_template('sales/nueva.html', asesores=asesores)
+        providers = Provider.query.order_by(Provider.nombre).all()
+        return render_template('sales/nueva.html', asesores=asesores, providers=providers)
 
     """
     Se espera que los datos vengan en el cuerpo de la petición (JSON)
@@ -25,6 +26,7 @@ def procesar_venta():
     pagos_data = data.get('pagos', [])  # Nuevo: array de pagos mixtos
     metodo_pago_legacy = data.get('metodo_pago', 'efectivo')  # Retrocompatibilidad
     asesor_id = data.get('asesor_id')
+    provider_id = data.get('provider_id')
     
     if not items:
         return jsonify({'error': 'No se enviaron productos para la venta'}), 400
@@ -94,6 +96,7 @@ def procesar_venta():
         nueva_venta = Sale(
             vendedor_id=current_user.id,
             asesor_id=asesor_id,
+            provider_id=provider_id,
             monto_total=Decimal('0.00'),
             metodo_pago=metodo_pago_principal,
             fecha_venta=fecha_venta_obj,
@@ -592,6 +595,7 @@ def caja_visual():
     productos = [p for p in productos_query if p.total_stock > 0]
     
     asesores = Asesor.query.filter_by(activo=True).order_by(Asesor.nombre).all()
+    providers = Provider.query.order_by(Provider.nombre).all()
     
-    return render_template('sales/caja_visual.html', productos=productos, asesores=asesores, hoy=hoy_bogota.strftime('%Y-%m-%d'))
+    return render_template('sales/caja_visual.html', productos=productos, asesores=asesores, providers=providers, hoy=hoy_bogota.strftime('%Y-%m-%d'))
 
