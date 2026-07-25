@@ -15,7 +15,7 @@
         <div class="mb-4">
             <div class="input-group input-group-lg shadow-sm rounded-pill border">
                 <span class="input-group-text bg-white border-0 ps-4"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="productSearch" class="form-control border-0 bg-white shadow-none ps-2" placeholder="Buscar producto por nombre o SKU..." style="border-radius: 0 50px 50px 0;">
+                <input type="text" id="productSearch" class="form-control border-0 bg-white shadow-none ps-2" placeholder="Buscar producto por nombre, SKU o IMEI..." style="border-radius: 0 50px 50px 0;">
             </div>
         </div>
 
@@ -30,7 +30,7 @@
                     {% set _ = vars_data.append({"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_sugerido": v.precio_sugerido or p.precio_sugerido or 0}) %}
                 {% endfor %}
             {% endif %}
-            <div class="col-6 col-md-4 col-xl-3 product-card-container" data-name="{{ p.nombre|lower }}" data-sku="{{ p.sku|lower }}">
+            <div class="col-6 col-md-4 col-xl-3 product-card-container" data-name="{{ p.nombre|lower }}" data-sku="{{ p.sku|lower }}" data-imei="{{ p.imei|lower if p.imei else '' }}" data-imei2="{{ p.imei2|lower if p.imei2 else '' }}">
                 <div class="card h-100 border-0 shadow-sm cursor-pointer product-card" 
                      data-product='{{ {"id": p.id, "nombre": p.nombre, "sku": p.sku, "precio_sugerido": p.precio_sugerido or 0, "cantidad_stock": total_stock, "tipo_inventario": p.tipo_inventario}|tojson|safe }}'
                      data-variants='{{ vars_data|tojson|safe }}'
@@ -415,7 +415,9 @@
         document.querySelectorAll('.product-card-container').forEach(card => {
             const name = card.dataset.name;
             const sku = card.dataset.sku;
-            if (name.includes(query) || sku.includes(query)) {
+            const imei = card.dataset.imei || '';
+            const imei2 = card.dataset.imei2 || '';
+            if (name.includes(query) || sku.includes(query) || imei.includes(query) || imei2.includes(query)) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
