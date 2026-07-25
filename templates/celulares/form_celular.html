@@ -122,5 +122,16 @@
             if (input.value === '') input.value = '0';
         });
     }
+
+    // Evitar que el lector de códigos de barras (que envía un Enter al final) envíe el formulario automáticamente
+    document.querySelector('form').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.tagName === 'INPUT' && activeEl.type !== 'submit' && activeEl.type !== 'button') {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
 </script>
 {% endblock %}
