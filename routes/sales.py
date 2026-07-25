@@ -337,6 +337,8 @@ def api_buscar_producto(sku):
         'precio_minimo': float(producto.precio_minimo),
         'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_minimo),
         'precio_sugerido': float(producto.precio_sugerido),
+        'imei': producto.imei,
+        'imei2': producto.imei2,
         'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_minimo or producto.precio_minimo), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes],
         'auto_select_variant': auto_select_variant
     })

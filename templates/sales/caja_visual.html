@@ -32,7 +32,7 @@
             {% endif %}
             <div class="col-6 col-md-4 col-xl-3 product-card-container" data-name="{{ p.nombre|lower }}" data-sku="{{ p.sku|lower }}" data-imei="{{ p.imei|lower if p.imei else '' }}" data-imei2="{{ p.imei2|lower if p.imei2 else '' }}">
                 <div class="card h-100 border-0 shadow-sm cursor-pointer product-card" 
-                     data-product='{{ {"id": p.id, "nombre": p.nombre, "sku": p.sku, "precio_sugerido": p.precio_sugerido or 0, "cantidad_stock": total_stock, "tipo_inventario": p.tipo_inventario}|tojson|safe }}'
+                     data-product='{{ {"id": p.id, "nombre": p.nombre, "sku": p.sku, "precio_sugerido": p.precio_sugerido or 0, "cantidad_stock": total_stock, "tipo_inventario": p.tipo_inventario, "imei": p.imei, "imei2": p.imei2}|tojson|safe }}'
                      data-variants='{{ vars_data|tojson|safe }}'
                      onclick="handleProductClick(this)">
                     <div class="ratio ratio-1x1 bg-light rounded-top d-flex align-items-center justify-content-center overflow-hidden">
@@ -45,7 +45,11 @@
                     <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
                         <div>
                             <h6 class="card-title fw-bold text-dark text-truncate mb-1" title="{{ p.nombre }}">{{ p.nombre }}</h6>
-                            <small class="text-muted d-block mb-2">{{ p.sku }}</small>
+                            {% if p.tipo_inventario == 'celulares' and p.imei %}
+                                <small class="text-muted d-block mb-2">IMEI: {{ p.imei }}</small>
+                            {% else %}
+                                <small class="text-muted d-block mb-2">{{ p.sku }}</small>
+                            {% endif %}
                         </div>
                         <div>
                             <h5 class="fw-bolder mb-1" style="color: var(--brand-pink);">${{ p.precio_sugerido|cop }}</h5>
@@ -457,18 +461,18 @@
                 alert("Este producto no tiene stock disponible.");
                 return;
             }
-            addToCart(pData.id, null, pData.nombre, pData.sku, pData.precio_sugerido, pData.cantidad_stock, null, pData.tipo_inventario);
+            addToCart(pData.id, null, pData.nombre, pData.sku, pData.precio_sugerido, pData.cantidad_stock, null, pData.tipo_inventario, pData.imei, pData.imei2);
         }
     }
 
     window.addVariantToCart = function(variantId) {
         const vData = activeVariantsData.find(v => v.id === variantId);
         if (!vData) return;
-        addToCart(activeProductData.id, vData.id, activeProductData.nombre, activeProductData.sku, vData.precio_sugerido, vData.stock, vData.nombre, activeProductData.tipo_inventario);
+        addToCart(activeProductData.id, vData.id, activeProductData.nombre, activeProductData.sku, vData.precio_sugerido, vData.stock, vData.nombre, activeProductData.tipo_inventario, activeProductData.imei, activeProductData.imei2);
         bootstrap.Modal.getInstance(document.getElementById('modalVariantes')).hide();
     };
 
-    function addToCart(productId, variantId, nombre, sku, precio, maxStock, variantName = null, tipoInventario = null) {
+    function addToCart(productId, variantId, nombre, sku, precio, maxStock, variantName = null, tipoInventario = null, imei = null, imei2 = null) {
         let existingIndex = carrito.findIndex(i => i.product_id === productId && i.variant_id === variantId);
         
         if (existingIndex > -1) {
@@ -493,7 +497,9 @@
                 cantidad: 1,
                 max_stock: maxStock,
                 es_obsequio: false,
-                tipo_inventario: tipoInventario
+                tipo_inventario: tipoInventario,
+                imei: imei,
+                imei2: imei2
             });
         }
         renderCart();
@@ -565,16 +571,19 @@
             granTotal += subtotal;
             totalItems += item.cantidad;
 
-            const li = document.createElement('li');
-            li.className = 'list-group-item px-3 py-3';
-            let precioInputState = item.es_obsequio ? 'disabled' : '';
-            let isObsequioClass = item.es_obsequio ? 'text-success' : 'text-muted';
-            
+            let imeiHtml = '';
+            if (item.tipo_inventario === 'celulares') {
+                let imei1_str = item.imei ? `IMEI 1: ${item.imei}` : 'IMEI 1: N/D';
+                let imei2_str = item.imei2 ? `, IMEI 2: ${item.imei2}` : '';
+                imeiHtml = `<small class="text-secondary d-block fw-normal mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen-button me-1"></i>${imei1_str}${imei2_str}</small>`;
+            }
+
             li.innerHTML = `
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-dark text-truncate" style="max-width: 70%;">
                         ${item.nombre}
                         <small class="text-muted d-block fw-normal" style="font-size: 0.75rem;">${item.sku}</small>
+                        ${imeiHtml}
                         ${item.es_obsequio ? '<span class="badge bg-success bg-opacity-10 text-success mt-1"><i class="fa-solid fa-gift me-1"></i>Obsequio</span>' : ''}
                     </div>
                     <div>
