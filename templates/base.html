@@ -270,11 +270,25 @@
                         </div>
                     </li>
                     
+                    <!-- Módulo Personal / Asesores -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-brand-black me-2" style="width:20px; text-align:center;"></i> Personal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink me-2" style="width:20px; text-align:center;"></i> Venta Vendedores</a>
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsePersonal" role="button" aria-expanded="false" aria-controls="collapsePersonal">
+                            <span><i class="fa-solid fa-users text-brand-black me-2" style="width:20px; text-align:center;"></i> Personal</span>
+                            <i class="fa-solid fa-chevron-down small text-muted"></i>
+                        </a>
+                        <div class="collapse" id="collapsePersonal">
+                            <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/admin/vendedores"><i class="fa-solid fa-users-gear text-brand-black me-2" style="width:20px; text-align:center;"></i> Perfiles</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.asesores') }}"><i class="fa-solid fa-user-tie text-brand-black me-2" style="width:20px; text-align:center;"></i> Asesores</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink me-2" style="width:20px; text-align:center;"></i> Ventas Asesores</a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved text-brand-pink me-2" style="width:20px; text-align:center;"></i> Garantías</a>

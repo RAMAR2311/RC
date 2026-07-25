@@ -94,14 +94,14 @@
         <p class="small">{{ warranty.created_at.strftime('%d/%m/%Y %I:%M %p') }}</p>
     </div>
 
-    <div class="border-top border-bottom mt-2 mb-2">
-        <p class="fw-bold">DATOS DEL CLIENTE</p>
-        <p>Cédula: {{ warranty.sale.cliente.documento if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
-        <p>Nombre: {{ warranty.sale.cliente.nombre if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
+    <div class="border-top border-bottom mt-2 mb-2" style="text-align: left; font-size: 0.8rem; line-height: 1.3; padding: 6px 0;">
+        <p style="font-weight: bold; margin: 0 0 4px 0; text-transform: uppercase; font-size: 0.75rem;">DATOS DEL CLIENTE</p>
+        <p style="margin: 2px 0;"><strong>Cédula:</strong> {{ warranty.sale.cliente.documento if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
+        <p style="margin: 2px 0;"><strong>Nombre:</strong> {{ warranty.sale.cliente.nombre if warranty.sale and warranty.sale.cliente else 'N/A' }}</p>
         {% if warranty.sale and warranty.sale.cliente %}
-            <p>Teléfono: {{ warranty.sale.cliente.telefono }}</p>
-            {% if warranty.sale.cliente.email %}<p>Correo: {{ warranty.sale.cliente.email }}</p>{% endif %}
-            {% if warranty.sale.cliente.direccion %}<p>Dirección: {{ warranty.sale.cliente.direccion }}</p>{% endif %}
+            <p style="margin: 2px 0;"><strong>Teléfono:</strong> {{ warranty.sale.cliente.telefono }}</p>
+            {% if warranty.sale.cliente.email %}<p style="margin: 2px 0;"><strong>Correo:</strong> {{ warranty.sale.cliente.email }}</p>{% endif %}
+            {% if warranty.sale.cliente.direccion %}<p style="margin: 2px 0;"><strong>Dirección:</strong> {{ warranty.sale.cliente.direccion }}</p>{% endif %}
         {% endif %}
     </div>
 
@@ -135,8 +135,8 @@
     </div>
 
     <div class="small text-justify" style="text-align: justify; margin-bottom: 20px;">
-        <p class="fw-bold text-center">TÉRMINOS Y CONDICIONES</p>
-        Este documento certifica la recepción del equipo para revisión técnica. El tiempo de respuesta es de 3 a 8 días hábiles. La garantía no cubre daños por humedad, golpes, sobrecargas o mala manipulación. Indispensable presentar este ticket para retirar el equipo.
+        <p class="fw-bold text-center">TÉRMINOS DE INGRESO A GARANTÍA</p>
+        El equipo queda sujeto a revisión técnica para determinar la procedencia de la garantía. El tiempo de diagnóstico es de 2 a 3 días hábiles y el de reparación hasta 15 días hábiles. La garantía no cubre daños físicos, golpes, humedad, software modificado, pantallas despegadas, manchas negras ni líneas en pantalla. Si la falla presentada no está cubierta por la garantía, el costo de la reparación y/o repuestos deberá ser asumido por el cliente, previa autorización. El establecimiento no se responsabiliza por la pérdida de información almacenada en el equipo. Para reclamar el equipo es obligatorio presentar este comprobante. La firma del cliente implica la aceptación de estas condiciones.
     </div>
 
     <div class="signature-box mt-3">

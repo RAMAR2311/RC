@@ -137,6 +137,7 @@
                     <th width="120">N° TIPO</th>
                     <th>FECHA DE COBRO</th>
                     <th>VENDEDOR RESPONSABLE</th>
+                    <th>ASESOR</th>
                     <th class="text-center">VÍA DE PAGO</th>
                     <th class="text-end">IMPORTE CERRADO</th>
                     <th class="text-center" width="160">AUDITAR</th>
@@ -149,6 +150,13 @@
                     <td class="align-middle text-muted"><i class="fa-regular fa-calendar text-brand-pink me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
                     <td class="align-middle fw-semibold text-brand-black">
                         <i class="fa-solid fa-user-circle text-muted me-1"></i> {{ venta.vendedor.nombre }}
+                    </td>
+                    <td class="align-middle fw-semibold text-brand-black">
+                        {% if venta.asesor %}
+                            <i class="fa-solid fa-user-tie text-muted me-1"></i> {{ venta.asesor.nombre }}
+                        {% else %}
+                            <span class="text-muted small">N/A</span>
+                        {% endif %}
                     </td>
                     <td class="text-center align-middle">
                         {% if venta.pagos|length > 1 %}

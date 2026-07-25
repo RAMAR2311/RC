@@ -141,6 +141,8 @@ class Sale(db.Model):
     detalles = db.relationship('SaleDetail', backref='venta', lazy=True, cascade="all, delete-orphan")
     pagos = db.relationship('SalePayment', backref='venta', lazy=True, cascade="all, delete-orphan")
     cliente = db.relationship('SaleClient', backref='venta', lazy=True, cascade="all, delete-orphan", uselist=False)
+    asesor_id = db.Column(db.Integer, db.ForeignKey('asesores.id'), nullable=True)
+    asesor = db.relationship('Asesor', backref=db.backref('ventas', lazy=True))
 
     def __init__(self, **kwargs):
         super(Sale, self).__init__(**kwargs)
@@ -517,3 +519,10 @@ class PriceApproval(db.Model):
     vendedor = db.relationship('User', foreign_keys=[vendedor_id])
     admin = db.relationship('User', foreign_keys=[admin_id])
     product = db.relationship('Product')
+
+class Asesor(db.Model):
+    __tablename__ = 'asesores'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=obtener_hora_bogota)

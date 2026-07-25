@@ -516,14 +516,14 @@ def balance_financiero():
 @login_required
 @admin_required
 def ventas_vendedores():
-    from models import User, Sale
+    from models import Asesor, Sale
     import calendar
     from datetime import datetime
     
-    # Obtener todos los usuarios con rol vendedor o admin (activos, no eliminados)
-    vendedores_lista = User.query.filter(User.rol != 'eliminado').order_by(User.nombre).all()
+    # Obtener todos los asesores (ordenados por nombre)
+    asesores_lista = Asesor.query.order_by(Asesor.nombre).all()
     
-    vendedor_id = request.args.get('vendedor_id', type=int)
+    asesor_id = request.args.get('asesor_id', type=int)
     mes_seleccionado = request.args.get('mes', '').strip()
     
     # Si no hay mes seleccionado, por defecto usar el mes actual
@@ -531,21 +531,21 @@ def ventas_vendedores():
         mes_seleccionado = obtener_hora_bogota().strftime('%Y-%m')
         
     ventas = []
-    vendedor_filtro = None
+    asesor_filtro = None
     total_ventas_mes = Decimal('0.0')
     
-    if vendedor_id:
-        vendedor_filtro = User.query.get(vendedor_id)
-        if vendedor_filtro:
+    if asesor_id:
+        asesor_filtro = Asesor.query.get(asesor_id)
+        if asesor_filtro:
             try:
                 year, month = map(int, mes_seleccionado.split('-'))
                 last_day = calendar.monthrange(year, month)[1]
                 start_date = datetime(year, month, 1, 0, 0, 0)
                 end_date = datetime(year, month, last_day, 23, 59, 59)
                 
-                # Obtener todas las ventas del vendedor en ese rango de fechas
+                # Obtener todas las ventas asociadas al asesor en ese rango de fechas
                 ventas = Sale.query.filter(
-                    Sale.vendedor_id == vendedor_id,
+                    Sale.asesor_id == asesor_id,
                     Sale.fecha_venta >= start_date,
                     Sale.fecha_venta <= end_date
                 ).order_by(Sale.fecha_venta.desc()).all()
@@ -556,10 +556,68 @@ def ventas_vendedores():
                 
     return render_template(
         'admin/ventas_vendedores.html',
-        vendedores=vendedores_lista,
-        vendedor_id=vendedor_id,
-        vendedor_filtro=vendedor_filtro,
+        asesores=asesores_lista,
+        asesor_id=asesor_id,
+        asesor_filtro=asesor_filtro,
         mes_seleccionado=mes_seleccionado,
         ventas=ventas,
         total_ventas_mes=total_ventas_mes
     )
+
+@admin_bp.route('/asesores', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def asesores():
+    from models import Asesor
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        if not nombre or not nombre.strip():
+            flash('Acción Denegada: El nombre del asesor no puede estar vacío.', 'danger')
+        else:
+            try:
+                nuevo_asesor = Asesor(nombre=nombre.strip(), activo=True)
+                db.session.add(nuevo_asesor)
+                db.session.commit()
+                flash(f"¡Asesor '{nombre.strip()}' registrado exitosamente!", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash('Ocurrió un error al registrar el asesor.', 'danger')
+        return redirect(url_for('admin_bp.asesores'))
+        
+    lista_asesores = Asesor.query.order_by(Asesor.nombre).all()
+    return render_template('admin/asesores.html', asesores=lista_asesores)
+
+@admin_bp.route('/asesores/<int:id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def editar_asesor(id):
+    from models import Asesor
+    asesor = Asesor.query.get_or_404(id)
+    nombre = request.form.get('nombre')
+    if not nombre or not nombre.strip():
+        flash('El nombre del asesor no puede estar vacío.', 'danger')
+    else:
+        try:
+            asesor.nombre = nombre.strip()
+            db.session.commit()
+            flash('Asesor actualizado correctamente.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error al actualizar el asesor.', 'danger')
+    return redirect(url_for('admin_bp.asesores'))
+
+@admin_bp.route('/asesores/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_asesor(id):
+    from models import Asesor
+    asesor = Asesor.query.get_or_404(id)
+    try:
+        asesor.activo = not asesor.activo
+        db.session.commit()
+        estado = "activado" if asesor.activo else "desactivado"
+        flash(f"Asesor '{asesor.nombre}' {estado} correctamente.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al cambiar el estado del asesor.', 'danger')
+    return redirect(url_for('admin_bp.asesores'))

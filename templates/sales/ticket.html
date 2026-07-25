@@ -154,6 +154,9 @@
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
+        {% if venta.asesor %}
+        <p class="info">Asesor de Venta: {{ venta.asesor.nombre }}</p>
+        {% endif %}
         <p class="info" style="font-weight: bold; text-transform: uppercase;">
             {% if venta.pagos|length > 1 %}
                 Método de Pago: PAGO DIVIDIDO
@@ -164,13 +167,13 @@
             {% endif %}
         </p>
         {% if venta.cliente %}
-        <div style="border-top: 1px dashed #1A1A1A; margin-top: 8px; padding-top: 8px; text-align: left;">
-            <p class="info" style="font-weight: bold; margin-bottom: 2px; text-transform: uppercase; font-size: 0.8rem;">Datos del Cliente:</p>
-            <p class="info">Nombre: {{ venta.cliente.nombre }}</p>
-            <p class="info">Documento: {{ venta.cliente.documento }}</p>
-            <p class="info">Teléfono: {{ venta.cliente.telefono }}</p>
-            {% if venta.cliente.email %}<p class="info">Correo: {{ venta.cliente.email }}</p>{% endif %}
-            {% if venta.cliente.direccion %}<p class="info">Dirección: {{ venta.cliente.direccion }}</p>{% endif %}
+        <div style="border-top: 1px dashed #1A1A1A; margin-top: 8px; padding-top: 8px; text-align: left; font-size: 0.8rem; line-height: 1.3;">
+            <p style="font-weight: bold; margin: 0 0 4px 0; text-transform: uppercase; font-size: 0.75rem;">Datos del Cliente:</p>
+            <p style="margin: 2px 0;"><strong>Nombre:</strong> {{ venta.cliente.nombre }}</p>
+            <p style="margin: 2px 0;"><strong>Documento:</strong> {{ venta.cliente.documento }}</p>
+            <p style="margin: 2px 0;"><strong>Teléfono:</strong> {{ venta.cliente.telefono }}</p>
+            {% if venta.cliente.email %}<p style="margin: 2px 0;"><strong>Correo:</strong> {{ venta.cliente.email }}</p>{% endif %}
+            {% if venta.cliente.direccion %}<p style="margin: 2px 0;"><strong>Dirección:</strong> {{ venta.cliente.direccion }}</p>{% endif %}
         </div>
         {% endif %}
     </div>

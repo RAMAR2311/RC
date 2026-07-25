@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Venta de Vendedores - RedCover{% endblock %}
+{% block title %}Venta de Asesores - RedCover{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
             <h2 class="fw-bold mb-0 text-brand-black">
-                <i class="fa-solid fa-chart-line text-brand-pink me-2"></i>Venta de Vendedores
+                <i class="fa-solid fa-chart-line text-brand-pink me-2"></i>Venta de Asesores
             </h2>
-            <p class="text-muted">Consulta de ventas por vendedor y mes seleccionado.</p>
+            <p class="text-muted">Consulta de ventas por asesor y mes seleccionado.</p>
         </div>
     </div>
 
@@ -18,12 +18,12 @@
         <div class="card-body p-4">
             <form method="GET" action="{{ url_for('admin_bp.ventas_vendedores') }}" class="row g-3 align-items-end">
                 <div class="col-md-5">
-                    <label class="form-label fw-bold">Seleccionar Vendedor</label>
-                    <select name="vendedor_id" class="form-select bg-light" required>
-                        <option value="" disabled {% if not vendedor_id %}selected{% endif %}>-- Elegir Vendedor --</option>
-                        {% for v in vendedores %}
-                            <option value="{{ v.id }}" {% if vendedor_id == v.id %}selected{% endif %}>
-                                {{ v.nombre }} ({{ v.rol|capitalize }} - {{ v.sucursal }})
+                    <label class="form-label fw-bold">Seleccionar Asesor</label>
+                    <select name="asesor_id" class="form-select bg-light" required>
+                        <option value="" disabled {% if not asesor_id %}selected{% endif %}>-- Elegir Asesor --</option>
+                        {% for a in asesores %}
+                            <option value="{{ a.id }}" {% if asesor_id == a.id %}selected{% endif %}>
+                                {{ a.nombre }}
                             </option>
                         {% endfor %}
                     </select>
@@ -41,15 +41,15 @@
         </div>
     </div>
 
-    {% if vendedor_id %}
-        {% if vendedor_filtro %}
-            <!-- Tarjetas de Resumen del Vendedor -->
+    {% if asesor_id %}
+        {% if asesor_filtro %}
+            <!-- Tarjetas de Resumen del Asesor -->
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Vendedor Consultado</div>
-                        <h4 class="fw-bold text-brand-black mb-0">{{ vendedor_filtro.nombre }}</h4>
-                        <span class="badge bg-secondary mt-2 w-auto align-self-start">{{ vendedor_filtro.rol|upper }} · {{ vendedor_filtro.sucursal }}</span>
+                        <div class="text-uppercase fw-bold text-muted small mb-1">Asesor Consultado</div>
+                        <h4 class="fw-bold text-brand-black mb-0">{{ asesor_filtro.nombre }}</h4>
+                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Asesor Global</span>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -82,6 +82,7 @@
                                 <tr>
                                     <th class="ps-4">Factura</th>
                                     <th>Fecha y Hora</th>
+                                    <th>Cajero Responsable</th>
                                     <th>Tipo de Venta</th>
                                     <th>Método de Pago</th>
                                     <th class="text-end">Total Facturado</th>
@@ -97,6 +98,9 @@
                                     <td>
                                         <div>{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
                                         <div class="small text-muted">{{ venta.fecha_venta.strftime('%I:%M %p') }}</div>
+                                    </td>
+                                    <td>
+                                        {{ venta.vendedor.nombre }}
                                     </td>
                                     <td>
                                         {% if venta.tipo_venta == 'celulares' %}
@@ -121,9 +125,9 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
+                                    <td colspan="7" class="text-center py-5 text-muted">
                                         <i class="fa-solid fa-folder-open fs-2 mb-2 d-block opacity-50"></i>
-                                        No se encontraron ventas para este vendedor en el mes seleccionado.
+                                        No se encontraron ventas para este asesor en el mes seleccionado.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -133,13 +137,13 @@
                 </div>
             </div>
         {% else %}
-            <div class="alert alert-warning border-0">Vendedor no encontrado.</div>
+            <div class="alert alert-warning border-0">Asesor no encontrado.</div>
         {% endif %}
     {% else %}
         <div class="card border-0 shadow-sm p-5 text-center rounded-4 bg-white">
             <i class="fa-solid fa-chart-pie fs-1 text-muted mb-3 opacity-50"></i>
             <h5 class="fw-bold text-secondary">Consulta de Rendimiento Contable</h5>
-            <p class="text-muted mb-0">Selecciona un vendedor y un período mensual para visualizar su reporte de ventas.</p>
+            <p class="text-muted mb-0">Selecciona un asesor y un período mensual para visualizar su reporte de ventas.</p>
         </div>
     {% endif %}
 </div>

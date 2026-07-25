@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -13,7 +13,8 @@ sales_bp = Blueprint('sales_bp', __name__)
 @login_required # Importante: Te bloqueará el acceso si no hay current_user logeado (Flask-Login)
 def procesar_venta():
     if request.method == 'GET':
-        return render_template('sales/nueva.html')
+        asesores = Asesor.query.filter_by(activo=True).order_by(Asesor.nombre).all()
+        return render_template('sales/nueva.html', asesores=asesores)
 
     """
     Se espera que los datos vengan en el cuerpo de la petición (JSON)
@@ -23,6 +24,7 @@ def procesar_venta():
     items = data.get('items', [])
     pagos_data = data.get('pagos', [])  # Nuevo: array de pagos mixtos
     metodo_pago_legacy = data.get('metodo_pago', 'efectivo')  # Retrocompatibilidad
+    asesor_id = data.get('asesor_id')
     
     if not items:
         return jsonify({'error': 'No se enviaron productos para la venta'}), 400
@@ -91,6 +93,7 @@ def procesar_venta():
 
         nueva_venta = Sale(
             vendedor_id=current_user.id,
+            asesor_id=asesor_id,
             monto_total=Decimal('0.00'),
             metodo_pago=metodo_pago_principal,
             fecha_venta=fecha_venta_obj,
@@ -586,5 +589,7 @@ def caja_visual():
     # Filtrar para mostrar solo los que tienen stock
     productos = [p for p in productos_query if p.total_stock > 0]
     
-    return render_template('sales/caja_visual.html', productos=productos, hoy=hoy_bogota.strftime('%Y-%m-%d'))
+    asesores = Asesor.query.filter_by(activo=True).order_by(Asesor.nombre).all()
+    
+    return render_template('sales/caja_visual.html', productos=productos, asesores=asesores, hoy=hoy_bogota.strftime('%Y-%m-%d'))
 
