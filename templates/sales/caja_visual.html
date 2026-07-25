@@ -571,6 +571,11 @@
             granTotal += subtotal;
             totalItems += item.cantidad;
 
+            const li = document.createElement('li');
+            li.className = 'list-group-item px-3 py-3';
+            let precioInputState = item.es_obsequio ? 'disabled' : '';
+            let isObsequioClass = item.es_obsequio ? 'text-success' : 'text-muted';
+
             let imeiHtml = '';
             if (item.tipo_inventario === 'celulares') {
                 let imei1_str = item.imei ? `IMEI 1: ${item.imei}` : 'IMEI 1: N/D';
