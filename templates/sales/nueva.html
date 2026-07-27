@@ -24,7 +24,10 @@
                 </div>
 
                 <button class="btn btn-outline-success rounded-3 px-3 shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalProductoExterno" title="Ingresar Producto Externo">
-                    <i class="fa-solid fa-box-open"></i>
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </button>
+                <button class="btn btn-outline-info rounded-3 px-3 shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalAccesorioExterno" title="Ingresar Accesorio Externo">
+                    <i class="fa-solid fa-mobile-retro"></i>
                 </button>
             </div>
         </div>
@@ -347,7 +350,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-box-open me-2"></i> Ingresar Producto Externo</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-mobile-screen-button me-2"></i> Ingresar Producto Externo</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -376,7 +379,12 @@
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Proveedor</label>
-                            <input type="text" name="proveedor" class="form-control">
+                            <select name="proveedor" class="form-select" required>
+                                <option value="" disabled selected>Seleccione...</option>
+                                {% for p in providers %}
+                                    <option value="{{ p.nombre }}">{{ p.nombre }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -398,10 +406,59 @@
                             <label class="form-label small fw-bold text-success">Precio Sugerido ($)</label>
                             <input type="text" name="precio_sugerido" class="form-control format-price-ext" required>
                         </div>
+                        <div class="modal-footer border-0 pb-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success px-4" id="btnGuardarExterno"><i class="fa-solid fa-check ms-1"></i> Agregar a Venta</button>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Accesorio Externo -->
+<div class="modal fade" id="modalAccesorioExterno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-mobile-retro me-2"></i> Ingresar Accesorio Externo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAccesorioExterno">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Nombre del Accesorio</label>
+                            <input type="text" name="nombre_accesorio" class="form-control" required placeholder="Ej. Carcasa, Audífonos...">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold">Marca</label>
+                            <input type="text" name="marca" class="form-control" required>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label small fw-bold">Proveedor</label>
+                            <select name="proveedor" class="form-select" required>
+                                <option value="" disabled selected>Seleccione...</option>
+                                {% for p in providers %}
+                                    <option value="{{ p.nombre }}">{{ p.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success" id="btnGuardarExterno"><i class="fa-solid fa-plus me-1"></i> Guardar y Vender</button>
+                    <div class="row mb-3 bg-light p-2 rounded">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-danger">Costo ($)</label>
+                            <input type="text" name="precio_costo" class="form-control format-price-ext" required>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-bold text-info">Precio Sugerido ($)</label>
+                            <input type="text" name="precio_sugerido" class="form-control format-price-ext" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pb-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-info text-white px-4" id="btnGuardarAccesorioExterno"><i class="fa-solid fa-check ms-1"></i> Agregar a Venta</button>
                     </div>
                 </form>
             </div>
@@ -1013,7 +1070,7 @@
     }
 
     function verificarClienteCelular() {
-        const tieneCelular = carrito.some(item => item.tipo_inventario === 'celulares' || item.tipo_inventario === 'externos');
+        const tieneCelular = carrito.some(item => item.tipo_inventario === 'celulares' || (item.tipo_inventario === 'externos' && !item.nombre.startsWith('Acc. Externo')));
         if (tieneCelular) {
             // Mostrar modal de cliente
             const modalCliente = new bootstrap.Modal(document.getElementById('modalClienteCelular'));
@@ -1268,21 +1325,81 @@
                 renderizarCarrito();
                 
                 // Cerrar modal y limpiar
-                let modalEl = document.getElementById('modalProductoExterno');
-                let modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
-                this.reset();
-                
+                bootstrap.Modal.getInstance(document.getElementById('modalProductoExterno')).hide();
+                document.getElementById('formProductoExterno').reset();
             } else {
-                alert('Error al guardar externo: ' + data.message);
+                alert("Error: " + data.message);
             }
         })
         .catch(err => {
-            alert('Error de conexión.');
+            console.error(err);
+            alert("Ocurrió un error al procesar el producto externo.");
         })
         .finally(() => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Guardar y Vender';
+            btn.innerHTML = '<i class="fa-solid fa-check ms-1"></i> Agregar a Venta';
+        });
+    });
+
+    // Lógica para Accesorio Externo
+    document.getElementById('formAccesorioExterno').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let btn = document.getElementById('btnGuardarAccesorioExterno');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+        let formData = new FormData(this);
+        
+        // Limpiar formato de precios
+        ['precio_costo', 'precio_sugerido'].forEach(field => {
+            let val = formData.get(field);
+            if (val) {
+                formData.set(field, val.replace(/\D/g, ''));
+            }
+        });
+
+        fetch("{{ url_for('externos_bp.api_nuevo_accesorio_caja') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let p = data.product;
+                
+                // Agregar al carrito
+                carrito.push({
+                    id: p.id,
+                    sku: p.sku,
+                    nombre: p.nombre,
+                    cantidad: 1,
+                    precio_final: p.precio_sugerido,
+                    precio_limite: p.precio_minimo,
+                    precio_minimo: p.precio_minimo,
+                    precio_sugerido: p.precio_sugerido,
+                    cantidad_stock: p.stock,
+                    variantes: [],
+                    variant_id: null,
+                    es_manual: false
+                });
+                
+                renderizarCarrito();
+                
+                // Cerrar modal y limpiar
+                bootstrap.Modal.getInstance(document.getElementById('modalAccesorioExterno')).hide();
+                document.getElementById('formAccesorioExterno').reset();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Ocurrió un error al procesar el accesorio externo.");
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check ms-1"></i> Agregar a Venta';
         });
     });
 </script>

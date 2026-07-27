@@ -101,8 +101,8 @@ def create_app():
         if current_user.rol == 'bodega' or current_user.rol == 'vendedor_bodega':
             return redirect(url_for('bodega_bp.dashboard'))
             
-        # Por defecto, Vendedores van directo a Cajas
-        return redirect(url_for('sales_bp.procesar_venta'))
+        # Por defecto, Vendedores van directo a Caja Visual
+        return redirect(url_for('sales_bp.caja_visual'))
 
     @app.route('/sw.js')
     def service_worker():

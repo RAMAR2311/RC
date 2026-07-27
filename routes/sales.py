@@ -88,8 +88,8 @@ def procesar_venta():
             
             if tipo_venta_detectado is None:
                 tipo_venta_detectado = tipo_item
-            elif tipo_venta_detectado != tipo_item:
-                return jsonify({'error': 'No se pueden mezclar celulares con accesorios en la misma venta. Por favor, realice transacciones separadas para no descuadrar los arqueos.'}), 400
+            elif tipo_item == 'celulares':
+                tipo_venta_detectado = 'celulares'
         
         tipo_venta_detectado = tipo_venta_detectado or 'general'
 
@@ -206,6 +206,20 @@ def procesar_venta():
                 )
                 db.session.add(detalle)
                 db.session.flush() # Importante para tener el id de la venta si se quisiera, pero ya lo tenemos en nueva_venta.id
+                
+                # Novedad: Facturación automática al proveedor para productos externos sin usar Sale.provider_id
+                if producto.tipo_inventario == 'externos' and producto.proveedor:
+                    provider_obj = Provider.query.filter_by(nombre=producto.proveedor).first()
+                    if provider_obj and producto.precio_costo and producto.precio_costo > 0:
+                        from models import ProviderInvoice
+                        # Crear la factura de deuda al proveedor
+                        factura_prov = ProviderInvoice(
+                            provider_id=provider_obj.id,
+                            monto_total=(producto.precio_costo * cantidad_vendida),
+                            numero_factura=(producto.modelo_celular if producto.modelo_celular else producto.nombre),
+                            descripcion=f"{nueva_venta.id}"
+                        )
+                        db.session.add(factura_prov)
                 
                 # Para añadir el ID de la venta al tipo de movimiento ahora que la venta tiene ID asignado:
                 ajuste.tipo_movimiento = f"{ajuste.tipo_movimiento} #{nueva_venta.id}"

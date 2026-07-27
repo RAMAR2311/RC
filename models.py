@@ -60,7 +60,7 @@ class Product(db.Model):
     proveedor = db.Column(db.String(150), nullable=True)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
-    ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
+    ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True, cascade="all, delete-orphan")
     variantes = db.relationship('ProductVariant', backref='producto', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, **kwargs):

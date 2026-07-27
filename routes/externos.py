@@ -21,7 +21,10 @@ def inventario():
     page = request.args.get('page', 1, type=int)
     per_page = 20
 
-    base_query = Product.query.filter_by(tipo_inventario='externos')
+    base_query = Product.query.filter(
+        Product.tipo_inventario == 'externos',
+        ~Product.sku.like('EXTACC-%')
+    )
 
     if q:
         from sqlalchemy import or_
@@ -41,6 +44,37 @@ def inventario():
 
     return render_template('externos/inventario.html',
                            celulares=paginacion.items,
+                           paginacion=paginacion,
+                           q=q)
+
+@externos_bp.route('/accesorios')
+@login_required
+def inventario_accesorios():
+    q = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+
+    base_query = Product.query.filter(
+        Product.tipo_inventario == 'externos',
+        Product.sku.like('EXTACC-%')
+    )
+
+    if q:
+        from sqlalchemy import or_
+        base_query = base_query.filter(
+            or_(
+                Product.marca.ilike(f'%{q}%'),
+                Product.nombre.ilike(f'%{q}%'),
+                Product.proveedor.ilike(f'%{q}%'),
+            )
+        )
+
+    paginacion = base_query.order_by(Product.fecha_creacion.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return render_template('externos/inventario_accesorios.html',
+                           accesorios=paginacion.items,
                            paginacion=paginacion,
                            q=q)
 
@@ -148,12 +182,61 @@ def api_nuevo_desde_caja():
                 'precio_sugerido': float(nuevo.precio_sugerido),
                 'precio_minimo': float(nuevo.precio_minimo),
                 'stock': nuevo.cantidad_stock,
-                'is_variant': False
+                'es_manual': False
             }
         })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)})
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@externos_bp.route('/api_nuevo_accesorio_caja', methods=['POST'])
+@login_required
+@admin_required
+def api_nuevo_accesorio_caja():
+    # AJAX endpoint para accesorios externos desde caja
+    nombre_accesorio = request.form.get('nombre_accesorio', '').strip()
+    marca = request.form.get('marca', '').strip()
+    proveedor = request.form.get('proveedor', '').strip()
+    
+    precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
+    precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
+    
+    nombre_completo = f"Acc. Externo {marca} {nombre_accesorio}".strip()
+    sku_base = f"EXTACC-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    precio_sugerido = float(precio_sugerido_str) if precio_sugerido_str else 0.0
+
+    nuevo = Product(
+        nombre=nombre_completo,
+        sku=sku_base,
+        tipo_inventario='externos',
+        cantidad_stock=1,
+        precio_costo=float(precio_costo_str) if precio_costo_str else 0.0,
+        precio_minimo=precio_sugerido,
+        precio_sugerido=precio_sugerido,
+        marca=marca,
+        proveedor=proveedor
+    )
+    
+    try:
+        db.session.add(nuevo)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'product': {
+                'id': nuevo.id,
+                'sku': nuevo.sku,
+                'nombre': nuevo.nombre,
+                'precio_sugerido': float(nuevo.precio_sugerido),
+                'precio_minimo': float(nuevo.precio_minimo),
+                'stock': nuevo.cantidad_stock,
+                'es_manual': False
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 
 @externos_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
 @login_required

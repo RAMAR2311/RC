@@ -243,6 +243,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/inventory"><i class="fa-solid fa-box-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Inventario Accesorios</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('externos_bp.inventario_accesorios') }}"><i class="fa-solid fa-headphones-simple text-brand-black me-2" style="width:20px; text-align:center;"></i> Accesorios Externos</a>
+                                </li>
                             </ul>
                         </div>
                     </li>
@@ -260,9 +263,11 @@
                         </a>
                         <div class="collapse" id="collapseCaja">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
+                                <!-- Ocultado por solicitud del usuario
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-black me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
                                 </li>
+                                -->
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink me-2" style="width:20px; text-align:center;"></i> Caja Rápida Visual</a>
                                 </li>
@@ -313,9 +318,11 @@
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
                     </li>
+                    <!-- Ocultado por solicitud del usuario
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-black me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
                     </li>
+                    -->
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink me-2" style="width:20px; text-align:center;"></i> Caja Rápida Visual</a>
                     </li>
