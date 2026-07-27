@@ -8,6 +8,29 @@
     </a>
 </div>
 
+<div class="card card-custom p-3 mb-4 shadow-sm border-0 bg-light">
+    <form method="GET" action="{{ url_for('celulares_bp.historial_ventas') }}" class="row g-3 align-items-center" id="filterForm">
+        <div class="col-auto">
+            <label for="inventario" class="col-form-label fw-bold text-muted small text-uppercase">Filtrar por Inventario:</label>
+        </div>
+        <div class="col-auto">
+            <select name="inventario" id="inventario" class="form-select form-select-sm rounded-pill shadow-sm" onchange="document.getElementById('filterForm').submit();">
+                <option value="">Todos</option>
+                {% for inv in inventarios_disponibles %}
+                <option value="{{ inv }}" {% if filtro_inventario == inv %}selected{% endif %}>{{ inv }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if filtro_inventario %}
+        <div class="col-auto">
+            <a href="{{ url_for('celulares_bp.historial_ventas') }}" class="btn btn-sm btn-outline-danger rounded-pill shadow-sm">
+                <i class="fa-solid fa-times me-1"></i> Quitar Filtro
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
 <div class="card card-custom p-0 overflow-hidden shadow-sm">
     <div class="table-responsive">
         <table class="table table-hover table-custom mb-0">
@@ -17,6 +40,7 @@
                     <th>FECHA Y HORA</th>
                     <th>VENDEDOR</th>
                     <th>CELULAR</th>
+                    <th>INVENTARIO</th>
                     <th>MÉTODO DE PAGO</th>
                     <th class="text-end pe-4">PRECIO VENTA</th>
                 </tr>
@@ -28,6 +52,7 @@
                     <td>{{ v.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td class="fw-semibold text-brand-black">{{ v.vendedor }}</td>
                     <td><span class="badge bg-light text-dark border">{{ v.celular }}</span></td>
+                    <td class="text-muted fw-bold">{{ v.inventario }}</td>
                     <td>
                         {% if 'Mixto' in v.metodo_pago %}
                             <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fa-solid fa-coins me-1"></i> Mixto</span>
@@ -41,7 +66,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="7" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-cash-register fs-1 mb-3 text-brand-pink"></i>
                         <p class="mb-0">Aún no se han registrado ventas de celulares.</p>
                     </td>

@@ -163,65 +163,6 @@
     </div>
 </div>
 
-<!-- Sección de Ventas en Consignación -->
-<div class="row g-3 mt-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white border-bottom-0 py-3 ps-4 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold m-0"><i class="fa-solid fa-mobile-screen-button text-brand-pink me-2"></i> Celulares Vendidos en Consignación (Cuentas por Pagar)</h5>
-                <span class="badge bg-light text-dark border">{{ proveedor.ventas|length }} Ventas</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-center" style="font-size: 0.88rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4 text-start">FECHA DE VENTA</th>
-                            <th class="text-start">PRODUCTO / MODELO</th>
-                            <th>IMEI</th>
-                            <th>VALOR DE VENTA</th>
-                            <th class="text-end pe-4">COSTO DISPOSITIVO (DEUDA)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set ns = namespace(has_sales=false) %}
-                        {% for venta in proveedor.ventas %}
-                            {% for d in venta.detalles %}
-                                {% if d.producto and d.producto.tipo_inventario == 'celulares' %}
-                                    {% set ns.has_sales = true %}
-                                    <tr>
-                                        <td class="ps-4 text-start">
-                                            <div class="fw-bold">{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
-                                            <div class="small text-muted">{{ venta.fecha_venta.strftime('%I:%M %p') }}</div>
-                                        </td>
-                                        <td class="text-start">
-                                            <div class="fw-bold text-dark">{{ d.producto.nombre }}</div>
-                                            <small class="text-muted">Sucursal: {{ venta.sucursal }}</small>
-                                        </td>
-                                        <td>
-                                            <div class="small fw-semibold text-secondary">{{ d.producto.imei or '-' }}</div>
-                                        </td>
-                                        <td>
-                                            <div class="fw-bold text-success">${{ d.precio_venta_final|cop }}</div>
-                                        </td>
-                                        <td class="text-end pe-4 fw-bold text-danger">
-                                            ${{ (d.producto.precio_costo or 0)|cop }}
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            {% endfor %}
-                        {% endfor %}
-                        {% if not ns.has_sales %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">No se registran ventas asociadas a este proveedor.</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Nueva Factura -->
 <div class="modal fade" id="modalNuevaFactura" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

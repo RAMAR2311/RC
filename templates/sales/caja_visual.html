@@ -125,16 +125,7 @@
                 </select>
             </div>
 
-            <!-- Selector de Proveedor (Opcional, se muestra si hay celulares en el carrito) -->
-            <div class="mb-3 d-none" id="provider-section">
-                <label class="form-label fw-bold text-brand-black small text-uppercase mb-2"><i class="fa-solid fa-truck-fast me-1"></i> Proveedor (Consignación)</label>
-                <select id="proveedor-venta" class="form-select form-select-lg border-0 shadow-sm bg-light" style="cursor: pointer;">
-                    <option value="" selected>-- Seleccionar Proveedor (Opcional) --</option>
-                    {% for p in providers %}
-                        <option value="{{ p.id }}">{{ p.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+            <!-- Selector de Proveedor removido -->
 
             <!-- Método de Pago -->
             <div class="mb-3">
@@ -699,16 +690,6 @@
             retomaRow.style.setProperty('display', 'none', 'important');
         }
 
-        // Mostrar u ocultar el selector de proveedor si hay celulares en el carrito
-        let hayCelular = carrito.some(item => item.tipo_inventario === 'celulares');
-        const provSec = document.getElementById('provider-section');
-        if (hayCelular) {
-            provSec.classList.remove('d-none');
-        } else {
-            provSec.classList.add('d-none');
-            document.getElementById('proveedor-venta').value = "";
-        }
-
         const totalPagar = Math.max(0, granTotal - valorRetoma);
         totalAmountEl.innerText = formatoCOP(totalPagar);
         totalItemsEl.innerText = `${totalItems} items`;
@@ -1046,12 +1027,9 @@
             });
         }
 
-        const provSelect = document.getElementById('proveedor-venta');
-        const providerId = provSelect && provSelect.value ? parseInt(provSelect.value) : null;
-
         const payload = {
             asesor_id: parseInt(asesorId),
-            provider_id: providerId,
+            provider_id: null,
             items: carrito.map(item => ({
                 product_id: item.product_id,
                 variant_id: item.variant_id,

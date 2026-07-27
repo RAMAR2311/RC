@@ -101,6 +101,7 @@
                     <th class="py-2 fw-bold">IMEI 1</th>
                     <th class="py-2 fw-bold">IMEI 2</th>
                     <th class="py-2 fw-bold">PROVEEDOR</th>
+                    <th class="py-2 fw-bold">INVENTARIO</th>
                     <th class="py-2 fw-bold">FECHA</th>
                     <th class="py-2 fw-bold">COSTO</th>
                     <th class="py-2 fw-bold">MINIMO</th>
@@ -119,6 +120,7 @@
                     <td class="text-muted">{{ c.imei or '-' }}</td>
                     <td class="text-muted">{{ c.imei2 or '-' }}</td>
                     <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
+                    <td class="text-truncate" style="max-width: 100px;" title="{{ c.inventario or '-' }}">{{ c.inventario or '-' }}</td>
                     <td>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
                     
                     <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>

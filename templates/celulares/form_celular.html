@@ -41,6 +41,10 @@
                         <label class="form-label fw-bold small text-muted text-uppercase">Proveedor</label>
                         <input type="text" name="proveedor" class="form-control" value="{{ celular.proveedor if celular else '' }}" placeholder="Ej: Mayorista A, Retoma">
                     </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Inventario</label>
+                        <input type="text" name="inventario" class="form-control" value="{{ celular.inventario if celular else '' }}" placeholder="Ej: Nuevo, Usado, Vitrina">
+                    </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Foto (Opcional)</label>
                         <input type="file" name="imagen" class="form-control" accept="image/*">

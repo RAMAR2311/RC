@@ -82,6 +82,7 @@ def nuevo_celular():
         imei = request.form.get('imei', '').strip()
         imei2 = request.form.get('imei2', '').strip()
         proveedor = request.form.get('proveedor', '').strip()
+        inventario = request.form.get('inventario', '').strip()
         
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
@@ -118,6 +119,7 @@ def nuevo_celular():
             imei=imei,
             imei2=imei2,
             proveedor=proveedor,
+            inventario=inventario,
             imagen=imagen_filename
         )
         
@@ -151,6 +153,7 @@ def editar_celular(id):
         celular.imei = request.form.get('imei', '').strip()
         celular.imei2 = request.form.get('imei2', '').strip()
         celular.proveedor = request.form.get('proveedor', '').strip()
+        celular.inventario = request.form.get('inventario', '').strip()
         
         celular.nombre = f"Celular {celular.marca} {celular.modelo_celular} {celular.color} {celular.memoria}".strip()
             
@@ -341,10 +344,25 @@ def venta():
 @celulares_bp.route('/ventas/historial')
 @login_required
 def historial_ventas():
+    filtro_inventario = request.args.get('inventario', '').strip()
+    
+    # Obtener opciones únicas de inventario para el filtro
+    inventarios_disponibles = db.session.query(Product.inventario).filter(
+        Product.tipo_inventario == 'celulares',
+        Product.inventario != None,
+        Product.inventario != ''
+    ).distinct().all()
+    inventarios_disponibles = [inv[0] for inv in inventarios_disponibles if inv[0]]
+
     # Obtener las ventas donde haya al menos un detalle de un producto tipo 'celulares'
-    ventas_celulares = Sale.query.join(SaleDetail).join(Product).filter(
+    query = Sale.query.join(SaleDetail).join(Product).filter(
         Product.tipo_inventario == 'celulares'
-    ).order_by(Sale.fecha_venta.desc()).all()
+    )
+    
+    if filtro_inventario:
+        query = query.filter(Product.inventario == filtro_inventario)
+        
+    ventas_celulares = query.order_by(Sale.fecha_venta.desc()).all()
     
     # Para la vista, queremos mostrar datos específicos
     datos_historial = []
@@ -357,11 +375,15 @@ def historial_ventas():
                 'fecha': v.fecha_venta,
                 'vendedor': v.vendedor.nombre,
                 'celular': f"{d.producto.nombre} (IMEI: {d.producto.imei or 'N/A'})",
+                'inventario': d.producto.inventario or 'N/A',
                 'precio_venta': d.precio_venta_final,
                 'metodo_pago': v.metodo_pago_display
             })
             
-    return render_template('celulares/historial_ventas.html', historial=datos_historial)
+    return render_template('celulares/historial_ventas.html', 
+                           historial=datos_historial, 
+                           inventarios_disponibles=inventarios_disponibles,
+                           filtro_inventario=filtro_inventario)
 
 
 
@@ -373,7 +395,7 @@ import io
 @admin_required
 def descargar_plantilla():
     # Definir las cabeceras exactas
-    columnas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
+    columnas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'INVENTARIO', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
     df = pd.DataFrame(columns=columnas)
     
     # Crear un buffer en memoria
@@ -406,7 +428,7 @@ def importar_excel():
         # Limpiar nombres de columnas (quitar espacios extra y pasarlas a mayúsculas)
         df.columns = df.columns.str.strip().str.upper()
         
-        columnas_esperadas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
+        columnas_esperadas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'INVENTARIO', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
         
         for col in columnas_esperadas:
             if col not in df.columns:
@@ -457,6 +479,7 @@ def importar_excel():
                 imei2 = imei2[:-2]
                 
             proveedor = str(row['PROVEEDOR']).strip()
+            inventario = str(row.get('INVENTARIO', '')).strip()
             
             # Limpiar precios (quitar $ y comas/puntos si vienen como texto)
             def clean_price(val):
@@ -488,7 +511,8 @@ def importar_excel():
                 memoria=memoria,
                 imei=imei1,
                 imei2=imei2,
-                proveedor=proveedor
+                proveedor=proveedor,
+                inventario=inventario
             )
             
             db.session.add(nuevo)
