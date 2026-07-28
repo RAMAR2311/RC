@@ -425,6 +425,9 @@ class Provider(db.Model):
     facturas = db.relationship('ProviderInvoice', backref='provider', lazy=True, cascade='all, delete-orphan')
     pagos = db.relationship('ProviderPayment', backref='provider', lazy=True, cascade='all, delete-orphan')
 
+    def __init__(self, **kwargs):
+        super(Provider, self).__init__(**kwargs)
+
     @property
     def total_facturado(self):
         total_invoices = sum(f.monto_total for f in self.facturas)
@@ -456,6 +459,9 @@ class ProviderInvoice(db.Model):
     comprobante = db.Column(db.String(255), nullable=True)
     fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
 
+    def __init__(self, **kwargs):
+        super(ProviderInvoice, self).__init__(**kwargs)
+
 class ProviderPayment(db.Model):
     __tablename__ = 'provider_payments'
 
@@ -464,6 +470,9 @@ class ProviderPayment(db.Model):
     monto_abonado = db.Column(db.Numeric(12, 2), nullable=False)
     observacion = db.Column(db.String(255), nullable=True)
     fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    def __init__(self, **kwargs):
+        super(ProviderPayment, self).__init__(**kwargs)
 
 class Warranty(db.Model):
     __tablename__ = 'warranties'
