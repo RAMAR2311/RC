@@ -132,7 +132,6 @@ def nuevo_externo():
 
 @externos_bp.route('/api/nuevo_desde_caja', methods=['POST'])
 @login_required
-@admin_required
 def api_nuevo_desde_caja():
     # AJAX endpoint for POS
     marca = request.form.get('marca', '').strip()
@@ -191,7 +190,6 @@ def api_nuevo_desde_caja():
 
 @externos_bp.route('/api_nuevo_accesorio_caja', methods=['POST'])
 @login_required
-@admin_required
 def api_nuevo_accesorio_caja():
     # AJAX endpoint para accesorios externos desde caja
     nombre_accesorio = request.form.get('nombre_accesorio', '').strip()

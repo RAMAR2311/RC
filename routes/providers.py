@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import pytz
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required
 from models import db, Provider, ProviderInvoice, ProviderPayment
 from decorators import admin_required
@@ -43,6 +43,40 @@ def create_provider():
     
     flash('Proveedor registrado exitosamente.', 'success')
     return redirect(url_for('providers_bp.list_providers'))
+
+@providers_bp.route('/api/crear_rapido', methods=['POST'])
+@login_required
+def create_provider_api():
+    nombre = request.form.get('nombre', '').strip()
+    empresa = request.form.get('empresa', '').strip()
+    telefono = request.form.get('telefono', '').strip()
+
+    if not nombre:
+        return jsonify({'success': False, 'message': 'El nombre del proveedor es obligatorio.'}), 400
+
+    existente = Provider.query.filter(Provider.nombre.ilike(nombre)).first()
+    if existente:
+        return jsonify({
+            'success': True,
+            'provider': {'id': existente.id, 'nombre': existente.nombre},
+            'message': 'El proveedor ya existía.'
+        })
+
+    nuevo_proveedor = Provider(
+        nombre=nombre,
+        empresa=empresa,
+        telefono=telefono
+    )
+    db.session.add(nuevo_proveedor)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'provider': {
+            'id': nuevo_proveedor.id,
+            'nombre': nuevo_proveedor.nombre
+        }
+    })
 
 @providers_bp.route('/<int:id>')
 @login_required

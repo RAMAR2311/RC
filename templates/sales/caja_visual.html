@@ -364,8 +364,13 @@
                             <input type="text" name="bateria" class="form-control">
                         </div>
                         <div class="col-md-4 mb-2">
-                            <label class="form-label small fw-bold">Proveedor</label>
-                            <select name="proveedor" class="form-select" required>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Proveedor</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNuevoProveedorRapido">
+                                    <i class="fa-solid fa-plus-circle me-1"></i>Agregar
+                                </button>
+                            </div>
+                            <select name="proveedor" class="form-select select-proveedor-ext" required>
                                 <option value="" disabled selected>Seleccione...</option>
                                 {% for p in providers %}
                                     <option value="{{ p.nombre }}">{{ p.nombre }}</option>
@@ -386,7 +391,12 @@
                     <div class="row mb-3 bg-light p-2 rounded">
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold text-danger">Costo ($)</label>
-                            <input type="text" name="precio_costo" class="form-control format-price-ext" required>
+                            <div class="input-group">
+                                <input type="password" name="precio_costo" class="form-control format-price-ext" required placeholder="0" autocomplete="off">
+                                <button class="btn btn-outline-secondary btn-toggle-costo" type="button" title="Mostrar / Ocultar costo">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold text-success">Precio Sugerido ($)</label>
@@ -424,8 +434,13 @@
                             <input type="text" name="marca" class="form-control" required>
                         </div>
                         <div class="col-md-12 mb-2">
-                            <label class="form-label small fw-bold">Proveedor</label>
-                            <select name="proveedor" class="form-select" required>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Proveedor</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNuevoProveedorRapido">
+                                    <i class="fa-solid fa-plus-circle me-1"></i>Agregar
+                                </button>
+                            </div>
+                            <select name="proveedor" class="form-select select-proveedor-ext" required>
                                 <option value="" disabled selected>Seleccione...</option>
                                 {% for p in providers %}
                                     <option value="{{ p.nombre }}">{{ p.nombre }}</option>
@@ -436,7 +451,12 @@
                     <div class="row mb-3 bg-light p-2 rounded">
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold text-danger">Costo ($)</label>
-                            <input type="text" name="precio_costo" class="form-control format-price-ext" required>
+                            <div class="input-group">
+                                <input type="password" name="precio_costo" class="form-control format-price-ext" required placeholder="0" autocomplete="off">
+                                <button class="btn btn-outline-secondary btn-toggle-costo" type="button" title="Mostrar / Ocultar costo">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label class="form-label small fw-bold text-info">Precio Sugerido ($)</label>
@@ -446,6 +466,41 @@
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-info text-white" id="btnGuardarAccesorioExterno"><i class="fa-solid fa-plus me-1"></i> Guardar y Vender</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Proveedor Rápido -->
+<div class="modal fade" id="modalNuevoProveedorRapido" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-truck-field me-2"></i> Agregar Nuevo Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoProveedorRapido">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre del Proveedor *</label>
+                        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Samsung Colombia">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Empresa (Opcional)</label>
+                        <input type="text" name="empresa" class="form-control" placeholder="Ej: Distribuidora Oficial">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Teléfono (Opcional)</label>
+                        <input type="text" name="telefono" class="form-control" placeholder="Ej: 3001234567">
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarProveedorRapido">
+                            <i class="fa-solid fa-save me-1"></i> Guardar Proveedor
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1192,6 +1247,73 @@
             btn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Guardar y Vender';
         });
     });
+
+    // Toggle visibilidad del campo Costo
+    document.addEventListener('click', function (e) {
+        let btn = e.target.closest('.btn-toggle-costo');
+        if (btn) {
+            let input = btn.previousElementSibling;
+            let icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+    });
+
+    // Guardar Proveedor Rápido vía AJAX
+    let formProv = document.getElementById('formNuevoProveedorRapido');
+    if (formProv) {
+        formProv.addEventListener('submit', function (e) {
+            e.preventDefault();
+            let btn = document.getElementById('btnGuardarProveedorRapido');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Guardando...';
+
+            let formData = new FormData(this);
+
+            fetch("{{ url_for('providers_bp.create_provider_api') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let p = data.provider;
+                    // Agregar el nuevo proveedor a todos los select de proveedor
+                    let selects = document.querySelectorAll('.select-proveedor-ext, select[name="proveedor"]');
+                    selects.forEach(select => {
+                        let exists = Array.from(select.options).some(opt => opt.value === p.nombre);
+                        if (!exists) {
+                            let opt = new Option(p.nombre, p.nombre, true, true);
+                            select.add(opt);
+                        } else {
+                            select.value = p.nombre;
+                        }
+                    });
+
+                    let modalEl = document.getElementById('modalNuevoProveedorRapido');
+                    let modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    this.reset();
+                } else {
+                    alert('Error al guardar proveedor: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(err => {
+                alert('Error de conexión al guardar proveedor.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Guardar Proveedor';
+            });
+        });
+    }
 </script>
 
 {% endblock %}
