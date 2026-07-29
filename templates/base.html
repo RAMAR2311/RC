@@ -415,8 +415,8 @@
     </main>
 
     <script>
-        // Registro del Service Worker para soporte PWA
-        if ('serviceWorker' in navigator) {
+        // Registro del Service Worker para soporte PWA (solo en HTTPS o localhost para evitar errores en servidores HTTP)
+        if ('serviceWorker' in navigator && (window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {

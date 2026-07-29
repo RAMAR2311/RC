@@ -1255,6 +1255,14 @@
             retoma_data: retomaActual
         };
 
+        // Abrir pestaña emergente INMEDIATAMENTE durante la interacción del usuario para evitar bloqueos en Chrome/Safari
+        let reciboWindow = null;
+        try {
+            reciboWindow = window.open('about:blank', '_blank');
+        } catch(err) {
+            console.warn('Pop-up bloqueado al crear ventana en blanco:', err);
+        }
+
         try {
             const response = await fetch('/sales/nueva', {
                 method: 'POST',
@@ -1268,12 +1276,12 @@
             const data = await response.json();
 
             if (response.ok) {
-                // FIX: Abre el Recibo PRIMERO antes de detener el código con la alerta. Así Chrome no lo detecta como Spam
-                let reciboWindow = window.open(`/sales/recibo/${data.sale_id}`, '_blank');
-                
-                // Si el navegador tiene un bloqueador de ventanas emergentes muy agresivo:
-                if (!reciboWindow) {
-                    alert('⚠️ Chrome bloqueó la pestaña emergente del recibo. Por favor, permite las ventanas emergentes (pop-ups) para RedCover en la barra superior.');
+                if (reciboWindow && !reciboWindow.closed) {
+                    reciboWindow.location.href = `/sales/recibo/${data.sale_id}`;
+                } else {
+                    // Si el navegador bloqueó la ventana emergente, redirigir en la misma pantalla
+                    window.location.href = `/sales/recibo/${data.sale_id}`;
+                    return;
                 }
                 
                 // Alerta nativa solicitada para feedback directo (Mantiene pausada la pantalla de la Caja)
@@ -1290,10 +1298,12 @@
                 resetPagosMixtos();
                 
             } else {
+                if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
                 alert(`Error devuelto del sistema de validación Backend: ${data.error}`);
             }
 
         } catch (error) {
+            if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
             console.error(error);
             alert('Falló la validación final y la Transacción colapsó. Comprueba el Servidor.');
         }

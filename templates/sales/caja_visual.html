@@ -1102,6 +1102,14 @@
         btnProcess.disabled = true;
         btnProcess.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
 
+        // Abrir pestaña emergente INMEDIATAMENTE durante la interacción del usuario para evitar bloqueos en Chrome/Safari
+        let reciboWindow = null;
+        try {
+            reciboWindow = window.open('about:blank', '_blank');
+        } catch(err) {
+            console.warn('Pop-up bloqueado al crear ventana en blanco:', err);
+        }
+
         try {
             const response = await fetch('/sales/nueva', {
                 method: 'POST',
@@ -1115,9 +1123,12 @@
             const data = await response.json();
 
             if (response.ok) {
-                let reciboWindow = window.open(`/sales/recibo/${data.sale_id}`, '_blank');
-                if (!reciboWindow) {
-                    alert('⚠️ Chrome bloqueó la pestaña emergente del recibo.');
+                if (reciboWindow && !reciboWindow.closed) {
+                    reciboWindow.location.href = `/sales/recibo/${data.sale_id}`;
+                } else {
+                    // Si la ventana emergente fue bloqueada por el navegador, redirigir en la misma pestaña
+                    window.location.href = `/sales/recibo/${data.sale_id}`;
+                    return;
                 }
                 
                 alert(`✅ ¡Cobro en Caja Procesado! ID: ${data.sale_id}`);
@@ -1128,11 +1139,13 @@
                 renderCart();
                 window.location.reload();
             } else {
+                if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
                 alert(`Error: ${data.error}`);
                 btnProcess.disabled = false;
                 btnProcess.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';
             }
         } catch (e) {
+            if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
             alert('Error de conexión con el servidor.');
             btnProcess.disabled = false;
             btnProcess.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';

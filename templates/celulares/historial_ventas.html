@@ -42,7 +42,8 @@
                     <th>CELULAR</th>
                     <th>INVENTARIO</th>
                     <th>MÉTODO DE PAGO</th>
-                    <th class="text-end pe-4">PRECIO VENTA</th>
+                    <th class="text-end">PRECIO VENTA</th>
+                    <th class="text-center pe-4" width="140">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,11 +63,16 @@
                             <span class="badge bg-info text-dark px-3 py-2 rounded-pill"><i class="fa-solid fa-money-bill-transfer me-1"></i> {{ v.metodo_pago }}</span>
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold text-success pe-4">${{ v.precio_venta|cop }}</td>
+                    <td class="text-end fw-bold text-success">${{ v.precio_venta|cop }}</td>
+                    <td class="text-center align-middle pe-3">
+                        <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=v.id_venta) }}" target="_blank" class="btn btn-pink btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-receipt me-1"></i> Ver Recibo
+                        </a>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="8" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-cash-register fs-1 mb-3 text-brand-pink"></i>
                         <p class="mb-0">Aún no se han registrado ventas de celulares.</p>
                     </td>

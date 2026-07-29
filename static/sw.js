@@ -1,20 +1,17 @@
-const CACHE_NAME = 'redcover-app-v1';
+const CACHE_NAME = 'redcover-app-v2';
 const ASSETS_TO_CACHE = [
-    '/',
     '/static/manifest.json',
-    '/static/img/icons/icon-192x192.png',
-    '/static/img/icons/icon-512x512.png',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'
+    '/static/img/redcover.png',
+    '/static/favicon.ico',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js'
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
             .then(() => self.skipWaiting())
     );
 });
@@ -34,23 +31,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Para las peticiones de navegación o de API, usamos estrategia Network First
+    // Solo manejar peticiones GET
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    const url = new URL(event.request.url);
+
+    // Solo cachear activos estáticos reales (CSS, JS, imágenes, fuentes o en /static/)
+    // NUNCA cachear páginas HTML dinámicas ni rutas del servidor
+    const isStaticAsset = url.pathname.startsWith('/static/') || 
+                          url.hostname.includes('cdnjs.cloudflare.com') || 
+                          url.hostname.includes('cdn.jsdelivr.net') ||
+                          /\.(png|jpg|jpeg|svg|ico|css|js|woff2?)$/i.test(url.pathname);
+
+    if (!isStaticAsset) {
+        // Peticiones de navegación / HTML / API van directo a la red (sin cache)
+        return;
+    }
+
     event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                // Hacemos una copia para guardar en caché
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    // Evitamos guardar en caché POST/PUT o extensiones raras si es necesario
-                    if(event.request.method === 'GET' && !event.request.url.includes('/api/')){
-                        cache.put(event.request, responseClone);
-                    }
-                });
+        caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            return fetch(event.request).then((response) => {
+                if (response && response.status === 200 && response.type === 'basic') {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone).catch(() => {});
+                    });
+                }
                 return response;
-            })
-            .catch(() => {
-                // Fallback a caché si no hay red
-                return caches.match(event.request);
-            })
+            });
+        })
     );
 });

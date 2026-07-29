@@ -11,11 +11,31 @@ from models import db, User
 def create_app():
     app = Flask(__name__)
     
-    # Configuración mediante variables de entorno (con fallback a PostgreSQL local)
+    # Configuración mediante variables de entorno (con fallback inteligente a SQLite si Postgres no está activo)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
     
-    # Para la conexión a PostgreSQL, psycopg2 es el default de SQLALchemy al usar postgresql://
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/RC')
+    raw_db_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/RC')
+    
+    # Verificar si PostgreSQL está disponible
+    if raw_db_url and raw_db_url.startswith('postgresql'):
+        try:
+            from sqlalchemy import create_engine
+            engine = create_engine(raw_db_url, connect_args={'connect_timeout': 2})
+            with engine.connect() as conn:
+                pass
+            app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
+        except Exception:
+            instance_db = os.path.join(app.instance_path, 'crm_inventory.db')
+            root_db = os.path.join(app.root_path, 'crm_inventory.db')
+            if os.path.exists(instance_db):
+                app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_db}'
+            elif os.path.exists(root_db):
+                app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{root_db}'
+            else:
+                app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_db}'
+            print(f"⚠️ [INFO] PostgreSQL no disponible localmente. Usando SQLite: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
@@ -137,4 +157,7 @@ if __name__ == '__main__':
             db.session.commit()
             print("🚀 [INFO] Usuario maestro 'admin@redcover.com' fue creado automáticamente.")
             
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5001))
+    print(f"\n🌐 Servidor iniciado correctamente.")
+    print(f"👉 Abre tu navegador en Mac (Chrome/Safari): http://localhost:{port} o http://127.0.0.1:{port}\n")
+    app.run(host='0.0.0.0', port=port, debug=True)

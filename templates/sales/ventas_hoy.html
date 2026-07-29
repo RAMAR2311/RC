@@ -53,6 +53,7 @@
                     <th>VENDEDOR RESPONSABLE</th>
                     <th class="text-center">VÍA DE PAGO</th>
                     <th class="text-end" width="160">IMPORTE CERRADO</th>
+                    <th class="text-center" width="160">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,10 +85,15 @@
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5 pe-4">
                         ${{ (venta.monto_total)|cop }}
                     </td>
+                    <td class="text-center align-middle pe-3">
+                        <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-pink btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-receipt me-1"></i> Ver Recibo
+                        </a>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                         <i class="fa-solid fa-store-slash fs-1 mb-3" style="color: var(--brand-pink);"></i>
                         <h4 class="text-brand-black fw-bold">No hay ventas registradas el día de hoy</h4>
                         <p class="text-muted mb-0">Cada día este registro inicia limpio desde cero.</p>
