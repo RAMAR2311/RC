@@ -34,10 +34,11 @@
         }
 
         .logo {
-            font-size: 2.2rem;
+            font-size: 2.0rem;
             font-weight: 700;
-            margin: 0 0 10px 0;
+            margin: 2px 0 1px 0;
             letter-spacing: -1.5px;
+            line-height: 1.1;
         }
 
         .info {
@@ -150,8 +151,9 @@
 
 <div class="ticket">
     <div class="header">
+        <img src="{{ url_for('static', filename='img/redcover.png') }}" alt="Logo RC" style="max-height: 50px; width: auto; margin-bottom: 2px;">
         <h1 class="logo">RedCover</h1>
-        <p class="info" style="font-weight: bold;">NIT: 1013679035-0</p>
+        <p class="info" style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">NIT: 1013679035-0</p>
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
