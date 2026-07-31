@@ -136,7 +136,12 @@
                     <tbody style="font-size: 0.9rem;">
                         {% for v in ventas_periodo %}
                         <tr>
-                            <td class="text-center text-secondary fw-bold">#{{ "%05d"|format(v.id) }}</td>
+                            <td class="text-center text-secondary fw-bold">
+                                #{{ "%05d"|format(v.id) }}
+                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=v.id) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 ms-1 rounded-pill d-print-none" title="Ver / Imprimir Factura #{{ v.id }}">
+                                    <i class="fa-solid fa-file-invoice"></i>
+                                </a>
+                            </td>
                             <td class="text-center text-muted">{{ v.fecha_venta.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td class="text-center">
                                 {% if v.pagos|length > 1 %}
