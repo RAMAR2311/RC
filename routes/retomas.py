@@ -102,3 +102,22 @@ def aprobar_retoma(id):
         flash(f'Error al generar producto: {str(e)}', 'danger')
         
     return redirect(url_for('retomas_bp.cuarentena'))
+
+@retomas_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_retoma(id):
+    retoma = Retoma.query.get_or_404(id)
+    try:
+        # Si la retoma generó un producto que sigue sin venderse en stock, eliminarlo también
+        if retoma.producto_generado and retoma.producto_generado.cantidad_stock > 0:
+            db.session.delete(retoma.producto_generado)
+
+        db.session.delete(retoma)
+        db.session.commit()
+        flash('Retoma eliminada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la retoma: {str(e)}', 'danger')
+
+    return redirect(url_for('retomas_bp.cuarentena'))

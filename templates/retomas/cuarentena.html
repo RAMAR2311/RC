@@ -90,6 +90,18 @@
                                 <i class="fa-solid fa-receipt" style="font-size: 0.8rem;"></i>
                             </a>
                             {% endif %}
+
+                            <form action="{{ url_for('retomas_bp.eliminar_retoma', id=r.id) }}"
+                                  method="POST"
+                                  class="d-inline"
+                                  onsubmit="return confirm('¿Estás seguro de eliminar esta retoma de forma permanente?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger py-0 px-2 shadow-sm"
+                                        title="Eliminar Retoma">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.8rem;"></i>
+                                </button>
+                            </form>
                         </div>
 
                         {% if r.estado != 'aprobado' %}
