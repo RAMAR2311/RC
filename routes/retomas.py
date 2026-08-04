@@ -55,6 +55,7 @@ def aprobar_retoma(id):
     precio_sugerido = request.form.get('precio_sugerido')
     precio_minimo = request.form.get('precio_minimo', precio_sugerido)
     arreglos = request.form.get('arreglos', '0')
+    bateria_input = request.form.get('bateria', retoma.bateria or '').strip()
     
     if not nombre_definitivo or not precio_sugerido:
         flash('Faltan datos obligatorios para crear el producto.', 'danger')
@@ -65,8 +66,10 @@ def aprobar_retoma(id):
     except:
         arreglos_val = Decimal('0')
 
-    # Guardar costo de arreglos en la retoma
+    # Guardar costo de arreglos y nueva batería en la retoma
     retoma.arreglos = arreglos_val
+    if bateria_input:
+        retoma.bateria = bateria_input
 
     nuevo_sku = f"RET-{retoma.id}-{obtener_hora_bogota().strftime('%Y%m%d%H%M%S')}"
 
@@ -82,7 +85,7 @@ def aprobar_retoma(id):
         imei=retoma.imei1,
         imei2=retoma.imei2,
         color=retoma.color,
-        bateria=retoma.bateria,
+        bateria=bateria_input or retoma.bateria,
         memoria=retoma.memoria,
         proveedor=retoma.proveedor or 'Cliente',
         marca=retoma.marca or '',

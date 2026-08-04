@@ -138,11 +138,15 @@
                                                 </div>
                                             </div>
                                             <div class="row g-3">
-                                                <div class="col-md-6">
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold">Batería (%)</label>
+                                                    <input type="text" name="bateria" class="form-control bg-light" value="{{ r.bateria or '' }}" placeholder="Ej: 100% o 90%">
+                                                </div>
+                                                <div class="col-md-4">
                                                     <label class="form-label fw-bold">Precio Sugerido Venta</label>
                                                     <input type="text" name="precio_sugerido" class="form-control bg-light format-price" value="{{ r.valor_retoma|int + 50000 }}" required>
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div class="col-md-4">
                                                     <label class="form-label fw-bold">Precio Mínimo Permitido</label>
                                                     <input type="text" name="precio_minimo" class="form-control bg-light format-price" value="{{ r.valor_retoma|int }}">
                                                 </div>
