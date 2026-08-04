@@ -130,7 +130,7 @@
                                                 </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label fw-bold">Arreglos</label>
-                                                    <input type="text" id="retoma_arreglos_{{ r.id }}" name="arreglos" class="form-control bg-light format-price" value="0" oninput="updateTotalCosto({{ r.id }}, {{ r.valor_retoma|int }})">
+                                                    <input type="text" id="retoma_arreglos_{{ r.id }}" name="arreglos" class="form-control bg-light format-price" value="0" data-valor-base="{{ r.valor_retoma|int }}" oninput="updateTotalCosto({{ r.id }}, this.dataset.valorBase)">
                                                 </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label fw-bold text-truncate" title="Costo Total">Costo Total</label>
@@ -264,8 +264,9 @@
         const totalInput = document.getElementById(`retoma_costo_total_${id}`);
         if (!arreglosInput || !totalInput) return;
         
-        const arreglosVal = parseInt(arreglosInput.value.replace(/\D/g, '')) || 0;
-        const total = valorBase + arreglosVal;
+        const base = parseInt(valorBase, 10) || 0;
+        const arreglosVal = parseInt(arreglosInput.value.replace(/\D/g, ''), 10) || 0;
+        const total = base + arreglosVal;
         totalInput.value = '$' + total.toLocaleString('es-CO');
     }
 </script>
