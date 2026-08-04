@@ -49,18 +49,30 @@
                     <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
                     
                     <td class="pe-3 text-center">
-                        {% if c.estado_celular == 'Enviado' %}
-                            <span class="badge bg-dark rounded-pill shadow-sm"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
-                        {% else %}
-                            <div class="d-flex justify-content-center gap-2">
-                                <form method="POST" action="{{ url_for('externos_bp.eliminar_externo', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar permanente?');">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar">
-                                        <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        {% endif %}
+                        <div class="d-flex justify-content-center align-items-center gap-1">
+                            {% if c.estado_celular == 'Enviado' %}
+                                <span class="badge bg-dark rounded-pill shadow-sm me-1"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                            {% endif %}
+
+                            {% if c.detalles_venta %}
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Factura de Venta (#{{ c.detalles_venta[0].sale_id }})">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
+                            </a>
+                            {% else %}
+                            <button type="button" class="btn btn-sm text-muted bg-light border rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px; opacity: 0.4;" disabled title="Sin factura asociada (En Inventario)">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
+                            </button>
+                            {% endif %}
+
+                            {% if c.estado_celular != 'Enviado' %}
+                            <form method="POST" action="{{ url_for('externos_bp.eliminar_externo', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar permanente?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% else %}

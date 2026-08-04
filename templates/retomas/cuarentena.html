@@ -50,21 +50,10 @@
                     <td>{{ r.fecha_registro.strftime('%d/%m/%Y') }}</td>
                     <td class="text-success fw-bold">${{ r.valor_retoma|cop }}</td>
                     <td class="pe-3 text-center">
-                        {% if r.estado == 'aprobado' %}
-                            <div class="d-flex justify-content-center align-items-center gap-1">
-                                <span class="badge bg-success rounded-pill shadow-sm"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
-                                {% if r.observaciones %}
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-secondary py-0 px-2"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalObs{{ r.id }}"
-                                        title="Ver Observación">
-                                    <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <div class="d-flex justify-content-center gap-1">
+                        <div class="d-flex justify-content-center align-items-center gap-1">
+                            {% if r.estado == 'aprobado' %}
+                                <span class="badge bg-success rounded-pill shadow-sm me-1"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                            {% else %}
                                 <button type="button"
                                         class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold shadow-sm"
                                         data-bs-toggle="modal"
@@ -72,68 +61,89 @@
                                         title="Pasar al Inventario">
                                     <i class="fa-solid fa-boxes-packing" style="font-size: 0.8rem;"></i>
                                 </button>
-                                {% if r.observaciones %}
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-secondary py-0 px-2"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalObs{{ r.id }}"
-                                        title="Ver Observación">
-                                    <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
-                                </button>
-                                {% endif %}
-                            </div>
+                            {% endif %}
 
-                            <!-- Modal Aprobar/Pasar al Inventario -->
-                            <div class="modal fade text-start text-wrap" id="modalAprobar{{ r.id }}" tabindex="-1" aria-hidden="true" style="white-space: normal;">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow-lg">
-                                        <div class="modal-header bg-primary text-white border-0">
-                                            <h5 class="modal-title fw-bold"><i class="fa-solid fa-boxes-packing me-2"></i> Ingresar al Inventario</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form action="{{ url_for('retomas_bp.aprobar_retoma', id=r.id) }}" method="POST">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <div class="modal-body p-4">
-                                                <div class="alert alert-info border-0 small py-2 mb-4">
-                                                    Al confirmar, este equipo se convertirá en un producto disponible para la venta en el módulo de celulares.
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Nombre Definitivo (Visible en Venta)</label>
-                                                    <input type="text" name="nombre_definitivo" class="form-control bg-light" value="{{ (r.marca or '') + ' ' + r.modelo + ' (Usado)' }}" required>
-                                                </div>
-                                                <div class="row g-3 mb-3">
-                                                    <div class="col-md-4">
-                                                        <label class="form-label fw-bold text-truncate" title="Costo de Retoma">Costo de Retoma</label>
-                                                        <input type="text" class="form-control bg-light" value="${{ r.valor_retoma|cop }}" readonly>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label fw-bold">Arreglos</label>
-                                                        <input type="text" id="retoma_arreglos_{{ r.id }}" name="arreglos" class="form-control bg-light format-price" value="0" oninput="updateTotalCosto({{ r.id }}, {{ r.valor_retoma|int }})">
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <label class="form-label fw-bold text-truncate" title="Costo Total">Costo Total</label>
-                                                        <input type="text" id="retoma_costo_total_{{ r.id }}" class="form-control bg-light fw-bold text-success" value="${{ r.valor_retoma|cop }}" readonly>
-                                                    </div>
-                                                </div>
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-bold">Precio Sugerido Venta</label>
-                                                        <input type="text" name="precio_sugerido" class="form-control bg-light format-price" value="{{ r.valor_retoma|int + 50000 }}" required>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label fw-bold">Precio Mínimo Permitido</label>
-                                                        <input type="text" name="precio_minimo" class="form-control bg-light format-price" value="{{ r.valor_retoma|int }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer border-0 bg-light">
-                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="cleanPrices(this.form)"><i class="fa-solid fa-check me-1"></i> Confirmar Ingreso</button>
-                                            </div>
-                                        </form>
+                            {% if r.observaciones %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary py-0 px-2 shadow-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalObs{{ r.id }}"
+                                    title="Ver Observación">
+                                <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
+                            </button>
+                            {% endif %}
+
+                            {% if r.sale_id %}
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=r.sale_id) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary py-0 px-2 shadow-sm"
+                               title="Ver Factura de Venta (#{{ r.sale_id }})">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.8rem;"></i>
+                            </a>
+                            {% endif %}
+
+                            {% if r.producto_generado and r.producto_generado.detalles_venta %}
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=r.producto_generado.detalles_venta[0].sale_id) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-success py-0 px-2 shadow-sm"
+                               title="Ver Factura de Venta del Equipo (#{{ r.producto_generado.detalles_venta[0].sale_id }})">
+                                <i class="fa-solid fa-receipt" style="font-size: 0.8rem;"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        {% if r.estado != 'aprobado' %}
+                        <!-- Modal Aprobar/Pasar al Inventario -->
+                        <div class="modal fade text-start text-wrap" id="modalAprobar{{ r.id }}" tabindex="-1" aria-hidden="true" style="white-space: normal;">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header bg-primary text-white border-0">
+                                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-boxes-packing me-2"></i> Ingresar al Inventario</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
+                                    <form action="{{ url_for('retomas_bp.aprobar_retoma', id=r.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-info border-0 small py-2 mb-4">
+                                                Al confirmar, este equipo se convertirá en un producto disponible para la venta en el módulo de celulares.
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Nombre Definitivo (Visible en Venta)</label>
+                                                <input type="text" name="nombre_definitivo" class="form-control bg-light" value="{{ (r.marca or '') + ' ' + r.modelo + ' (Usado)' }}" required>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold text-truncate" title="Costo de Retoma">Costo de Retoma</label>
+                                                    <input type="text" class="form-control bg-light" value="${{ r.valor_retoma|cop }}" readonly>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold">Arreglos</label>
+                                                    <input type="text" id="retoma_arreglos_{{ r.id }}" name="arreglos" class="form-control bg-light format-price" value="0" oninput="updateTotalCosto({{ r.id }}, {{ r.valor_retoma|int }})">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold text-truncate" title="Costo Total">Costo Total</label>
+                                                    <input type="text" id="retoma_costo_total_{{ r.id }}" class="form-control bg-light fw-bold text-success" value="${{ r.valor_retoma|cop }}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-bold">Precio Sugerido Venta</label>
+                                                    <input type="text" name="precio_sugerido" class="form-control bg-light format-price" value="{{ r.valor_retoma|int + 50000 }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-bold">Precio Mínimo Permitido</label>
+                                                    <input type="text" name="precio_minimo" class="form-control bg-light format-price" value="{{ r.valor_retoma|int }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 bg-light">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="cleanPrices(this.form)"><i class="fa-solid fa-check me-1"></i> Confirmar Ingreso</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
+                        </div>
                         {% endif %}
 
                         <!-- Modal Observación (visible para todos los estados) -->

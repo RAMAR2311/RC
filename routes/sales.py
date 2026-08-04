@@ -226,14 +226,23 @@ def procesar_venta():
                 
                 monto_total += (precio_venta_final * cantidad_vendida)
 
-        # Manejar información de Retoma (ahora es un descuento sobre el monto total)
-        retoma_info = data.get('retoma_data')
-        monto_retoma = Decimal('0.00')
-        if retoma_info:
-            monto_retoma = Decimal(str(retoma_info.get('valor_retoma', 0)))
-            if monto_retoma <= 0:
-                raise ValueError("El monto acreditado por la retoma debe ser mayor a 0.")
-            monto_total = max(Decimal('0.00'), monto_total - monto_retoma)
+        # Manejar información de Retoma (soporta 1 o múltiples retomas)
+        retoma_data_input = data.get('retoma_data')
+        retomas_list = []
+        if retoma_data_input:
+            if isinstance(retoma_data_input, list):
+                retomas_list = retoma_data_input
+            elif isinstance(retoma_data_input, dict):
+                retomas_list = [retoma_data_input]
+
+        monto_retomas_total = Decimal('0.00')
+        for r_item in retomas_list:
+            v_retoma = Decimal(str(r_item.get('valor_retoma', 0)))
+            if v_retoma <= 0:
+                raise ValueError("El monto acreditado por cada retoma debe ser mayor a 0.")
+            monto_retomas_total += v_retoma
+
+        monto_total = max(Decimal('0.00'), monto_total - monto_retomas_total)
 
         nueva_venta.monto_total = monto_total
 
@@ -262,31 +271,51 @@ def procesar_venta():
             db.session.add(pago)
             total_pagos += monto_pago
 
+        # Si el total a pagar es 0 (cubierto 100% por retoma) y no hay pagos guardados:
+        if monto_total == 0 and not nueva_venta.pagos:
+            pago_retoma = SalePayment(
+                sale_id=nueva_venta.id,
+                metodo_pago='retoma',
+                monto=Decimal('0.00')
+            )
+            db.session.add(pago_retoma)
+
         # Validar que la suma de pagos cubra el total de la venta
         if total_pagos != monto_total:
             raise ValueError(f"La suma de los pagos (${total_pagos}) no coincide con el total de la venta (${monto_total}). Diferencia: ${monto_total - total_pagos}.")
 
-        # Crear el registro de Retoma si aplica
-        if retoma_info:
-            # Note: Retoma expects usuario_id, not vendedor_id (as defined in models.py)
+        # Crear los registros de Retoma si aplican (con validaciones de IMEI único)
+        imeis_procesados = set()
+        for r_item in retomas_list:
+            modelo_val = r_item.get('modelo', '').strip()
+            imei1_val = r_item.get('imei1', '').strip()
+            v_retoma = Decimal(str(r_item.get('valor_retoma', 0)))
+
+            if not modelo_val or not imei1_val:
+                raise ValueError("El modelo y el IMEI 1 son obligatorios para cada retoma.")
+
+            if imei1_val in imeis_procesados:
+                raise ValueError(f"El IMEI '{imei1_val}' está repetido en la lista de retomas de esta factura.")
+            imeis_procesados.add(imei1_val)
+
+            retoma_existente = Retoma.query.filter_by(imei1=imei1_val).first()
+            if retoma_existente:
+                raise ValueError(f"El IMEI 1 '{imei1_val}' ya se encuentra registrado en la retoma #{retoma_existente.id}.")
+
             retoma_registro = Retoma(
                 sale_id=nueva_venta.id,
-                modelo=retoma_info.get('modelo', '').strip(),
-                marca=retoma_info.get('marca', '').strip(),
+                modelo=modelo_val,
+                marca=r_item.get('marca', '').strip(),
                 proveedor='Cliente',
-                valor_retoma=monto_retoma,
-                imei1=retoma_info.get('imei1', '').strip(),
-                imei2=retoma_info.get('imei2', '').strip(),
-                color=retoma_info.get('color', '').strip(),
-                bateria=retoma_info.get('bateria', '').strip(),
-                memoria=retoma_info.get('memoria', '').strip(),
-                observaciones=retoma_info.get('observaciones', '').strip(),
+                valor_retoma=v_retoma,
+                imei1=imei1_val,
+                imei2=r_item.get('imei2', '').strip(),
+                color=r_item.get('color', '').strip(),
+                bateria=r_item.get('bateria', '').strip(),
+                memoria=r_item.get('memoria', '').strip(),
+                observaciones=r_item.get('observaciones', '').strip(),
                 vendedor_id=current_user.id
             )
-            
-            if not retoma_registro.modelo or not retoma_registro.imei1:
-                raise ValueError("El modelo y el IMEI 1 son obligatorios para la retoma.")
-                
             db.session.add(retoma_registro)
 
         cliente_data = data.get('cliente')
@@ -316,7 +345,8 @@ def procesar_venta():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Ocurrió un error interno al procesar la venta.'}), 500
+        current_app.logger.error(f"Error procesando venta: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Error en el servidor al procesar la venta: {str(e)}'}), 500
 
 # Endpoint API asíncrono para el escáner del Punto de Venta
 @sales_bp.route('/api/producto/<path:sku>', methods=['GET'])

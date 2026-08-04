@@ -290,23 +290,30 @@
         <p style="font-size: 0.7rem; color: #666; margin-top: 10px; font-weight: bold;">Aliado tecnológico ZENIC SAS</p>
     </div>
 
-    <div style="display: flex; gap: 10px;" class="d-print-none">
-        <button class="btn-print" onclick="window.print()" style="flex: 1; margin-top: 25px;">
-            [ IMPRIMIR TICKET ]
-        </button>
-        {% if venta.cliente and venta.cliente.telefono %}
-            {% set phone = venta.cliente.telefono|replace(' ', '')|replace('*', '')|replace('-', '')|replace('+', '') %}
-            {% if not phone.startswith('57') and phone|length == 10 %}
-                {% set phone = '57' ~ phone %}
+    <div style="display: flex; flex-direction: column; gap: 10px;" class="d-print-none">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-print" onclick="window.print()" style="flex: 1; margin-top: 20px;">
+                [ IMPRIMIR TICKET ]
+            </button>
+            {% if venta.cliente and venta.cliente.telefono %}
+                {% set phone = venta.cliente.telefono|replace(' ', '')|replace('*', '')|replace('-', '')|replace('+', '') %}
+                {% if not phone.startswith('57') and phone|length == 10 %}
+                    {% set phone = '57' ~ phone %}
+                {% endif %}
+                {% set mensaje = "Hola " ~ venta.cliente.nombre ~ "! Aquí tienes tu factura digital de Red Cover: " ~ request.url %}
+                <a href="https://wa.me/{{ phone }}?text={{ mensaje|urlencode }}" 
+                   target="_blank" 
+                   class="btn-print btn-wa" 
+                   style="flex: 1; background-color: #25D366; border-color: #25D366; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 20px;">
+                    [ ENVIAR WHATSAPP ]
+                </a>
             {% endif %}
-            {% set mensaje = "Hola " ~ venta.cliente.nombre ~ "! Aquí tienes tu factura digital de Red Cover: " ~ request.url %}
-            <a href="https://wa.me/{{ phone }}?text={{ mensaje|urlencode }}" 
-               target="_blank" 
-               class="btn-print btn-wa" 
-               style="flex: 1; background-color: #25D366; border-color: #25D366; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; margin-top: 25px;">
-                [ ENVIAR WHATSAPP ]
-            </a>
-        {% endif %}
+        </div>
+        <a href="{{ url_for('sales_bp.caja_visual') }}" 
+           class="btn-print" 
+           style="background-color: #1A1A1A; color: #FFFFFF; text-decoration: none; text-align: center; display: block; margin-top: 5px; box-sizing: border-box;">
+            [ VOLVER A LA CAJA ]
+        </a>
     </div>
 </div>
 

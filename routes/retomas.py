@@ -3,6 +3,7 @@ from flask_login import login_required
 from models import db, Product, Retoma, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
+from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 
 retomas_bp = Blueprint('retomas_bp', __name__)
@@ -16,7 +17,10 @@ def cuarentena():
     per_page = 20
 
     # Base query: all retomas
-    base_query = Retoma.query
+    base_query = Retoma.query.options(
+        joinedload(Retoma.venta),
+        joinedload(Retoma.producto_generado).joinedload(Product.detalles_venta)
+    )
 
     # Optional text search
     if q:

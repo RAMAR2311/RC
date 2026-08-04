@@ -14,6 +14,8 @@ externos_bp = Blueprint('externos_bp', __name__)
 def obtener_hora_bogota():
     return datetime.now(pytz.timezone('America/Bogota')).replace(tzinfo=None)
 
+from sqlalchemy.orm import joinedload
+
 @externos_bp.route('/')
 @login_required
 def inventario():
@@ -21,7 +23,10 @@ def inventario():
     page = request.args.get('page', 1, type=int)
     per_page = 20
 
-    base_query = Product.query.filter(
+    base_query = Product.query.options(
+        joinedload(Product.detalles_venta),
+        joinedload(Product.retoma_origen)
+    ).filter(
         Product.tipo_inventario == 'externos',
         ~Product.sku.like('EXTACC-%')
     )
@@ -54,7 +59,10 @@ def inventario_accesorios():
     page = request.args.get('page', 1, type=int)
     per_page = 20
 
-    base_query = Product.query.filter(
+    base_query = Product.query.options(
+        joinedload(Product.detalles_venta),
+        joinedload(Product.retoma_origen)
+    ).filter(
         Product.tipo_inventario == 'externos',
         Product.sku.like('EXTACC-%')
     )

@@ -35,8 +35,13 @@ def inventario():
             costo_total += float(c.precio_costo) * c.cantidad_stock
             ventas_estimadas += float(c.precio_sugerido) * c.cantidad_stock
 
+    from sqlalchemy.orm import selectinload, joinedload
+    from models import SaleDetail
+
     # Base query for table
-    base_query = Product.query.filter_by(tipo_inventario='celulares')
+    base_query = Product.query.options(
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
+    ).filter_by(tipo_inventario='celulares')
 
     if estado == 'activos':
         base_query = base_query.filter(Product.cantidad_stock > 0)

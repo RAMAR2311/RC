@@ -102,7 +102,11 @@
                     <th class="py-2 fw-bold">IMEI 2</th>
                     <th class="py-2 fw-bold">PROVEEDOR</th>
                     <th class="py-2 fw-bold">INVENTARIO</th>
-                    <th class="py-2 fw-bold">FECHA</th>
+                    {% if estado == 'vendidos' %}
+                        <th class="py-2 fw-bold text-primary">FECHA VENTA</th>
+                    {% else %}
+                        <th class="py-2 fw-bold">FECHA INGRESO</th>
+                    {% endif %}
                     <th class="py-2 fw-bold">COSTO</th>
                     <th class="py-2 fw-bold">MINIMO</th>
                     <th class="py-2 fw-bold">SUGERIDO</th>
@@ -121,7 +125,14 @@
                     <td class="text-muted">{{ c.imei2 or '-' }}</td>
                     <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
                     <td class="text-truncate" style="max-width: 100px;" title="{{ c.inventario or '-' }}">{{ c.inventario or '-' }}</td>
-                    <td>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if estado == 'vendidos' and c.detalles_venta %}
+                            <span class="fw-bold text-dark">{{ c.detalles_venta[0].venta.fecha_venta.strftime('%d/%m/%Y') }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;" title="Fecha de Ingreso al Inventario">Ingreso: {{ c.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                        {% else %}
+                            <span>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</span>
+                        {% endif %}
+                    </td>
                     
                     <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>
                     <td class="text-muted fw-bold">${{ c.precio_minimo|cop }}</td>

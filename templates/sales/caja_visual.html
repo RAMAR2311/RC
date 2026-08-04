@@ -92,9 +92,14 @@
                 <span class="fw-bold fs-4 text-dark" id="subtotal_amount">$0</span>
             </div>
 
-            <div class="d-flex justify-content-between mb-2 text-danger" id="retoma_discount_row" style="display: none !important;">
-                <span class="fw-bold align-self-center"><i class="fa-solid fa-recycle me-1"></i> Retoma:</span>
-                <span class="fw-bold fs-5" id="retoma_amount">-$0</span>
+            <div class="mb-2 text-danger" id="retoma_discount_row" style="display: none !important;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold align-self-center"><i class="fa-solid fa-recycle me-1"></i> Retomas (<span id="retomas_count">0</span>):</span>
+                    <span class="fw-bold fs-5" id="retoma_amount">-$0</span>
+                </div>
+                <div id="retomas_list_container" class="ps-2 border-start border-2 border-danger ms-1 mb-2 bg-light rounded p-2" style="font-size: 0.85rem;">
+                    <!-- Lista dinámica de retomas -->
+                </div>
             </div>
 
             <div class="d-flex justify-content-between mb-4 border-top pt-2">
@@ -513,7 +518,8 @@
     let carrito = [];
     let activeProductData = null;
     let activeVariantsData = null;
-    let retomaActual = null;
+    let retomasLista = [];
+    let editRetomaIndex = -1;
 
     let pagosMixtos = [];
     const METODOS_DISPONIBLES = [
@@ -661,6 +667,7 @@
         const totalAmountEl = document.getElementById('total_amount');
         const subtotalAmountEl = document.getElementById('subtotal_amount');
         const totalItemsEl = document.getElementById('total_items');
+        const retomaRow = document.getElementById('retoma_discount_row');
         
         tbody.innerHTML = '';
         let granTotal = 0;
@@ -675,9 +682,7 @@
             totalAmountEl.innerText = '$0';
             totalItemsEl.innerText = '0 items';
             
-            if (retomaActual) {
-                eliminarRetomaActual();
-            }
+            if (retomaRow) retomaRow.style.setProperty('display', 'none', 'important');
             return;
         }
 
@@ -731,21 +736,43 @@
             tbody.appendChild(li);
         });
         
-        const retomaRow = document.getElementById('retoma_discount_row');
         const retomaAmountEl = document.getElementById('retoma_amount');
+        const retomasCountEl = document.getElementById('retomas_count');
+        const retomasContainer = document.getElementById('retomas_list_container');
 
         subtotalAmountEl.innerText = formatoCOP(granTotal);
         
-        let valorRetoma = 0;
-        if (retomaActual) {
-            valorRetoma = retomaActual.valor_retoma;
-            retomaRow.style.setProperty('display', 'flex', 'important');
-            retomaAmountEl.innerText = '-' + formatoCOP(valorRetoma);
+        let valorRetomaTotal = 0;
+        if (retomasLista.length > 0) {
+            valorRetomaTotal = retomasLista.reduce((sum, r) => sum + (parseFloat(r.valor_retoma) || 0), 0);
+            if (retomaRow) retomaRow.style.setProperty('display', 'block', 'important');
+            if (retomaAmountEl) retomaAmountEl.innerText = '-' + formatoCOP(valorRetomaTotal);
+            if (retomasCountEl) retomasCountEl.innerText = retomasLista.length;
+
+            if (retomasContainer) {
+                retomasContainer.innerHTML = retomasLista.map((r, i) => `
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light text-dark small">
+                        <div class="text-truncate me-2" style="max-width: 65%;">
+                            <strong class="text-danger"><i class="fa-solid fa-mobile-screen me-1"></i>${r.marca ? r.marca + ' ' : ''}${r.modelo}</strong>
+                            <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">IMEI: ${r.imei1} ${r.color ? '| ' + r.color : ''}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-bold text-danger me-2" style="font-size: 0.85rem;">-${formatoCOP(r.valor_retoma)}</span>
+                            <button type="button" class="btn btn-link text-primary p-0 me-2 border-0" onclick="abrirModalRetoma(${i})" title="Editar retoma">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-link text-danger p-0 border-0" onclick="eliminarRetoma(${i})" title="Eliminar retoma">
+                                <i class="fa-solid fa-xmark fs-6"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
         } else {
-            retomaRow.style.setProperty('display', 'none', 'important');
+            if (retomaRow) retomaRow.style.setProperty('display', 'none', 'important');
         }
 
-        const totalPagar = Math.max(0, granTotal - valorRetoma);
+        const totalPagar = Math.max(0, granTotal - valorRetomaTotal);
         totalAmountEl.innerText = formatoCOP(totalPagar);
         totalItemsEl.innerText = `${totalItems} items`;
 
@@ -756,10 +783,8 @@
 
     function obtenerGranTotal() {
         let granTotal = carrito.reduce((sum, item) => sum + (item.cantidad * item.precio_final), 0);
-        if (retomaActual) {
-            granTotal = Math.max(0, granTotal - retomaActual.valor_retoma);
-        }
-        return granTotal;
+        let valorRetomaTotal = retomasLista.reduce((sum, r) => sum + (parseFloat(r.valor_retoma) || 0), 0);
+        return Math.max(0, granTotal - valorRetomaTotal);
     }
 
     document.getElementById('toggle_pago_mixto').addEventListener('change', function() {
@@ -880,7 +905,7 @@
         if(confirm('¿Seguro que deseas limpiar la venta?')){
             carrito = [];
             pagosMixtos = [];
-            retomaActual = null;
+            retomasLista = [];
             if (document.getElementById('cliente_nombre')) document.getElementById('cliente_nombre').value = '';
             if (document.getElementById('cliente_documento')) document.getElementById('cliente_documento').value = '';
             if (document.getElementById('cliente_telefono')) document.getElementById('cliente_telefono').value = '';
@@ -975,23 +1000,48 @@
         procesarPagoGlobal(datosCliente);
     }
 
-    function abrirModalRetoma() {
-        if (retomaActual) {
-            document.getElementById('retoma_valor').value = retomaActual.valor_retoma;
-            document.getElementById('retoma_modelo').value = retomaActual.modelo;
-            document.getElementById('retoma_imei1').value = retomaActual.imei1;
-            document.getElementById('retoma_imei2').value = retomaActual.imei2 || '';
-            document.getElementById('retoma_color').value = retomaActual.color || '';
-            document.getElementById('retoma_bateria').value = retomaActual.bateria || '';
-            document.getElementById('retoma_memoria').value = retomaActual.memoria || '';
-            document.getElementById('retoma_observaciones').value = retomaActual.observaciones || '';
-            document.getElementById('btnEliminarRetoma').style.display = 'block';
+    function abrirModalRetoma(index = -1) {
+        editRetomaIndex = index;
+        const btnEliminar = document.getElementById('btnEliminarRetoma');
+        const modalTitle = document.querySelector('#modalRetoma .modal-title');
+
+        if (index >= 0 && index < retomasLista.length) {
+            const r = retomasLista[index];
+            document.getElementById('retoma_valor').value = r.valor_retoma;
+            document.getElementById('retoma_marca').value = r.marca || '';
+            document.getElementById('retoma_modelo').value = r.modelo || '';
+            document.getElementById('retoma_imei1').value = r.imei1 || '';
+            document.getElementById('retoma_imei2').value = r.imei2 || '';
+            document.getElementById('retoma_color').value = r.color || '';
+            document.getElementById('retoma_bateria').value = r.bateria || '';
+            document.getElementById('retoma_memoria').value = r.memoria || '';
+            document.getElementById('retoma_observaciones').value = r.observaciones || '';
+            if (btnEliminar) btnEliminar.style.display = 'block';
+            if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Editar Equipo en Retoma';
         } else {
-            document.getElementById('btnEliminarRetoma').style.display = 'none';
+            limpiarFormularioRetoma();
+            if (btnEliminar) btnEliminar.style.display = 'none';
+            if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-recycle me-2"></i>Añadir Equipo en Retoma';
         }
         
-        const modalRetoma = new bootstrap.Modal(document.getElementById('modalRetoma'));
-        modalRetoma.show();
+        const modalEl = document.getElementById('modalRetoma');
+        let modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalEl);
+        }
+        modalInstance.show();
+    }
+
+    function limpiarFormularioRetoma() {
+        document.getElementById('retoma_valor').value = '';
+        document.getElementById('retoma_marca').value = '';
+        document.getElementById('retoma_modelo').value = '';
+        document.getElementById('retoma_imei1').value = '';
+        document.getElementById('retoma_imei2').value = '';
+        document.getElementById('retoma_color').value = '';
+        document.getElementById('retoma_bateria').value = '';
+        document.getElementById('retoma_memoria').value = '';
+        document.getElementById('retoma_observaciones').value = '';
     }
 
     function confirmarRetoma() {
@@ -1007,7 +1057,12 @@
             return alert('El modelo y el IMEI 1 son obligatorios para la retoma.');
         }
 
-        retomaActual = {
+        const imeiDuplicado = retomasLista.some((r, idx) => idx !== editRetomaIndex && r.imei1 === imei1);
+        if (imeiDuplicado) {
+            return alert(`⚠️ El IMEI 1 (${imei1}) ya fue ingresado en otra retoma de esta venta.`);
+        }
+
+        const retomaObj = {
             valor_retoma: valor,
             marca: document.getElementById('retoma_marca').value.trim(),
             modelo: modelo,
@@ -1019,25 +1074,33 @@
             observaciones: document.getElementById('retoma_observaciones').value.trim()
         };
 
+        if (editRetomaIndex >= 0 && editRetomaIndex < retomasLista.length) {
+            retomasLista[editRetomaIndex] = retomaObj;
+        } else {
+            retomasLista.push(retomaObj);
+        }
+
+        limpiarFormularioRetoma();
+
         const modalEl = document.getElementById('modalRetoma');
         const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        modalInstance.hide();
+        if (modalInstance) modalInstance.hide();
 
         renderCart();
     }
 
+    function eliminarRetoma(index) {
+        if (index >= 0 && index < retomasLista.length) {
+            retomasLista.splice(index, 1);
+            renderCart();
+        }
+    }
+
     function eliminarRetomaActual() {
-        retomaActual = null;
-        document.getElementById('retoma_valor').value = '';
-        document.getElementById('retoma_marca').value = '';
-        document.getElementById('retoma_modelo').value = '';
-        document.getElementById('retoma_imei1').value = '';
-        document.getElementById('retoma_imei2').value = '';
-        document.getElementById('retoma_color').value = '';
-        document.getElementById('retoma_bateria').value = '';
-        document.getElementById('retoma_memoria').value = '';
-        document.getElementById('retoma_observaciones').value = '';
-        
+        if (editRetomaIndex >= 0 && editRetomaIndex < retomasLista.length) {
+            retomasLista.splice(editRetomaIndex, 1);
+        }
+        limpiarFormularioRetoma();
         const modalEl = document.getElementById('modalRetoma');
         const modalInstance = bootstrap.Modal.getInstance(modalEl);
         if (modalInstance) modalInstance.hide();
@@ -1095,7 +1158,7 @@
             pagos: pagosPayload,
             fecha_venta: document.getElementById('fecha_venta_input') ? document.getElementById('fecha_venta_input').value : null,
             cliente: datosCliente,
-            retoma_data: retomaActual
+            retoma_data: retomasLista
         };
 
         const btnProcess = document.getElementById('btn_process_sale');
@@ -1120,33 +1183,49 @@
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonErr) {
+                data = { error: `Error en la respuesta del servidor (${response.status} ${response.statusText})` };
+            }
 
-            if (response.ok) {
+            if (response.ok && data.success && data.sale_id) {
+                const reciboUrl = `/sales/recibo/${data.sale_id}`;
                 if (reciboWindow && !reciboWindow.closed) {
-                    reciboWindow.location.href = `/sales/recibo/${data.sale_id}`;
+                    reciboWindow.location.href = reciboUrl;
                 } else {
-                    // Si la ventana emergente fue bloqueada por el navegador, redirigir en la misma pestaña
-                    window.location.href = `/sales/recibo/${data.sale_id}`;
-                    return;
+                    window.open(reciboUrl, '_blank');
                 }
-                
-                alert(`✅ ¡Cobro en Caja Procesado! ID: ${data.sale_id}`);
-                
+
+                // Limpiar la caja en la pestaña principal para seguir facturando inmediatamente
                 carrito = [];
+                retomasLista = [];
                 pagosMixtos = [];
+                
+                if (document.getElementById('cliente_nombre')) document.getElementById('cliente_nombre').value = '';
+                if (document.getElementById('cliente_documento')) document.getElementById('cliente_documento').value = '';
+                if (document.getElementById('cliente_telefono')) document.getElementById('cliente_telefono').value = '';
+                if (document.getElementById('cliente_email')) document.getElementById('cliente_email').value = '';
+
                 resetPagosMixtos();
                 renderCart();
-                window.location.reload();
+
+                btnProcess.disabled = false;
+                btnProcess.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';
+
+                alert(`✅ ¡Venta #${data.sale_id} Procesada! La factura se abrió en una nueva pestaña para su impresión.`);
+                return;
             } else {
                 if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
-                alert(`Error: ${data.error}`);
+                alert(`⚠️ Error al procesar la venta: ${data.error || 'Verifica los datos de la venta'}`);
                 btnProcess.disabled = false;
                 btnProcess.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';
             }
         } catch (e) {
+            console.error('Error al procesar cobro:', e);
             if (reciboWindow && !reciboWindow.closed) reciboWindow.close();
-            alert('Error de conexión con el servidor.');
+            alert(`⚠️ Error de conexión o red: ${e.message || e}`);
             btnProcess.disabled = false;
             btnProcess.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';
         }

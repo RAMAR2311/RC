@@ -155,9 +155,9 @@ if __name__ == '__main__':
             )
             db.session.add(master_admin)
             db.session.commit()
-            print("🚀 [INFO] Usuario maestro 'admin@redcover.com' fue creado automáticamente.")
+            print("[INFO] Usuario maestro 'admin@redcover.com' fue creado automáticamente.")
             
     port = int(os.environ.get('PORT', 5001))
-    print(f"\n🌐 Servidor iniciado correctamente.")
-    print(f"👉 Abre tu navegador en Mac (Chrome/Safari): http://localhost:{port} o http://127.0.0.1:{port}\n")
+    print(f"\n[INFO] Servidor iniciado correctamente en puerto {port}.")
+    print(f"[INFO] Abre tu navegador en: http://localhost:{port} o http://127.0.0.1:{port}\n")
     app.run(host='0.0.0.0', port=port, debug=True)
