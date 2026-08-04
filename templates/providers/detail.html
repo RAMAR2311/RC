@@ -105,13 +105,17 @@
                             <td class="text-start fw-bold text-brand-blue">{{ f.numero_factura or '-' }}</td>
                             <td style="max-width: 150px;" class="text-truncate" title="{{ f.descripcion }}">{{ f.descripcion or '-' }}</td>
                             <td class="text-end fw-bold text-danger">${{ f.monto_total|cop }}</td>
+                            <td class="text-center">
+                                {% if f.comprobante %}
+                                <a href="{{ url_for('static', filename='uploads/providers/' + f.comprobante) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver comprobante">
+                                    <i class="fa-solid fa-paperclip" style="font-size: 0.75rem;"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
                             <td class="text-center pe-4 text-nowrap">
                                 <div class="d-flex align-items-center justify-content-center gap-1">
-                                    {% if f.comprobante %}
-                                    <a href="{{ url_for('static', filename='uploads/providers/' + f.comprobante) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver comprobante">
-                                        <i class="fa-solid fa-paperclip" style="font-size: 0.75rem;"></i>
-                                    </a>
-                                    {% endif %}
                                     <button type="button" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" data-bs-toggle="modal" data-bs-target="#modalEditarFactura{{ f.id }}" title="Editar Factura">
                                         <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
                                     </button>
