@@ -191,3 +191,123 @@ def delete_provider(id):
     
     flash('Proveedor eliminado correctamente.', 'success')
     return redirect(url_for('providers_bp.list_providers'))
+
+@providers_bp.route('/payment/eliminar/<int:payment_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_payment(payment_id):
+    pago = ProviderPayment.query.get_or_404(payment_id)
+    provider_id = pago.provider_id
+    try:
+        db.session.delete(pago)
+        db.session.commit()
+        flash('Abono eliminado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el abono: {str(e)}', 'danger')
+
+    return redirect(url_for('providers_bp.detail', id=provider_id))
+
+@providers_bp.route('/invoice/eliminar/<int:invoice_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_invoice(invoice_id):
+    factura = ProviderInvoice.query.get_or_404(invoice_id)
+    provider_id = factura.provider_id
+    try:
+        if factura.comprobante:
+            upload_folder = os.path.join(current_app.static_folder, 'uploads', 'providers')
+            file_path = os.path.join(upload_folder, factura.comprobante)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
+
+        db.session.delete(factura)
+        db.session.commit()
+        flash('Factura eliminada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la factura: {str(e)}', 'danger')
+
+    return redirect(url_for('providers_bp.detail', id=provider_id))
+
+@providers_bp.route('/invoice/editar/<int:invoice_id>', methods=['POST'])
+@login_required
+@admin_required
+def edit_invoice(invoice_id):
+    factura = ProviderInvoice.query.get_or_404(invoice_id)
+    provider_id = factura.provider_id
+
+    try:
+        monto_total = float(request.form.get('monto_total', 0))
+    except ValueError:
+        monto_total = 0.0
+
+    if monto_total <= 0:
+        flash('El monto de la factura debe ser mayor a 0.', 'danger')
+        return redirect(url_for('providers_bp.detail', id=provider_id))
+
+    factura.monto_total = monto_total
+    factura.numero_factura = request.form.get('numero_factura', '').strip()
+    factura.descripcion = request.form.get('descripcion', '').strip()
+
+    if 'comprobante' in request.files:
+        file = request.files['comprobante']
+        if file and file.filename != '' and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            timestamp = datetime.now(pytz.timezone('America/Bogota')).strftime('%Y%m%d%H%M%S')
+            filename = f"prov_{provider_id}_{timestamp}.{ext}"
+
+            upload_folder = os.path.join(current_app.static_folder, 'uploads', 'providers')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            if factura.comprobante:
+                old_path = os.path.join(upload_folder, factura.comprobante)
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except:
+                        pass
+
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+            factura.comprobante = filename
+
+    try:
+        db.session.commit()
+        flash('Factura actualizada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar la factura: {str(e)}', 'danger')
+
+    return redirect(url_for('providers_bp.detail', id=provider_id))
+
+@providers_bp.route('/payment/editar/<int:payment_id>', methods=['POST'])
+@login_required
+@admin_required
+def edit_payment(payment_id):
+    pago = ProviderPayment.query.get_or_404(payment_id)
+    provider_id = pago.provider_id
+
+    try:
+        monto_abonado = float(request.form.get('monto_abonado', 0))
+    except ValueError:
+        monto_abonado = 0.0
+
+    if monto_abonado <= 0:
+        flash('El monto del abono debe ser mayor a 0.', 'danger')
+        return redirect(url_for('providers_bp.detail', id=provider_id))
+
+    pago.monto_abonado = monto_abonado
+    pago.observacion = request.form.get('observacion', '').strip()
+
+    try:
+        db.session.commit()
+        flash('Abono actualizado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar el abono: {str(e)}', 'danger')
+
+    return redirect(url_for('providers_bp.detail', id=provider_id))
