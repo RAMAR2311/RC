@@ -261,14 +261,14 @@ class ArqueoCaja(db.Model):
     fecha_arqueo = db.Column(db.Date, nullable=False)
     tipo_arqueo = db.Column(db.String(50), nullable=False, server_default='general') # 'general' o 'celulares'
     sucursal = db.Column(db.String(100), nullable=False, default='LOCAL 136')
-    base_inicial = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    gastos_del_dia = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    base_inicial = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    gastos_del_dia = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
     observaciones_gastos = db.Column(db.String(255), nullable=True)
-    total_efectivo_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    total_transferencia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    total_unidades_ch = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    total_celulares = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
-    total_retomas_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    total_efectivo_sistema = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    total_transferencia_sistema = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    total_unidades_ch = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    total_celulares = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    total_retomas_sistema = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     def __init__(self, **kwargs):

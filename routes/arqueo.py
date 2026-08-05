@@ -336,3 +336,82 @@ def revertir_arqueo(id):
         db.session.rollback()
         flash("Ocurrió un error al revertir el arqueo de caja.", "danger")
     return redirect(url_for('arqueo_bp.reporte'))
+
+@arqueo_bp.route('/ticket', methods=['GET'])
+@login_required
+def imprimir_ticket_arqueo():
+    fecha_str = request.args.get('fecha', obtener_hora_bogota().strftime('%Y-%m-%d'))
+    sucursal = request.args.get('sucursal')
+    
+    try:
+        fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        fecha_obj = obtener_hora_bogota().date()
+        fecha_str = fecha_obj.strftime('%Y-%m-%d')
+        
+    query_arqueo = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_obj, tipo_arqueo='general')
+    if sucursal and sucursal != 'TODOS':
+        query_arqueo = query_arqueo.filter_by(sucursal=sucursal)
+    elif current_user.rol != 'admin':
+        query_arqueo = query_arqueo.filter_by(sucursal=current_user.sucursal)
+        
+    arqueo = query_arqueo.first()
+    
+    ventas_query = Sale.query.filter(
+        db.func.date(Sale.fecha_venta) == fecha_obj,
+        Sale.tipo_venta.in_(['general', 'celulares'])
+    )
+    if sucursal and sucursal != 'TODOS':
+        ventas_query = ventas_query.filter(Sale.sucursal == sucursal)
+    elif current_user.rol != 'admin':
+        ventas_query = ventas_query.filter(Sale.sucursal == current_user.sucursal)
+        
+    ventas = ventas_query.order_by(Sale.fecha_venta.asc()).all()
+    
+    gastos_query = Expense.query.filter(
+        db.func.date(Expense.fecha_gasto) == fecha_obj
+    )
+    if sucursal and sucursal != 'TODOS':
+        gastos_query = gastos_query.filter(Expense.sucursal == sucursal)
+    elif current_user.rol != 'admin':
+        gastos_query = gastos_query.filter(Expense.sucursal == current_user.sucursal)
+        
+    gastos = gastos_query.all()
+    
+    total_efectivo = 0
+    total_transferencia = 0
+    total_ventas = 0
+    
+    for v in ventas:
+        total_ventas += float(v.monto_total or 0)
+        if v.pagos and len(v.pagos) > 0:
+            for p in v.pagos:
+                if p.metodo_pago.lower() == 'efectivo':
+                    total_efectivo += float(p.monto or 0)
+                else:
+                    total_transferencia += float(p.monto or 0)
+        else:
+            if v.metodo_pago and v.metodo_pago.lower() == 'efectivo':
+                total_efectivo += float(v.monto_total or 0)
+            else:
+                total_transferencia += float(v.monto_total or 0)
+                
+    total_gastos = sum(float(g.monto or 0) for g in gastos)
+    fecha_generacion = obtener_hora_bogota().strftime('%d/%m/%Y %I:%M %p')
+    
+    sucursal_nombre = sucursal if sucursal else (current_user.sucursal if current_user.rol != 'admin' else 'GENERAL')
+    
+    return render_template(
+        'arqueo/ticket.html',
+        fecha=fecha_obj.strftime('%d/%m/%Y'),
+        fecha_str=fecha_str,
+        fecha_generacion=fecha_generacion,
+        arqueo=arqueo,
+        ventas=ventas,
+        gastos=gastos,
+        total_efectivo=total_efectivo,
+        total_transferencia=total_transferencia,
+        total_ventas=total_ventas,
+        total_gastos=total_gastos,
+        sucursal=sucursal_nombre
+    )
