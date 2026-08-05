@@ -298,9 +298,18 @@ def procesar_venta():
                 raise ValueError(f"El IMEI '{imei1_val}' está repetido en la lista de retomas de esta factura.")
             imeis_procesados.add(imei1_val)
 
-            retoma_existente = Retoma.query.filter_by(imei1=imei1_val).first()
-            if retoma_existente:
-                raise ValueError(f"El IMEI 1 '{imei1_val}' ya se encuentra registrado en la retoma #{retoma_existente.id}.")
+            # 1. Verificar si hay una retoma PENDIENTE por evaluar con el mismo IMEI
+            retoma_pendiente = Retoma.query.filter_by(imei1=imei1_val, estado='en_evaluacion').first()
+            if retoma_pendiente:
+                raise ValueError(f"El IMEI 1 '{imei1_val}' ya se encuentra registrado en la retoma #{retoma_pendiente.id} (pendiente en cuarentena).")
+
+            # 2. Verificar si el IMEI pertenece a un celular actualmente disponible en stock
+            producto_activo = Product.query.filter(
+                ((Product.imei == imei1_val) | (Product.imei2 == imei1_val)),
+                Product.cantidad_stock > 0
+            ).first()
+            if producto_activo:
+                raise ValueError(f"El IMEI '{imei1_val}' pertenece a un equipo disponible en el inventario activo ({producto_activo.nombre}).")
 
             retoma_registro = Retoma(
                 sale_id=nueva_venta.id,

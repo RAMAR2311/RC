@@ -40,7 +40,14 @@
                 {% for r in retomas %}
                 <tr>
                     <td class="ps-3 fw-bold text-dark text-start">{{ r.marca or '-' }}</td>
-                    <td class="fw-semibold text-start">{{ r.modelo or '-' }}</td>
+                    <td class="fw-semibold text-start">
+                        {{ r.modelo or '-' }}
+                        {% if r.es_reingreso %}
+                        <span class="badge bg-info text-dark rounded-pill px-2 ms-1" style="font-size: 0.65rem;" title="Este IMEI perteneció a un equipo vendido previamente en la tienda">
+                            <i class="fa-solid fa-rotate-left"></i> Reingreso
+                        </span>
+                        {% endif %}
+                    </td>
                     <td>{{ r.memoria or '-' }}</td>
                     <td>{{ r.bateria or '-' }}</td>
                     <td>{{ r.color or '-' }}</td>

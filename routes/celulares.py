@@ -456,8 +456,8 @@ def importar_excel():
             if imei1.endswith('.0'):
                 imei1 = imei1[:-2]
                 
-            # Verificar si existe el IMEI
-            existente = Product.query.filter_by(imei=imei1, tipo_inventario='celulares').first()
+            # Verificar si existe el IMEI actualmente activo en stock
+            existente = Product.query.filter(Product.imei == imei1, Product.tipo_inventario == 'celulares', Product.cantidad_stock > 0).first()
             if existente:
                 omitidos += 1
                 continue

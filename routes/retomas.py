@@ -37,6 +37,16 @@ def cuarentena():
         page=page, per_page=per_page, error_out=False
     )
     
+    for r_item in paginacion.items:
+        r_item.es_reingreso = False
+        if r_item.imei1:
+            prod_previo = Product.query.filter(
+                ((Product.imei == r_item.imei1) | (Product.imei2 == r_item.imei1)),
+                Product.cantidad_stock == 0
+            ).first()
+            if prod_previo:
+                r_item.es_reingreso = True
+
     return render_template('retomas/cuarentena.html',
                            retomas=paginacion.items,
                            paginacion=paginacion,
