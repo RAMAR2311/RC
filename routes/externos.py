@@ -86,6 +86,8 @@ def inventario_accesorios():
                            paginacion=paginacion,
                            q=q)
 
+from sqlalchemy.exc import IntegrityError
+
 @externos_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -96,10 +98,16 @@ def nuevo_externo():
         color = request.form.get('color', '').strip()
         bateria = request.form.get('bateria', '').strip()
         memoria = request.form.get('memoria', '').strip()
-        imei = request.form.get('imei', '').strip()
-        imei2 = request.form.get('imei2', '').strip()
+        imei = request.form.get('imei', '').strip() or None
+        imei2 = request.form.get('imei2', '').strip() or None
         proveedor = request.form.get('proveedor', '').strip()
         
+        if imei:
+            existente = Product.query.filter_by(imei=imei).first()
+            if existente:
+                flash(f'El IMEI "{imei}" ya se encuentra registrado en el sistema (Producto: {existente.nombre}).', 'danger')
+                return render_template('externos/form_externo.html', celular=None)
+
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
         
@@ -132,6 +140,9 @@ def nuevo_externo():
             flash('Celular externo ingresado exitosamente.', 'success')
             return redirect(url_for('externos_bp.inventario'))
             
+        except IntegrityError:
+            db.session.rollback()
+            flash(f'El IMEI "{imei}" ya existe registrado en la base de datos.', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error al registrar el celular externo: {str(e)}', 'danger')
@@ -147,10 +158,15 @@ def api_nuevo_desde_caja():
     color = request.form.get('color', '').strip()
     bateria = request.form.get('bateria', '').strip()
     memoria = request.form.get('memoria', '').strip()
-    imei = request.form.get('imei', '').strip()
-    imei2 = request.form.get('imei2', '').strip()
+    imei = request.form.get('imei', '').strip() or None
+    imei2 = request.form.get('imei2', '').strip() or None
     proveedor = request.form.get('proveedor', '').strip()
     
+    if imei:
+        existente = Product.query.filter_by(imei=imei).first()
+        if existente:
+            return jsonify({'success': False, 'message': f'El IMEI "{imei}" ya se encuentra registrado en el sistema ({existente.nombre}).'}), 400
+
     precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
     precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
     
@@ -192,6 +208,9 @@ def api_nuevo_desde_caja():
                 'es_manual': False
             }
         })
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'El IMEI "{imei}" ya existe en el sistema.'}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500

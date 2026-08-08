@@ -83,6 +83,19 @@ def aprobar_retoma(id):
 
     nuevo_sku = f"RET-{retoma.id}-{obtener_hora_bogota().strftime('%Y%m%d%H%M%S')}"
 
+    imei1_val = retoma.imei1.strip() if retoma.imei1 else None
+    imei2_val = retoma.imei2.strip() if retoma.imei2 else None
+
+    if imei1_val:
+        prod_existente = Product.query.filter_by(imei=imei1_val).first()
+        if prod_existente:
+            if prod_existente.cantidad_stock == 0:
+                # Reingreso de celular vendido previamente: actualizar su IMEI histórico para liberar el IMEI único
+                prod_existente.imei = f"{imei1_val}-OLD-{prod_existente.id}"
+            else:
+                flash(f'El IMEI "{imei1_val}" ya está registrado y activo en el inventario ({prod_existente.nombre}).', 'danger')
+                return redirect(url_for('retomas_bp.cuarentena'))
+
     nuevo_producto = Product(
         nombre=nombre_definitivo,
         sku=nuevo_sku,
@@ -92,8 +105,8 @@ def aprobar_retoma(id):
         precio_minimo=Decimal(precio_minimo),
         precio_sugerido=Decimal(precio_sugerido),
         observacion=retoma.observaciones,
-        imei=retoma.imei1,
-        imei2=retoma.imei2,
+        imei=imei1_val,
+        imei2=imei2_val,
         color=retoma.color,
         bateria=bateria_input or retoma.bateria,
         memoria=retoma.memoria,

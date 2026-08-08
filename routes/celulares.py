@@ -74,6 +74,8 @@ def inventario():
                            ventas_estimadas=ventas_estimadas)
 
 
+from sqlalchemy.exc import IntegrityError
+
 @celulares_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -84,10 +86,16 @@ def nuevo_celular():
         color = request.form.get('color', '').strip()
         bateria = request.form.get('bateria', '').strip()
         memoria = request.form.get('memoria', '').strip()
-        imei = request.form.get('imei', '').strip()
-        imei2 = request.form.get('imei2', '').strip()
+        imei = request.form.get('imei', '').strip() or None
+        imei2 = request.form.get('imei2', '').strip() or None
         proveedor = request.form.get('proveedor', '').strip()
         inventario = request.form.get('inventario', '').strip()
+
+        if imei:
+            existente = Product.query.filter_by(imei=imei).first()
+            if existente:
+                flash(f'El IMEI "{imei}" ya se encuentra registrado en el sistema (Producto: {existente.nombre}). No se pueden duplicar IMEIs.', 'danger')
+                return render_template('celulares/form_celular.html', celular=None)
         
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
@@ -134,6 +142,9 @@ def nuevo_celular():
             flash('Celular ingresado al inventario exitosamente.', 'success')
             return redirect(url_for('celulares_bp.inventario'))
             
+        except IntegrityError:
+            db.session.rollback()
+            flash(f'El IMEI "{imei}" ya existe registrado en la base de datos.', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error al registrar el celular: {str(e)}', 'danger')
@@ -150,13 +161,22 @@ def editar_celular(id):
         return redirect(url_for('celulares_bp.inventario'))
         
     if request.method == 'POST':
+        imei_val = request.form.get('imei', '').strip() or None
+        imei2_val = request.form.get('imei2', '').strip() or None
+
+        if imei_val:
+            existente = Product.query.filter(Product.imei == imei_val, Product.id != id).first()
+            if existente:
+                flash(f'El IMEI "{imei_val}" ya pertenece a otro celular registrado ({existente.nombre}).', 'danger')
+                return render_template('celulares/form_celular.html', celular=celular)
+
         celular.marca = request.form.get('marca', '').strip()
         celular.modelo_celular = request.form.get('modelo_celular', '').strip()
         celular.color = request.form.get('color', '').strip()
         celular.bateria = request.form.get('bateria', '').strip()
         celular.memoria = request.form.get('memoria', '').strip()
-        celular.imei = request.form.get('imei', '').strip()
-        celular.imei2 = request.form.get('imei2', '').strip()
+        celular.imei = imei_val
+        celular.imei2 = imei2_val
         celular.proveedor = request.form.get('proveedor', '').strip()
         celular.inventario = request.form.get('inventario', '').strip()
         
@@ -185,6 +205,9 @@ def editar_celular(id):
             db.session.commit()
             flash('Celular actualizado exitosamente.', 'success')
             return redirect(url_for('celulares_bp.inventario'))
+        except IntegrityError:
+            db.session.rollback()
+            flash(f'El IMEI "{imei_val}" ya pertenece a otro celular registrado.', 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error al actualizar: {str(e)}', 'danger')
