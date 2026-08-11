@@ -17,8 +17,8 @@
     <div class="card card-custom border-0 shadow-sm mb-4">
         <div class="card-body p-4">
             <form method="GET" action="{{ url_for('admin_bp.ventas_vendedores') }}" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label fw-bold">Seleccionar Asesor</label>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Seleccionar Asesor <span class="text-danger">*</span></label>
                     <select name="asesor_id" class="form-select bg-light" required>
                         <option value="" disabled {% if not asesor_id %}selected{% endif %}>-- Elegir Asesor --</option>
                         {% for a in asesores %}
@@ -28,13 +28,20 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Seleccionar Mes</label>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Seleccionar Mes <span class="text-danger">*</span></label>
                     <input type="month" name="mes" class="form-control bg-light" value="{{ mes_seleccionado }}" required>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Consultar Ventas
+                    <label class="form-label fw-bold">Comisión por Celular ($)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">$</span>
+                        <input type="number" name="valor_comision" class="form-control bg-light fw-bold text-success" value="{{ valor_comision or 20000 }}" step="1000">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Consultar
                     </button>
                 </div>
             </form>
@@ -43,83 +50,110 @@
 
     {% if asesor_id %}
         {% if asesor_filtro %}
-            <!-- Tarjetas de Resumen del Asesor -->
+            <!-- Tarjetas de Resumen del Asesor enfocadas en Celulares y Comisión -->
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                         <div class="text-uppercase fw-bold text-muted small mb-1">Asesor Consultado</div>
                         <h4 class="fw-bold text-brand-black mb-0">{{ asesor_filtro.nombre }}</h4>
-                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Asesor Global</span>
+                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Asesor de Ventas</span>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-5 border-primary">
+                        <div class="text-uppercase fw-bold text-primary small mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> Celulares Vendidos</div>
+                        <h2 class="fw-bold text-primary mb-0">{{ total_celulares_mes }} <span class="fs-6 font-normal">uds</span></h2>
+                        <span class="text-muted extra-small mt-1 d-block">Monto: ${{ total_monto_celulares|cop }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-5 border-success">
+                        <div class="text-uppercase fw-bold text-success small mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Comisión por Celulares</div>
+                        <h2 class="fw-bold text-success mb-0">${{ total_comision_mes|cop }}</h2>
+                        <span class="text-muted extra-small mt-1 d-block">${{ valor_comision|cop }} por cada celular</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Total Vendido en el Mes</div>
-                        <h2 class="fw-bold text-success mb-0">${{ total_ventas_mes|cop }}</h2>
-                        <span class="text-muted small mt-2 d-block">Suma total de facturación en {{ mes_seleccionado }}</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center d-flex flex-column justify-content-center">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Cantidad de Ventas</div>
-                        <h1 class="fw-bold text-brand-blue mb-0">{{ ventas|length }}</h1>
-                        <span class="text-muted small mt-1">Transacciones procesadas</span>
+                        <div class="text-uppercase fw-bold text-muted small mb-1">Total Facturación Mes</div>
+                        <h3 class="fw-bold text-dark mb-0">${{ total_ventas_mes|cop }}</h3>
+                        <span class="text-muted extra-small mt-1 d-block">En {{ ventas|length }} facturas totales</span>
                     </div>
                 </div>
             </div>
 
             <!-- Listado de Ventas -->
             <div class="card card-custom border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3 ps-4">
+                <div class="card-header bg-white border-0 py-3 ps-4 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold m-0 text-brand-black">
-                        <i class="fa-solid fa-list me-2 text-brand-blue"></i>Historial de Ventas del Período
+                        <i class="fa-solid fa-list me-2 text-brand-blue"></i>Detalle de Ventas del Período
                     </h5>
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        Comisión unitaria: <strong>${{ valor_comision|cop }}</strong> / celular
+                    </span>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
-                            <thead class="table-light">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                            <thead class="table-light text-uppercase" style="font-size: 0.78rem;">
                                 <tr>
-                                    <th class="ps-4">Factura</th>
-                                    <th>Fecha y Hora</th>
-                                    <th>Cajero Responsable</th>
-                                    <th>Tipo de Venta</th>
-                                    <th>Método de Pago</th>
-                                    <th class="text-end">Total Facturado</th>
-                                    <th class="text-center">Acciones</th>
+                                    <th class="ps-4" width="8%">Factura</th>
+                                    <th width="12%">Fecha y Hora</th>
+                                    <th width="12%">Cajero</th>
+                                    <th width="32%">Celulares Vendidos en Factura</th>
+                                    <th class="text-center" width="12%">Comisión Venta</th>
+                                    <th class="text-end" width="12%">Total Facturado</th>
+                                    <th class="text-center pe-4" width="12%">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for venta in ventas %}
+                                {% for item in ventas_procesadas %}
+                                {% set venta = item.sale %}
                                 <tr>
                                     <td class="ps-4">
                                         <span class="badge bg-primary rounded-pill">#{{ venta.id }}</span>
                                     </td>
                                     <td>
-                                        <div>{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+                                        <div class="fw-semibold text-dark">{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
                                         <div class="small text-muted">{{ venta.fecha_venta.strftime('%I:%M %p') }}</div>
                                     </td>
-                                    <td>
-                                        {{ venta.vendedor.nombre }}
+                                    <td class="fw-semibold text-secondary">
+                                        {{ venta.vendedor.nombre if venta.vendedor else 'N/A' }}
                                     </td>
                                     <td>
-                                        {% if venta.tipo_venta == 'celulares' %}
-                                            <span class="badge bg-info text-dark rounded-pill"><i class="fa-solid fa-mobile-screen-button me-1"></i> Celulares</span>
+                                        {% if item.cant_celulares > 0 %}
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="badge bg-success rounded-pill px-2 py-1">
+                                                    <i class="fa-solid fa-mobile-screen me-1"></i> {{ item.cant_celulares }} Celular{% if item.cant_celulares > 1 %}es{% endif %}
+                                                </span>
+                                                <span class="small fw-bold text-success">${{ item.monto_celulares|cop }}</span>
+                                            </div>
+                                            <ul class="list-unstyled mb-0 extra-small text-muted ps-1">
+                                                {% for cel in item.celulares_list %}
+                                                <li>• <strong>{{ cel.nombre }}</strong> (IMEI: {{ cel.imei }})</li>
+                                                {% endfor %}
+                                            </ul>
                                         {% else %}
-                                            <span class="badge bg-secondary rounded-pill">General</span>
+                                            <span class="badge bg-secondary bg-opacity-20 text-muted border px-2 py-1">
+                                                <i class="fa-solid fa-headphones me-1"></i> Solo Accesorios / Sin Celulares
+                                            </span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        {{ venta.metodo_pago_display }}
+                                    <td class="text-center fw-bold text-primary">
+                                        {% if item.cant_celulares > 0 %}
+                                            +${{ item.comision_venta|cop }}
+                                        {% else %}
+                                            <span class="text-muted fw-normal">$0</span>
+                                        {% endif %}
                                     </td>
-                                    <td class="text-end fw-bold text-success">
+                                    <td class="text-end fw-bold text-dark">
                                         ${{ venta.monto_total|cop }}
                                     </td>
                                     <td class="text-center">
                                         <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}"
                                            target="_blank"
-                                           class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                            <i class="fa-solid fa-receipt me-1"></i> Ver Factura
+                                           class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                            <i class="fa-solid fa-receipt me-1"></i> Ticket
                                         </a>
                                     </td>
                                 </tr>

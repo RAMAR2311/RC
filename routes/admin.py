@@ -525,14 +525,24 @@ def ventas_vendedores():
     
     asesor_id = request.args.get('asesor_id', type=int)
     mes_seleccionado = request.args.get('mes', '').strip()
+    valor_comision_str = request.args.get('valor_comision', '20000').strip()
     
+    try:
+        val_comision_num = Decimal(valor_comision_str.replace('.', '').replace(',', '').replace('$', ''))
+    except:
+        val_comision_num = Decimal('20000')
+
     # Si no hay mes seleccionado, por defecto usar el mes actual
     if not mes_seleccionado:
         mes_seleccionado = obtener_hora_bogota().strftime('%Y-%m')
         
     ventas = []
+    ventas_procesadas = []
     asesor_filtro = None
     total_ventas_mes = Decimal('0.0')
+    total_celulares_mes = 0
+    total_monto_celulares = Decimal('0.0')
+    total_comision_mes = Decimal('0.0')
     
     if asesor_id:
         asesor_filtro = Asesor.query.get(asesor_id)
@@ -551,6 +561,36 @@ def ventas_vendedores():
                 ).order_by(Sale.fecha_venta.desc()).all()
                 
                 total_ventas_mes = sum(v.monto_total for v in ventas)
+
+                for v in ventas:
+                    cant_celulares_venta = 0
+                    monto_celulares_venta = Decimal('0.0')
+                    celulares_list = []
+
+                    for d in v.detalles:
+                        if d.producto and d.producto.tipo_inventario == 'celulares':
+                            cant = d.cantidad_vendida or 1
+                            cant_celulares_venta += cant
+                            monto_celulares_venta += Decimal(str(d.precio_venta_final)) * Decimal(str(cant))
+                            celulares_list.append({
+                                'nombre': d.producto.nombre,
+                                'imei': d.producto.imei or 'N/A',
+                                'cantidad': cant,
+                                'precio': d.precio_venta_final
+                            })
+
+                    total_celulares_mes += cant_celulares_venta
+                    total_monto_celulares += monto_celulares_venta
+
+                    ventas_procesadas.append({
+                        'sale': v,
+                        'cant_celulares': cant_celulares_venta,
+                        'monto_celulares': monto_celulares_venta,
+                        'celulares_list': celulares_list,
+                        'comision_venta': Decimal(str(cant_celulares_venta)) * val_comision_num
+                    })
+
+                total_comision_mes = Decimal(str(total_celulares_mes)) * val_comision_num
             except Exception as e:
                 flash(f"Error al procesar las fechas del mes seleccionado: {str(e)}", 'danger')
                 
@@ -560,8 +600,13 @@ def ventas_vendedores():
         asesor_id=asesor_id,
         asesor_filtro=asesor_filtro,
         mes_seleccionado=mes_seleccionado,
+        valor_comision=int(val_comision_num),
         ventas=ventas,
-        total_ventas_mes=total_ventas_mes
+        ventas_procesadas=ventas_procesadas,
+        total_ventas_mes=total_ventas_mes,
+        total_celulares_mes=total_celulares_mes,
+        total_monto_celulares=total_monto_celulares,
+        total_comision_mes=total_comision_mes
     )
 
 @admin_bp.route('/asesores', methods=['GET', 'POST'])
