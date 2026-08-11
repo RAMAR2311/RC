@@ -953,7 +953,8 @@
             if (item.tipo_inventario === 'celulares') {
                 let imei1_str = item.imei ? `IMEI 1: ${item.imei}` : 'IMEI 1: N/D';
                 let imei2_str = item.imei2 ? `, IMEI 2: ${item.imei2}` : '';
-                imeiHtml = `<div class="text-secondary small mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen-button me-1"></i>${imei1_str}${imei2_str}</div>`;
+                let inv_str = item.inventario ? ` | Inv: ${item.inventario}` : '';
+                imeiHtml = `<div class="text-secondary small mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen-button me-1"></i>${imei1_str}${imei2_str}${inv_str}</div>`;
             }
 
             tr.innerHTML = `
@@ -1178,6 +1179,25 @@
         
         renderizarCarrito();
     }
+
+    // Prevenir que la tecla 'Enter' (enviada por el lector de código de barras al leer el IMEI) cierre los modales de Retoma, Productos Externos o Accesorios Externos
+    document.querySelectorAll('#modalRetoma input, #modalRetoma textarea, #modalProductoExterno input, #modalProductoExterno select, #modalAccesorioExterno input, #modalAccesorioExterno select').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const modal = this.closest('.modal');
+                if (!modal) return;
+                const campos = Array.from(modal.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+                const idx = campos.indexOf(this);
+                if (idx > -1 && idx + 1 < campos.length) {
+                    campos[idx + 1].focus();
+                    if (typeof campos[idx + 1].select === 'function') {
+                        campos[idx + 1].select();
+                    }
+                }
+            }
+        });
+    });
 
     function verificarClienteCelular() {
         const tieneCelular = carrito.some(item => item.tipo_inventario === 'celulares' || (item.tipo_inventario === 'externos' && !item.nombre.startsWith('Acc. Externo')));

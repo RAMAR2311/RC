@@ -227,6 +227,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.historial_ventas') }}"><i class="fa-solid fa-clock-rotate-left text-brand-pink me-2" style="width:20px; text-align:center;"></i> Historial Celulares</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.trazabilidad') }}"><i class="fa-solid fa-timeline text-brand-pink me-2" style="width:20px; text-align:center;"></i> Trazabilidad IMEI</a>
+                                </li>
 
                             </ul>
                         </div>
@@ -263,13 +266,11 @@
                         </a>
                         <div class="collapse" id="collapseCaja">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
-                                <!-- Ocultado por solicitud del usuario
-                                <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-black me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
-                                </li>
-                                -->
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink me-2" style="width:20px; text-align:center;"></i> Caja Rápida Visual</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
                                 </li>
                             </ul>
                         </div>
@@ -313,16 +314,14 @@
                     <li class="nav-item mt-2">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-black me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
+                    </li>
                 {% elif current_user.rol == 'vendedor' %}
                     <!-- Vistas Estrictamente Operativas (Cajeros) -->
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
                     </li>
-                    <!-- Ocultado por solicitud del usuario
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-black me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
-                    </li>
-                    -->
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink me-2" style="width:20px; text-align:center;"></i> Caja Rápida Visual</a>
                     </li>
@@ -340,6 +339,9 @@
                     </li>
                     <li class="nav-item mt-2">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-pink me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
                     </li>
                 {% elif current_user.rol == 'bodega' %}
                     <!-- Vistas Exclusivas para el Encargado de Bodega -->

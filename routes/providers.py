@@ -192,6 +192,32 @@ def delete_provider(id):
     flash('Proveedor eliminado correctamente.', 'success')
     return redirect(url_for('providers_bp.list_providers'))
 
+@providers_bp.route('/editar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def edit_provider(id):
+    proveedor = Provider.query.get_or_404(id)
+    nombre = request.form.get('nombre', '').strip()
+    empresa = request.form.get('empresa', '').strip()
+    telefono = request.form.get('telefono', '').strip()
+
+    if not nombre:
+        flash('El nombre del proveedor es obligatorio.', 'danger')
+        return redirect(request.referrer or url_for('providers_bp.list_providers'))
+
+    proveedor.nombre = nombre
+    proveedor.empresa = empresa
+    proveedor.telefono = telefono
+
+    try:
+        db.session.commit()
+        flash(f'Proveedor "{nombre}" actualizado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar el proveedor: {str(e)}', 'danger')
+
+    return redirect(request.referrer or url_for('providers_bp.list_providers'))
+
 @providers_bp.route('/payment/eliminar/<int:payment_id>', methods=['POST'])
 @login_required
 @admin_required

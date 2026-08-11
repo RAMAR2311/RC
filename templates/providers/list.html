@@ -54,12 +54,48 @@
                         <a href="{{ url_for('providers_bp.detail', id=prov.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold me-1" title="Ver Estado de Cuenta">
                             <i class="fa-solid fa-folder-open me-1"></i> Ver Cuenta
                         </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold me-1" data-bs-toggle="modal" data-bs-target="#modalEditarProveedor{{ prov.id }}" title="Editar Proveedor">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                        </button>
                         <form action="{{ url_for('providers_bp.delete_provider', id=prov.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este proveedor? Esto eliminará también todas sus facturas y pagos asociados de manera permanente.');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" title="Eliminar Proveedor">
                                 <i class="fa-solid fa-trash me-1"></i> Eliminar
                             </button>
                         </form>
+
+                        <!-- Modal Editar Proveedor -->
+                        <div class="modal fade text-start" id="modalEditarProveedor{{ prov.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header bg-dark text-white border-0">
+                                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-2"></i> Editar Proveedor</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ url_for('providers_bp.edit_provider', id=prov.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-body p-4">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Nombre del Proveedor / Asesor <span class="text-danger">*</span></label>
+                                                <input type="text" name="nombre" class="form-control bg-light" value="{{ prov.nombre }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Empresa / Marca Comercial</label>
+                                                <input type="text" name="empresa" class="form-control bg-light" value="{{ prov.empresa or '' }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Teléfono / WhatsApp</label>
+                                                <input type="text" name="telefono" class="form-control bg-light" value="{{ prov.telefono or '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer bg-light border-0">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% else %}

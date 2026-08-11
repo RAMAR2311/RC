@@ -205,6 +205,8 @@ class SaleDetail(db.Model):
     # Campos para productos manuales (prestados de otros locales)
     nombre_manual = db.Column(db.String(200), nullable=True)
     precio_costo_manual = db.Column(db.Numeric(10, 2), nullable=True)
+    ok_contabilidad = db.Column(db.Boolean, default=False, nullable=False)
+    ok_inventario = db.Column(db.Boolean, default=False, nullable=False)
 
     variante = db.relationship('ProductVariant', backref='ventas_rel', lazy=True)
 
@@ -242,6 +244,7 @@ class Retoma(db.Model):
     memoria = db.Column(db.String(50), nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     estado = db.Column(db.String(50), nullable=False, default='en_evaluacion') # en_evaluacion, aprobado
+    ok_contabilidad = db.Column(db.Boolean, default=False, nullable=False)
     producto_generado_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
     vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -269,10 +272,36 @@ class ArqueoCaja(db.Model):
     total_unidades_ch = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
     total_celulares = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
     total_retomas_sistema = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    efectivo_fisico = db.Column(db.Numeric(14, 2), nullable=True, default=0.0)
+    diferencia = db.Column(db.Numeric(14, 2), nullable=True, default=0.0)
+    observacion_diferencia = db.Column(db.Text, nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    vendedor = db.relationship('User', backref='arqueos_registrados', lazy=True)
 
     def __init__(self, **kwargs):
         super(ArqueoCaja, self).__init__(**kwargs)
+
+
+class SobranteLog(db.Model):
+    __tablename__ = 'sobrantes_log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    arqueo_id = db.Column(db.Integer, db.ForeignKey('arqueo_caja.id', ondelete='CASCADE'), nullable=True)
+    vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sucursal = db.Column(db.String(100), nullable=False)
+    fecha_arqueo = db.Column(db.Date, nullable=False)
+    monto_esperado = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    efectivo_fisico = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    monto_sobrante = db.Column(db.Numeric(14, 2), nullable=False, default=0.0)
+    justificacion = db.Column(db.Text, nullable=True)
+    fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    arqueo = db.relationship('ArqueoCaja', backref='sobrantes_rel', lazy=True)
+    vendedor = db.relationship('User', backref='sobrantes_registrados', lazy=True)
+
+    def __init__(self, **kwargs):
+        super(SobranteLog, self).__init__(**kwargs)
 
 class Maneo(db.Model):
     __tablename__ = 'maneos'

@@ -228,6 +228,39 @@
             </div>
         </div>
 
+        <!-- CONCILIACIÓN FÍSICA Y SOBRANTES -->
+        {% if arqueo and arqueo.efectivo_fisico is not none %}
+        <div class="section-title" style="margin-top: 15px;">CONCILIACIÓN FÍSICA Y SOBRANTE</div>
+        {% set esperado = (arqueo.base_inicial or 0) + total_efectivo - total_gastos %}
+        <div class="row-data">
+            <span>Efectivo Esperado:</span>
+            <span>${{ esperado|cop }}</span>
+        </div>
+        <div class="row-data">
+            <span>Efectivo Contado:</span>
+            <span style="font-weight: bold;">${{ (arqueo.efectivo_fisico)|cop }}</span>
+        </div>
+        <div class="totals-box" style="margin-top: 6px; padding: 6px; background-color: #f9f9f9; border: 1px dashed #333;">
+            <div class="total-row" style="font-size: 0.95rem;">
+                {% if arqueo.diferencia and arqueo.diferencia > 0 %}
+                    <span style="color: #155724; font-weight: bold;">SOBRANTE EN CAJA (+):</span>
+                    <span style="color: #155724; font-weight: bold;">+${{ (arqueo.diferencia)|cop }}</span>
+                {% elif arqueo.diferencia and arqueo.diferencia < 0 %}
+                    <span style="color: #721c24; font-weight: bold;">FALTANTE EN CAJA (-):</span>
+                    <span style="color: #721c24; font-weight: bold;">-${{ (arqueo.diferencia|abs)|cop }}</span>
+                {% else %}
+                    <span>DIFERENCIA CAJA:</span>
+                    <span>CUADRADA ($0)</span>
+                {% endif %}
+            </div>
+            {% if arqueo.observacion_diferencia %}
+            <div style="font-size: 0.72rem; margin-top: 4px; font-style: italic; border-top: 1px solid #ddd; padding-top: 3px;">
+                <strong>Nota:</strong> {{ arqueo.observacion_diferencia }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <!-- DETALLE DE VENTAS Y PRODUCTOS INVOLUCRADOS -->
         <div class="section-title" style="margin-top: 20px;">DETALLE DE VENTAS ({{ ventas|length }})</div>
 

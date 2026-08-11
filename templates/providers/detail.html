@@ -26,12 +26,48 @@
     </div>
     
     <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalEditarProveedorDetail" title="Editar Proveedor">
+            <i class="fa-solid fa-pen-to-square me-1"></i> Editar Proveedor
+        </button>
         <form action="{{ url_for('providers_bp.delete_provider', id=proveedor.id) }}" method="POST" onsubmit="return confirm('ATENCIÓN: ¿Estás seguro de eliminar este proveedor? Se borrarán TODAS sus facturas y abonos asociados permanentemente.');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-outline-danger rounded-pill px-3 shadow-sm" title="Eliminar Proveedor">
                 <i class="fa-solid fa-trash-can"></i>
             </button>
         </form>
+    </div>
+</div>
+
+<!-- Modal Editar Proveedor -->
+<div class="modal fade" id="modalEditarProveedorDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-2"></i> Editar Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('providers_bp.edit_provider', id=proveedor.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre del Proveedor / Asesor <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control bg-light" value="{{ proveedor.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Empresa / Marca Comercial</label>
+                        <input type="text" name="empresa" class="form-control bg-light" value="{{ proveedor.empresa or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Teléfono / WhatsApp</label>
+                        <input type="text" name="telefono" class="form-control bg-light" value="{{ proveedor.telefono or '' }}">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

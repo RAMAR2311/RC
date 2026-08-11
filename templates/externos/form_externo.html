@@ -108,5 +108,23 @@
             if (input.value === '') input.value = '0';
         });
     }
+
+    document.querySelectorAll('form input, form select').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const form = this.closest('form');
+                if (!form) return;
+                const campos = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, button[type="submit"]'));
+                const idx = campos.indexOf(this);
+                if (idx > -1 && idx + 1 < campos.length) {
+                    campos[idx + 1].focus();
+                    if (typeof campos[idx + 1].select === 'function') {
+                        campos[idx + 1].select();
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

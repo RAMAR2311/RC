@@ -1,4 +1,5 @@
-from flask import Blueprint, request, flash, redirect, render_template, url_for
+import re
+from flask import Blueprint, request, flash, redirect, render_template, url_for, jsonify
 from flask_login import login_required
 from models import db, Product, Retoma, obtener_hora_bogota
 from decorators import admin_required
@@ -66,6 +67,7 @@ def aprobar_retoma(id):
     precio_minimo = request.form.get('precio_minimo', precio_sugerido)
     arreglos = request.form.get('arreglos', '0')
     bateria_input = request.form.get('bateria', retoma.bateria or '').strip()
+    inventario_input = request.form.get('inventario', '').strip() or (current_user.sucursal if current_user and hasattr(current_user, 'sucursal') and current_user.sucursal else 'LOCAL 136')
     
     if not nombre_definitivo or not precio_sugerido:
         flash('Faltan datos obligatorios para crear el producto.', 'danger')
@@ -100,6 +102,7 @@ def aprobar_retoma(id):
         nombre=nombre_definitivo,
         sku=nuevo_sku,
         tipo_inventario='celulares',
+        inventario=inventario_input,
         cantidad_stock=1,
         precio_costo=retoma.valor_retoma + arreglos_val,
         precio_minimo=Decimal(precio_minimo),
@@ -147,3 +150,87 @@ def eliminar_retoma(id):
         flash(f'Error al eliminar la retoma: {str(e)}', 'danger')
 
     return redirect(url_for('retomas_bp.cuarentena'))
+
+@retomas_bp.route('/editar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def editar_retoma(id):
+    retoma = Retoma.query.get_or_404(id)
+
+    marca = request.form.get('marca', '').strip()
+    modelo = request.form.get('modelo', '').strip()
+    memoria = request.form.get('memoria', '').strip()
+    color = request.form.get('color', '').strip()
+    bateria = request.form.get('bateria', '').strip()
+    imei1 = request.form.get('imei1', '').strip()
+    imei2 = request.form.get('imei2', '').strip() or None
+    valor_retoma_raw = request.form.get('valor_retoma', '0')
+    observaciones = request.form.get('observaciones', '').strip()
+
+    if not modelo or not imei1:
+        flash('El modelo y el IMEI 1 son obligatorios.', 'danger')
+        return redirect(url_for('retomas_bp.cuarentena'))
+
+    # Verificar IMEI 1 duplicado en retomas (excluyendo la actual)
+    existente = Retoma.query.filter(Retoma.imei1 == imei1, Retoma.id != id).first()
+    if existente:
+        flash(f'El IMEI 1 "{imei1}" ya está registrado en otra retoma.', 'danger')
+        return redirect(url_for('retomas_bp.cuarentena'))
+
+    try:
+        clean_val = re.sub(r'[^\d.]', '', str(valor_retoma_raw))
+        valor_retoma = Decimal(clean_val) if clean_val else retoma.valor_retoma
+    except:
+        valor_retoma = retoma.valor_retoma
+
+    retoma.marca = marca
+    retoma.modelo = modelo
+    retoma.memoria = memoria
+    retoma.color = color
+    retoma.bateria = bateria
+    retoma.imei1 = imei1
+    retoma.imei2 = imei2
+    retoma.valor_retoma = valor_retoma
+    retoma.observaciones = observaciones
+
+    # Si la retoma ya había generado un producto en el inventario, mantener el producto sincronizado
+    if retoma.producto_generado:
+        prod = retoma.producto_generado
+        prod.marca = marca
+        prod.modelo_celular = modelo
+        prod.memoria = memoria
+        prod.color = color
+        prod.bateria = bateria
+        prod.imei = imei1
+        prod.imei2 = imei2
+        prod.precio_costo = valor_retoma + (retoma.arreglos or Decimal('0.00'))
+        prod.observacion = observaciones
+        if prod.nombre and ' (Usado)' in prod.nombre:
+            prod.nombre = f"{marca} {modelo} (Usado)".strip()
+
+    try:
+        db.session.commit()
+        flash('Retoma actualizada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar la retoma: {str(e)}', 'danger')
+
+    return redirect(url_for('retomas_bp.cuarentena'))
+
+@retomas_bp.route('/toggle_ok_contabilidad/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ok_contabilidad(id):
+    retoma = Retoma.query.get_or_404(id)
+    retoma.ok_contabilidad = not retoma.ok_contabilidad
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({
+            'success': True,
+            'ok_contabilidad': retoma.ok_contabilidad,
+            'message': 'Estado de contabilidad actualizado.'
+        })
+
+    flash(f"Estado OK Contabilidad actualizado a {'Aprobado' if retoma.ok_contabilidad else 'Pendiente'}.", "success")
+    return redirect(request.referrer or url_for('retomas_bp.cuarentena'))

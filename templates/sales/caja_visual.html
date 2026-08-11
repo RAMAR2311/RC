@@ -35,7 +35,7 @@
             {% endif %}
             <div class="col-6 col-md-4 col-xl-3 product-card-container" data-name="{{ p.nombre|lower }}" data-sku="{{ p.sku|lower }}" data-imei="{{ p.imei|lower if p.imei else '' }}" data-imei2="{{ p.imei2|lower if p.imei2 else '' }}">
                 <div class="card h-100 border-0 shadow-sm cursor-pointer product-card" 
-                     data-product='{{ {"id": p.id, "nombre": p.nombre, "sku": p.sku, "precio_sugerido": p.precio_sugerido or 0, "cantidad_stock": total_stock, "tipo_inventario": p.tipo_inventario, "imei": p.imei, "imei2": p.imei2}|tojson|safe }}'
+                     data-product='{{ {"id": p.id, "nombre": p.nombre, "sku": p.sku, "precio_sugerido": p.precio_sugerido or 0, "cantidad_stock": total_stock, "tipo_inventario": p.tipo_inventario, "imei": p.imei, "imei2": p.imei2, "inventario": p.inventario}|tojson|safe }}'
                      data-variants='{{ vars_data|tojson|safe }}'
                      onclick="handleProductClick(this)">
                     <div class="ratio ratio-1x1 bg-light rounded-top d-flex align-items-center justify-content-center overflow-hidden">
@@ -582,18 +582,18 @@
                 alert("Este producto no tiene stock disponible.");
                 return;
             }
-            addToCart(pData.id, null, pData.nombre, pData.sku, pData.precio_sugerido, pData.cantidad_stock, null, pData.tipo_inventario, pData.imei, pData.imei2);
+            addToCart(pData.id, null, pData.nombre, pData.sku, pData.precio_sugerido, pData.cantidad_stock, null, pData.tipo_inventario, pData.imei, pData.imei2, pData.inventario);
         }
     }
 
     window.addVariantToCart = function(variantId) {
         const vData = activeVariantsData.find(v => v.id === variantId);
         if (!vData) return;
-        addToCart(activeProductData.id, vData.id, activeProductData.nombre, activeProductData.sku, vData.precio_sugerido, vData.stock, vData.nombre, activeProductData.tipo_inventario, activeProductData.imei, activeProductData.imei2);
+        addToCart(activeProductData.id, vData.id, activeProductData.nombre, activeProductData.sku, vData.precio_sugerido, vData.stock, vData.nombre, activeProductData.tipo_inventario, activeProductData.imei, activeProductData.imei2, activeProductData.inventario);
         bootstrap.Modal.getInstance(document.getElementById('modalVariantes')).hide();
     };
 
-    function addToCart(productId, variantId, nombre, sku, precio, maxStock, variantName = null, tipoInventario = null, imei = null, imei2 = null) {
+    function addToCart(productId, variantId, nombre, sku, precio, maxStock, variantName = null, tipoInventario = null, imei = null, imei2 = null, inventario = null) {
         let existingIndex = carrito.findIndex(i => i.product_id === productId && i.variant_id === variantId);
         
         if (existingIndex > -1) {
@@ -620,7 +620,8 @@
                 es_obsequio: false,
                 tipo_inventario: tipoInventario,
                 imei: imei,
-                imei2: imei2
+                imei2: imei2,
+                inventario: inventario
             });
         }
         renderCart();
@@ -700,7 +701,8 @@
             if (item.tipo_inventario === 'celulares') {
                 let imei1_str = item.imei ? `IMEI 1: ${item.imei}` : 'IMEI 1: N/D';
                 let imei2_str = item.imei2 ? `, IMEI 2: ${item.imei2}` : '';
-                imeiHtml = `<small class="text-secondary d-block fw-normal mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen-button me-1"></i>${imei1_str}${imei2_str}</small>`;
+                let inv_str = item.inventario ? ` | Inv: ${item.inventario}` : '';
+                imeiHtml = `<small class="text-secondary d-block fw-normal mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen-button me-1"></i>${imei1_str}${imei2_str}${inv_str}</small>`;
             }
 
             li.innerHTML = `
@@ -1107,6 +1109,26 @@
         
         renderCart();
     }
+
+    // Prevenir que la tecla 'Enter' (enviada por el lector de código de barras al leer el IMEI) cierre los modales de Retoma, Productos Externos o Accesorios Externos
+    document.querySelectorAll('#modalRetoma input, #modalRetoma textarea, #modalProductoExterno input, #modalProductoExterno select, #modalAccesorioExterno input, #modalAccesorioExterno select').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const modal = this.closest('.modal');
+                if (!modal) return;
+                const campos = Array.from(modal.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+                const idx = campos.indexOf(this);
+                if (idx > -1 && idx + 1 < campos.length) {
+                    campos[idx + 1].focus();
+                    if (typeof campos[idx + 1].select === 'function') {
+                        campos[idx + 1].select();
+                    }
+                }
+            }
+        });
+    });
+
 
     async function procesarPagoGlobal(datosCliente = null) {
         const asesorSelect = document.getElementById('asesor-vendedor');

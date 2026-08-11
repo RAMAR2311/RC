@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, SalePayment, ArqueoCaja, Expense
+from models import db, Sale, SalePayment, ArqueoCaja, Expense, SobranteLog
+from sqlalchemy.orm import joinedload
 from decorators import admin_required
 from datetime import datetime, date
 from decimal import Decimal
@@ -168,6 +169,8 @@ def nuevo():
             return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
 
         base_inicial = float(request.form.get('base_inicial', 0.0))
+        efectivo_fisico_val = float(request.form.get('efectivo_fisico', 0.0) or 0.0)
+        observacion_diferencia = request.form.get('observacion_diferencia', '').strip()
         
         # Recalcular gastos automáticos por seguridad en el backend
         gastos_recalculados = Expense.query.filter(
@@ -178,6 +181,10 @@ def nuevo():
         gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
         
         observaciones_gastos = request.form.get('observaciones_gastos', '').strip()
+
+        # Calcular monto esperado en efectivo y diferencia (Sobrante / Faltante)
+        esperado_efectivo = float(base_inicial) + float(total_efectivo) - float(gastos_del_dia)
+        diferencia_val = efectivo_fisico_val - esperado_efectivo
 
         nuevo_arqueo = ArqueoCaja(
             vendedor_id=current_user.id,
@@ -191,11 +198,30 @@ def nuevo():
             total_celulares=Decimal('0.00'),
             total_retomas_sistema=total_retomas,
             tipo_arqueo='general',
-            sucursal=sucursal_actual
+            sucursal=sucursal_actual,
+            efectivo_fisico=efectivo_fisico_val,
+            diferencia=diferencia_val,
+            observacion_diferencia=observacion_diferencia
         )
 
         try:
             db.session.add(nuevo_arqueo)
+            db.session.flush()
+
+            # Si hay un SOBRANTE de caja (diferencia a favor > 0), registrar en el Log de Sobrantes
+            if diferencia_val > 0:
+                log_sobrante = SobranteLog(
+                    arqueo_id=nuevo_arqueo.id,
+                    vendedor_id=current_user.id,
+                    sucursal=sucursal_actual,
+                    fecha_arqueo=fecha_seleccionada,
+                    monto_esperado=Decimal(str(esperado_efectivo)),
+                    efectivo_fisico=Decimal(str(efectivo_fisico_val)),
+                    monto_sobrante=Decimal(str(diferencia_val)),
+                    justificacion=observacion_diferencia
+                )
+                db.session.add(log_sobrante)
+
             db.session.commit()
             flash('Arqueo de caja guardado exitosamente.', 'success')
             return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
@@ -286,6 +312,35 @@ def reporte():
 
     # El efectivo esperado en caja descuenta gastos en EFECTIVO
     resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos_efectivo']
+    resumen['total_sobrantes'] = sum((Decimal(str(a.diferencia)) for a in arqueos if a.diferencia and a.diferencia > 0), Decimal('0.00'))
+    resumen['total_faltantes'] = sum((Decimal(str(abs(a.diferencia))) for a in arqueos if a.diferencia and a.diferencia < 0), Decimal('0.00'))
+
+    # Consolidado por Sucursal / Local
+    resumen_por_sucursal = {}
+    for a in arqueos:
+        suc = a.sucursal or 'LOCAL 136'
+        if suc not in resumen_por_sucursal:
+            resumen_por_sucursal[suc] = {
+                'total_base': Decimal('0.00'),
+                'total_efectivo': Decimal('0.00'),
+                'total_transferencia': Decimal('0.00'),
+                'total_gastos': Decimal('0.00'),
+                'total_sobrantes': Decimal('0.00'),
+                'total_faltantes': Decimal('0.00'),
+                'efectivo_fisico': Decimal('0.00'),
+                'cierres': 0
+            }
+        resumen_por_sucursal[suc]['total_base'] += Decimal(str(a.base_inicial or 0))
+        resumen_por_sucursal[suc]['total_efectivo'] += Decimal(str(a.total_efectivo_sistema or 0))
+        resumen_por_sucursal[suc]['total_transferencia'] += Decimal(str(a.total_transferencia_sistema or 0))
+        resumen_por_sucursal[suc]['total_gastos'] += Decimal(str(a.gastos_del_dia or 0))
+        if a.efectivo_fisico:
+            resumen_por_sucursal[suc]['efectivo_fisico'] += Decimal(str(a.efectivo_fisico))
+        if a.diferencia and a.diferencia > 0:
+            resumen_por_sucursal[suc]['total_sobrantes'] += Decimal(str(a.diferencia))
+        elif a.diferencia and a.diferencia < 0:
+            resumen_por_sucursal[suc]['total_faltantes'] += Decimal(str(abs(a.diferencia)))
+        resumen_por_sucursal[suc]['cierres'] += 1
 
     # Obtener todas las ventas del periodo para el detalle en la "tirilla" (unificado)
     ventas_query = Sale.query.filter(
@@ -300,8 +355,6 @@ def reporte():
 
     fecha_generacion = obtener_hora_bogota().strftime('%Y-%m-%d %H:%M')
 
-
-    
     # Obtener todos los gastos del periodo para el reporte detallado
     gastos_query = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) >= fecha_inicio,
@@ -315,6 +368,7 @@ def reporte():
         'arqueo/reporte.html',
         arqueos=arqueos,
         resumen=resumen,
+        resumen_por_sucursal=resumen_por_sucursal,
         fecha_inicio=fecha_inicio_str,
         fecha_fin=fecha_fin_str,
         fecha_generacion=fecha_generacion,
@@ -329,6 +383,7 @@ def revertir_arqueo(id):
     arqueo = ArqueoCaja.query.get_or_404(id)
     fecha_str = arqueo.fecha_arqueo.strftime('%Y-%m-%d')
     try:
+        SobranteLog.query.filter_by(arqueo_id=arqueo.id).delete()
         db.session.delete(arqueo)
         db.session.commit()
         flash(f"El arqueo de caja del {fecha_str} en {arqueo.sucursal} ha sido revertido exitosamente.", "success")
@@ -336,6 +391,70 @@ def revertir_arqueo(id):
         db.session.rollback()
         flash("Ocurrió un error al revertir el arqueo de caja.", "danger")
     return redirect(url_for('arqueo_bp.reporte'))
+
+@arqueo_bp.route('/sobrantes', methods=['GET'])
+@login_required
+def log_sobrantes():
+    fecha_inicio_str = request.args.get('fecha_inicio', '')
+    fecha_fin_str = request.args.get('fecha_fin', '')
+    sucursal = request.args.get('sucursal', '')
+    q = request.args.get('q', '').strip()
+
+    base_query = SobranteLog.query.options(
+        joinedload(SobranteLog.vendedor),
+        joinedload(SobranteLog.arqueo)
+    )
+
+    # Restricción por rol: Los usuarios no-admin solo ven su propia sucursal
+    if current_user.rol != 'admin':
+        base_query = base_query.filter(SobranteLog.sucursal == current_user.sucursal)
+    elif sucursal:
+        base_query = base_query.filter(SobranteLog.sucursal == sucursal)
+
+    if fecha_inicio_str:
+        try:
+            f_ini = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+            base_query = base_query.filter(SobranteLog.fecha_arqueo >= f_ini)
+        except ValueError:
+            pass
+
+    if fecha_fin_str:
+        try:
+            f_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+            base_query = base_query.filter(SobranteLog.fecha_arqueo <= f_fin)
+        except ValueError:
+            pass
+
+    if q:
+        from models import User
+        base_query = base_query.join(User).filter(
+            db.or_(
+                SobranteLog.sucursal.ilike(f'%{q}%'),
+                SobranteLog.justificacion.ilike(f'%{q}%'),
+                User.nombre.ilike(f'%{q}%')
+            )
+        )
+
+    sobrantes = base_query.order_by(SobranteLog.fecha_registro.desc()).all()
+
+    # Cálculos KPIs
+    total_sobrantes_monto = sum((s.monto_sobrante for s in sobrantes), Decimal('0.00')) if sobrantes else Decimal('0.00')
+    total_registros = len(sobrantes)
+    mayor_sobrante = max((s.monto_sobrante for s in sobrantes), default=Decimal('0.00'))
+
+    # Sucursales únicas para filtro (Admin)
+    sucursales = [res[0] for res in db.session.query(ArqueoCaja.sucursal).distinct().all()] if current_user.rol == 'admin' else [current_user.sucursal]
+
+    return render_template('arqueo/sobrantes.html',
+                           sobrantes=sobrantes,
+                           total_sobrantes_monto=total_sobrantes_monto,
+                           total_registros=total_registros,
+                           mayor_sobrante=mayor_sobrante,
+                           fecha_inicio=fecha_inicio_str,
+                           fecha_fin=fecha_fin_str,
+                           sucursal_sel=sucursal,
+                           q=q,
+                           sucursales=sucursales)
 
 @arqueo_bp.route('/ticket', methods=['GET'])
 @login_required

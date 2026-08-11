@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant
 from decorators import admin_required
 from datetime import datetime
@@ -399,19 +400,40 @@ def historial_ventas():
         detalles_cel = [d for d in v.detalles if d.producto and d.producto.tipo_inventario == 'celulares']
         for d in detalles_cel:
             datos_historial.append({
+                'id_detalle': d.id,
                 'id_venta': v.id,
                 'fecha': v.fecha_venta,
                 'vendedor': v.vendedor.nombre,
                 'celular': f"{d.producto.nombre} (IMEI: {d.producto.imei or 'N/A'})",
                 'inventario': d.producto.inventario or 'N/A',
                 'precio_venta': d.precio_venta_final,
-                'metodo_pago': v.metodo_pago_display
+                'metodo_pago': v.metodo_pago_display,
+                'ok_contabilidad': getattr(d, 'ok_contabilidad', False),
+                'ok_inventario': getattr(d, 'ok_inventario', False)
             })
             
     return render_template('celulares/historial_ventas.html', 
                            historial=datos_historial, 
                            inventarios_disponibles=inventarios_disponibles,
                            filtro_inventario=filtro_inventario)
+
+@celulares_bp.route('/toggle_ok_contabilidad/<int:detail_id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ok_contabilidad(detail_id):
+    detalle = SaleDetail.query.get_or_404(detail_id)
+    detalle.ok_contabilidad = not detalle.ok_contabilidad
+    db.session.commit()
+    return jsonify({'success': True, 'ok_contabilidad': detalle.ok_contabilidad})
+
+@celulares_bp.route('/toggle_ok_inventario/<int:detail_id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ok_inventario(detail_id):
+    detalle = SaleDetail.query.get_or_404(detail_id)
+    detalle.ok_inventario = not detalle.ok_inventario
+    db.session.commit()
+    return jsonify({'success': True, 'ok_inventario': detalle.ok_inventario})
 
 
 
@@ -559,4 +581,133 @@ def importar_excel():
         flash(f'Ocurrió un error procesando el Excel: {str(e)}', 'danger')
         
     return redirect(url_for('celulares_bp.inventario'))
+
+
+@celulares_bp.route('/trazabilidad', methods=['GET'])
+@login_required
+def trazabilidad():
+    imei_query = request.args.get('imei', '').strip()
+    
+    eventos = []
+    producto_info = None
+    
+    if imei_query:
+        # 1. Buscar productos que contengan el IMEI (históricos o activos)
+        productos = Product.query.filter(
+            or_(
+                Product.imei == imei_query,
+                Product.imei2 == imei_query,
+                Product.imei.like(f"%{imei_query}%"),
+                Product.imei2.like(f"%{imei_query}%")
+            )
+        ).all()
+        
+        # Guardar info principal del equipo si se encuentra
+        if productos:
+            p_latest = productos[-1] # El registro más reciente
+            producto_info = {
+                'id': p_latest.id,
+                'nombre': p_latest.nombre,
+                'marca': p_latest.marca,
+                'modelo': p_latest.modelo_celular,
+                'color': p_latest.color,
+                'bateria': p_latest.bateria,
+                'memoria': p_latest.memoria,
+                'imei1': p_latest.imei,
+                'imei2': p_latest.imei2,
+                'proveedor': p_latest.proveedor,
+                'inventario': p_latest.inventario,
+                'stock_actual': p_latest.cantidad_stock,
+                'precio_costo': p_latest.precio_costo,
+                'precio_sugerido': p_latest.precio_sugerido
+            }
+
+        # Evento 1: Ingreso a inventario (para cada producto encontrado)
+        for p in productos:
+            eventos.append({
+                'tipo': 'COMPRA_INGRESO',
+                'titulo': f'Ingreso a Inventario ({p.inventario or "Tienda"})',
+                'fecha': p.fecha_creacion,
+                'icono': 'fa-solid fa-boxes-stacked text-primary',
+                'badge_color': 'bg-primary text-white',
+                'detalles': {
+                    'Producto': p.nombre,
+                    'Proveedor': p.proveedor or 'Cliente/Externo',
+                    'Inventario': p.inventario or 'N/A',
+                    'Precio Costo': f"${float(p.precio_costo or 0):,.0f}".replace(',', '.'),
+                    'Precio Sugerido': f"${float(p.precio_sugerido or 0):,.0f}".replace(',', '.'),
+                    'Estado Stock': 'En Stock (Disponible)' if p.cantidad_stock > 0 else 'Agotado (Vendido)'
+                }
+            })
+
+        # 2. Buscar Ventas (SaleDetail) vinculadas a los productos o al IMEI
+        p_ids = [p.id for p in productos]
+        detalles_venta = []
+        if p_ids:
+            detalles_venta = SaleDetail.query.filter(SaleDetail.product_id.in_(p_ids)).all()
+        
+        for d in detalles_venta:
+            v = d.venta
+            if not v:
+                continue
+            cliente_nombre = 'Cliente General'
+            if hasattr(v, 'cliente') and v.cliente:
+                cliente_nombre = f"{v.cliente.nombre} (Doc: {v.cliente.documento})"
+                
+            eventos.append({
+                'tipo': 'VENTA',
+                'titulo': f'Venta de Celular (Factura #{v.id})',
+                'fecha': v.fecha_venta,
+                'icono': 'fa-solid fa-cart-shopping text-success',
+                'badge_color': 'bg-success text-white',
+                'sale_id': v.id,
+                'detalles': {
+                    'Factura': f"#{v.id}",
+                    'Cliente': cliente_nombre,
+                    'Vendedor': v.vendedor.nombre if v.vendedor else 'N/A',
+                    'Sucursal': v.sucursal or 'N/A',
+                    'Precio Venta Final': f"${float(d.precio_venta_final or 0):,.0f}".replace(',', '.'),
+                    'Método de Pago': v.metodo_pago_display,
+                    'OK Contabilidad': 'SÍ' if d.ok_contabilidad else 'NO',
+                    'OK Inventario': 'SÍ' if d.ok_inventario else 'NO'
+                }
+            })
+
+        # 3. Buscar Retomas (Retoma) vinculadas al IMEI
+        from models import Retoma
+        retomas = Retoma.query.filter(
+            or_(
+                Retoma.imei1 == imei_query,
+                Retoma.imei2 == imei_query,
+                Retoma.imei1.like(f"%{imei_query}%"),
+                Retoma.imei2.like(f"%{imei_query}%")
+            )
+        ).all()
+
+        for r in retomas:
+            eventos.append({
+                'tipo': 'RETOMA',
+                'titulo': f'Recibido como Retoma (Retoma #{r.id})',
+                'fecha': r.fecha_registro,
+                'icono': 'fa-solid fa-recycle text-warning',
+                'badge_color': 'bg-warning text-dark',
+                'sale_id': r.sale_id,
+                'detalles': {
+                    'Equipo Entregado': f"{r.marca or ''} {r.modelo}".strip(),
+                    'Valor de Retoma': f"${float(r.valor_retoma or 0):,.0f}".replace(',', '.'),
+                    'Costo Arreglos': f"${float(r.arreglos or 0):,.0f}".replace(',', '.'),
+                    'Vendedor Receptor': r.vendedor.nombre if r.vendedor else 'N/A',
+                    'Estado': r.estado.upper(),
+                    'OK Contabilidad': 'SÍ' if r.ok_contabilidad else 'NO',
+                    'Observaciones': r.observaciones or 'Sin notas'
+                }
+            })
+
+        # Ordenar eventos cronológicamente (de más antiguo a más reciente)
+        eventos.sort(key=lambda x: x['fecha'] if x['fecha'] else datetime.min)
+
+    return render_template('celulares/trazabilidad.html',
+                           imei=imei_query,
+                           producto_info=producto_info,
+                           eventos=eventos)
 

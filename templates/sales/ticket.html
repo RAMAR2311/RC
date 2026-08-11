@@ -213,8 +213,13 @@
                         {% if detalle.variante %}
                             <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
                         {% endif %}
-                        {% if detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
+                        {% if detalle.producto and detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
                             <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
+                                {% if detalle.producto.inventario %}
+                                    <div style="font-weight: bold; text-transform: uppercase;">Inventario: {{ detalle.producto.inventario }}</div>
+                                {% elif detalle.producto.proveedor and detalle.producto.tipo_inventario == 'externos' %}
+                                    <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo ({{ detalle.producto.proveedor }})</div>
+                                {% endif %}
                                 {% if detalle.producto.memoria %}Cap: {{ detalle.producto.memoria }} {% endif %}
                                 {% if detalle.producto.bateria %}Bat: {{ detalle.producto.bateria }}% {% endif %}
                                 {% if detalle.producto.color %}Col: {{ detalle.producto.color }}{% endif %}
