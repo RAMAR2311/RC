@@ -125,9 +125,9 @@
                         <tr>
                             <th class="ps-4 text-start">FECHA</th>
                             <th class="text-start">REFERENCIA</th>
-                            <th>TICKET</th>
+                            <th>TICKET / DETALLE</th>
                             <th class="text-end">MONTO</th>
-                            <th class="text-center" style="width: 45px;" title="Soporte / Comprobante">S</th>
+                            <th class="text-center">FACTURA / SOPORTE</th>
                             <th class="text-center pe-4">ACCIONES</th>
                         </tr>
                     </thead>
@@ -142,13 +142,21 @@
                             <td style="max-width: 150px;" class="text-truncate" title="{{ f.descripcion }}">{{ f.descripcion or '-' }}</td>
                             <td class="text-end fw-bold text-danger">${{ f.monto_total|cop }}</td>
                             <td class="text-center">
-                                {% if f.comprobante %}
-                                <a href="{{ url_for('static', filename='uploads/providers/' + f.comprobante) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver comprobante">
-                                    <i class="fa-solid fa-paperclip" style="font-size: 0.75rem;"></i>
-                                </a>
-                                {% else %}
-                                <span class="text-muted small">-</span>
-                                {% endif %}
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    {% if f.sale_id_detected %}
+                                    <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=f.sale_id_detected) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0 shadow-sm" style="font-size: 0.75rem;" title="Ver Factura de Venta (#{{ f.sale_id_detected }})">
+                                        <i class="fa-solid fa-receipt me-1"></i> Factura #{{ f.sale_id_detected }}
+                                    </a>
+                                    {% endif %}
+                                    {% if f.comprobante %}
+                                    <a href="{{ url_for('static', filename='uploads/providers/' + f.comprobante) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Soporte Adjunto">
+                                        <i class="fa-solid fa-paperclip" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if not f.sale_id_detected and not f.comprobante %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td class="text-center pe-4 text-nowrap">
                                 <div class="d-flex align-items-center justify-content-center gap-1">
@@ -187,6 +195,12 @@
                                                             <input type="text" name="numero_factura" class="form-control bg-light" value="{{ f.numero_factura or '' }}" placeholder="Folio o serial">
                                                         </div>
                                                         <div class="col-md-6 mb-3">
+                                                            <label class="form-label fw-bold">ID Venta / Ticket (Opcional)</label>
+                                                            <input type="number" name="sale_id" class="form-control bg-light" value="{{ f.sale_id or '' }}" placeholder="Ej: 12">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-12 mb-3">
                                                             <label class="form-label fw-bold">Soporte (PDF/Imagen)</label>
                                                             <input class="form-control bg-light" type="file" name="comprobante" accept=".pdf,.png,.jpg,.jpeg">
                                                             {% if f.comprobante %}
@@ -195,7 +209,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold">Ticket (Opcional)</label>
+                                                        <label class="form-label fw-bold">Ticket / Detalle (Opcional)</label>
                                                         <textarea name="descripcion" class="form-control bg-light" rows="2" placeholder="Detalle de productos o concepto">{{ f.descripcion or '' }}</textarea>
                                                     </div>
                                                 </div>
@@ -211,7 +225,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">No hay facturas registradas.</td>
+                            <td colspan="6" class="text-center py-5 text-muted">No hay facturas registradas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -304,6 +318,68 @@
     </div>
 </div>
 
+<!-- Tabla de Celulares y Equipos Registrados al Proveedor -->
+<div class="card border-0 shadow-sm rounded-4 mt-4 mb-4">
+    <div class="card-header bg-white border-bottom-0 py-3 ps-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold m-0"><i class="fa-solid fa-mobile-screen-button text-brand-blue me-2"></i> Equipos y Celulares del Proveedor</h5>
+        <span class="badge bg-light text-dark border">{{ celulares|length }} Equipos</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 text-center" style="font-size: 0.88rem;">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4 text-start">EQUIPO / MODELO</th>
+                    <th>IMEI / SERIAL</th>
+                    <th>TIPO INVENTARIO</th>
+                    <th class="text-end">COSTO BODEGA</th>
+                    <th class="text-end">PRECIO SUGERIDO</th>
+                    <th>ESTADO</th>
+                    <th class="text-center pe-4">FACTURA DE VENTA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in celulares %}
+                <tr>
+                    <td class="ps-4 text-start">
+                        <div class="fw-bold text-brand-black">{{ c.marca or '' }} {{ c.modelo_celular or c.nombre }}</div>
+                        <div class="small text-muted">{{ c.color or '' }} {% if c.memoria %}· {{ c.memoria }}{% endif %}</div>
+                    </td>
+                    <td><code class="text-dark bg-light px-2 py-1 rounded fw-bold">{{ c.imei or c.sku or '-' }}</code></td>
+                    <td><span class="badge bg-light text-dark border text-capitalize">{{ c.tipo_inventario }}</span></td>
+                    <td class="text-end fw-bold text-danger">${{ c.precio_costo|cop }}</td>
+                    <td class="text-end fw-bold text-success">${{ c.precio_sugerido|cop }}</td>
+                    <td>
+                        {% if c.cantidad_stock > 0 %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill">En Stock</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill">Vendido</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center pe-4">
+                        {% set sale_id_celular = None %}
+                        {% if c.detalles_venta and c.detalles_venta|length > 0 %}
+                            {% set sale_id_celular = c.detalles_venta[0].sale_id %}
+                        {% endif %}
+
+                        {% if sale_id_celular %}
+                        <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=sale_id_celular) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-receipt me-1"></i> Ver Factura #{{ sale_id_celular }}
+                        </a>
+                        {% else %}
+                        <span class="text-muted small"><i class="fa-solid fa-box me-1"></i> Disponible en Inventario</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No hay celulares ni equipos registrados a nombre de este proveedor.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Modal Nueva Factura -->
 <div class="modal fade" id="modalNuevaFactura" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -328,12 +404,18 @@
                             <input type="text" name="numero_factura" class="form-control bg-light" placeholder="Folio o serial">
                         </div>
                         <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ID Venta / Ticket (Opcional)</label>
+                            <input type="number" name="sale_id" class="form-control bg-light" placeholder="Ej: 12">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
                             <label class="form-label fw-bold">Soporte (PDF/Imagen)</label>
                             <input class="form-control bg-light" type="file" name="comprobante" accept=".pdf,.png,.jpg,.jpeg">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Ticket (Opcional)</label>
+                        <label class="form-label fw-bold">Ticket / Detalle (Opcional)</label>
                         <textarea name="descripcion" class="form-control bg-light" rows="2" placeholder="Detalle de productos o concepto de la factura"></textarea>
                     </div>
                 </div>

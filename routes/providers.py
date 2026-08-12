@@ -87,10 +87,21 @@ def detail(id):
     facturas = ProviderInvoice.query.filter_by(provider_id=id).order_by(ProviderInvoice.fecha_factura.desc()).all()
     pagos = ProviderPayment.query.filter_by(provider_id=id).order_by(ProviderPayment.fecha_pago.desc()).all()
     
+    from models import Product, SaleDetail
+    from sqlalchemy.orm import selectinload, joinedload
+    
+    celulares = Product.query.options(
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
+    ).filter(
+        Product.tipo_inventario.in_(['celulares', 'externos']),
+        Product.proveedor.ilike(proveedor.nombre.strip())
+    ).order_by(Product.fecha_creacion.desc()).all()
+
     return render_template('providers/detail.html', 
                            proveedor=proveedor, 
                            facturas=facturas, 
-                           pagos=pagos)
+                           pagos=pagos,
+                           celulares=celulares)
 
 @providers_bp.route('/<int:id>/invoice', methods=['POST'])
 @login_required
@@ -110,6 +121,9 @@ def add_invoice(id):
     numero_factura = request.form.get('numero_factura', '').strip()
     descripcion = request.form.get('descripcion', '').strip()
     
+    sale_id_val = request.form.get('sale_id', '').strip()
+    sale_id = int(sale_id_val) if sale_id_val and sale_id_val.isdigit() else None
+    
     filename = None
     if 'comprobante' in request.files:
         file = request.files['comprobante']
@@ -127,6 +141,7 @@ def add_invoice(id):
 
     nueva_factura = ProviderInvoice(
         provider_id=id,
+        sale_id=sale_id,
         monto_total=monto_total,
         numero_factura=numero_factura,
         descripcion=descripcion,
@@ -278,6 +293,9 @@ def edit_invoice(invoice_id):
     factura.monto_total = monto_total
     factura.numero_factura = request.form.get('numero_factura', '').strip()
     factura.descripcion = request.form.get('descripcion', '').strip()
+    
+    sale_id_val = request.form.get('sale_id', '').strip()
+    factura.sale_id = int(sale_id_val) if sale_id_val and sale_id_val.isdigit() else None
 
     if 'comprobante' in request.files:
         file = request.files['comprobante']

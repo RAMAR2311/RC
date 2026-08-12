@@ -482,14 +482,31 @@ class ProviderInvoice(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=True)
     monto_total = db.Column(db.Numeric(12, 2), nullable=False)
     numero_factura = db.Column(db.String(100), nullable=True)
     descripcion = db.Column(db.String(255), nullable=True)
     comprobante = db.Column(db.String(255), nullable=True)
     fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
 
+    sale = db.relationship('Sale', backref=db.backref('provider_invoices', lazy=True))
+
     def __init__(self, **kwargs):
         super(ProviderInvoice, self).__init__(**kwargs)
+
+    @property
+    def sale_id_detected(self):
+        if self.sale_id:
+            return self.sale_id
+        if self.descripcion:
+            import re
+            match = re.search(r'(?:Venta\s*#?|#)?(\d+)', str(self.descripcion), re.IGNORECASE)
+            if match:
+                try:
+                    return int(match.group(1))
+                except ValueError:
+                    pass
+        return None
 
 class ProviderPayment(db.Model):
     __tablename__ = 'provider_payments'

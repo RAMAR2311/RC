@@ -207,17 +207,21 @@ def procesar_venta():
                 db.session.add(detalle)
                 db.session.flush() # Importante para tener el id de la venta si se quisiera, pero ya lo tenemos en nueva_venta.id
                 
-                # Novedad: Facturación automática al proveedor para productos externos sin usar Sale.provider_id
-                if producto.tipo_inventario == 'externos' and producto.proveedor:
-                    provider_obj = Provider.query.filter_by(nombre=producto.proveedor).first()
+                # Facturación automática al proveedor para productos asociados a un proveedor
+                if producto.proveedor and producto.tipo_inventario in ['celulares', 'externos']:
+                    provider_obj = Provider.query.filter(Provider.nombre.ilike(producto.proveedor.strip())).first()
                     if provider_obj and producto.precio_costo and producto.precio_costo > 0:
                         from models import ProviderInvoice
+                        ref_factura = producto.modelo_celular if producto.modelo_celular else producto.nombre
+                        if producto.imei:
+                            ref_factura = f"{ref_factura} (IMEI: {producto.imei})"
                         # Crear la factura de deuda al proveedor
                         factura_prov = ProviderInvoice(
                             provider_id=provider_obj.id,
+                            sale_id=nueva_venta.id,
                             monto_total=(producto.precio_costo * cantidad_vendida),
-                            numero_factura=(producto.modelo_celular if producto.modelo_celular else producto.nombre),
-                            descripcion=f"{nueva_venta.id}"
+                            numero_factura=ref_factura,
+                            descripcion=f"Venta #{nueva_venta.id}"
                         )
                         db.session.add(factura_prov)
                 

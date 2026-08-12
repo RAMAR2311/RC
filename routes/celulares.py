@@ -359,6 +359,23 @@ def venta():
         
         # Descontar stock
         celular.cantidad_stock -= 1
+
+        # Registrar factura al proveedor si corresponde
+        if celular.proveedor:
+            from models import Provider, ProviderInvoice
+            provider_obj = Provider.query.filter(Provider.nombre.ilike(celular.proveedor.strip())).first()
+            if provider_obj and celular.precio_costo and float(celular.precio_costo) > 0:
+                ref_factura = celular.modelo_celular if celular.modelo_celular else celular.nombre
+                if celular.imei:
+                    ref_factura = f"{ref_factura} (IMEI: {celular.imei})"
+                factura_prov = ProviderInvoice(
+                    provider_id=provider_obj.id,
+                    sale_id=nueva_venta.id,
+                    monto_total=float(celular.precio_costo),
+                    numero_factura=ref_factura,
+                    descripcion=f"Venta #{nueva_venta.id}"
+                )
+                db.session.add(factura_prov)
         
         try:
             db.session.commit()
