@@ -124,10 +124,26 @@ def create_app():
         # Por defecto, Vendedores van directo a Caja Visual
         return redirect(url_for('sales_bp.caja_visual'))
 
-    @app.route('/sw.js')
-    def service_worker():
-        from flask import send_from_directory
-        return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    # Auto-parcheador de esquema de base de datos para prevenir errores 500 en producción por columnas faltantes
+    with app.app_context():
+        queries = [
+            "ALTER TABLE provider_invoices ADD COLUMN sale_id INTEGER REFERENCES sales(id) ON DELETE SET NULL;",
+            "ALTER TABLE sales ADD COLUMN provider_id INTEGER REFERENCES providers(id) ON DELETE SET NULL;",
+            "ALTER TABLE sales ADD COLUMN asesor_id INTEGER REFERENCES asesores(id) ON DELETE SET NULL;",
+            "ALTER TABLE retomas ADD COLUMN arreglos NUMERIC(10, 2) DEFAULT 0.0;",
+            "ALTER TABLE retomas ADD COLUMN ok_contabilidad BOOLEAN DEFAULT FALSE;",
+            "ALTER TABLE sale_details ADD COLUMN ok_contabilidad BOOLEAN DEFAULT FALSE;",
+            "ALTER TABLE sale_details ADD COLUMN ok_inventario BOOLEAN DEFAULT FALSE;",
+            "ALTER TABLE arqueo_caja ADD COLUMN efectivo_fisico NUMERIC(14, 2) DEFAULT 0.0;",
+            "ALTER TABLE arqueo_caja ADD COLUMN diferencia NUMERIC(14, 2) DEFAULT 0.0;",
+            "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;"
+        ]
+        for q in queries:
+            try:
+                db.session.execute(db.text(q))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
     return app
 
