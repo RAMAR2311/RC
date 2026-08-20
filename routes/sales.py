@@ -417,6 +417,7 @@ def imprimir_ticket(sale_id):
 @admin_required
 def historial():
     # Calcular el valor exacto de 'HOY' en Bogotá
+    page = request.args.get('page', 1, type=int)
     hoy_bogota = obtener_hora_bogota().strftime('%Y-%m-%d')
     
     # Si existen los args, los usa, de lo contrario colapsa a HOY por defecto
@@ -436,7 +437,12 @@ def historial():
         # Sumar 1 día matemáticamente para incluir los registros hasta las 23:59:59 del último día
         query = query.filter(Sale.fecha_venta < fin_dt + timedelta(days=1))
         
-    ventas = query.order_by(Sale.fecha_venta.desc()).all()
+    # Todas las ventas para cálculo de totales
+    todas_las_ventas = query.order_by(Sale.fecha_venta.desc()).all()
+    
+    # Paginación a 30 registros por página
+    paginacion = query.order_by(Sale.fecha_venta.desc()).paginate(page=page, per_page=30, error_out=False)
+    ventas = paginacion.items
     
     # Auditar y cruzar sumatorios de métricas de pago
     # Sistema híbrido: usa SalePayment si existe, caso contrario cae al metodo_pago legacy
@@ -450,7 +456,7 @@ def historial():
     total_retomas = Decimal('0')
     total_mixto = 0  # Contador de ventas con pago mixto
 
-    for v in ventas:
+    for v in todas_las_ventas:
         if v.pagos:  # Pagos nuevos con tabla sale_payments
             for pago in v.pagos:
                 if pago.metodo_pago == 'efectivo':
@@ -488,6 +494,7 @@ def historial():
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
                            ventas=ventas, 
+                           paginacion=paginacion,
                            total_efectivo=total_efectivo,
                            total_bancolombia=total_bancolombia,
                            total_daviplata=total_daviplata,

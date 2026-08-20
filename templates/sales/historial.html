@@ -301,6 +301,38 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Paginación Interactiva -->
+    {% if paginacion and paginacion.pages > 1 %}
+    <nav class="mt-4 d-flex justify-content-center d-print-none">
+        <ul class="pagination pagination-sm shadow-sm mb-1">
+            <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                <a class="page-link rounded-start-pill px-3" 
+                   href="{% if paginacion.has_prev %}{{ url_for('sales_bp.historial', page=paginacion.prev_num, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}{% else %}#{% endif %}">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            </li>
+            {% for p_num in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+                {% if p_num %}
+                    <li class="page-item {% if p_num == paginacion.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('sales_bp.historial', page=p_num, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}">{{ p_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                <a class="page-link rounded-end-pill px-3" 
+                   href="{% if paginacion.has_next %}{{ url_for('sales_bp.historial', page=paginacion.next_num, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}{% else %}#{% endif %}">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="text-center text-muted small d-print-none mb-3">
+        Página {{ paginacion.page }} de {{ paginacion.pages }} &nbsp;·&nbsp; Total: {{ paginacion.total }} operaciones (máx. 30 por página)
+    </div>
+    {% endif %}
 </div>
 
 <style>
