@@ -1,6 +1,6 @@
 import re
 from flask import Blueprint, request, flash, redirect, render_template, url_for, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 from models import db, Product, Retoma, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
@@ -233,4 +233,22 @@ def toggle_ok_contabilidad(id):
         })
 
     flash(f"Estado OK Contabilidad actualizado a {'Aprobado' if retoma.ok_contabilidad else 'Pendiente'}.", "success")
+    return redirect(request.referrer or url_for('retomas_bp.cuarentena'))
+
+@retomas_bp.route('/toggle_ok_venta/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ok_venta(id):
+    retoma = Retoma.query.get_or_404(id)
+    retoma.ok_venta = not retoma.ok_venta
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({
+            'success': True,
+            'ok_venta': retoma.ok_venta,
+            'message': 'Estado de OK Venta actualizado.'
+        })
+
+    flash(f"Estado OK Venta actualizado a {'Aprobado' if retoma.ok_venta else 'Pendiente'}.", "success")
     return redirect(request.referrer or url_for('retomas_bp.cuarentena'))

@@ -245,6 +245,7 @@ class Retoma(db.Model):
     observaciones = db.Column(db.Text, nullable=True)
     estado = db.Column(db.String(50), nullable=False, default='en_evaluacion') # en_evaluacion, aprobado
     ok_contabilidad = db.Column(db.Boolean, default=False, nullable=False)
+    ok_venta = db.Column(db.Boolean, default=False, nullable=False)
     producto_generado_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
     vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -592,3 +593,6 @@ class Asesor(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     activo = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    def __init__(self, **kwargs):
+        super(Asesor, self).__init__(**kwargs)

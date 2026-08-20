@@ -568,7 +568,7 @@ def ventas_vendedores():
                     celulares_list = []
 
                     for d in v.detalles:
-                        if d.producto and d.producto.tipo_inventario == 'celulares':
+                        if d.producto and d.producto.tipo_inventario in ['celulares', 'externos']:
                             cant = d.cantidad_vendida or 1
                             cant_celulares_venta += cant
                             monto_celulares_venta += Decimal(str(d.precio_venta_final)) * Decimal(str(cant))

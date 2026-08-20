@@ -34,6 +34,7 @@
                     <th class="py-2">FECHA</th>
                     <th class="py-2">VALOR RETOMA</th>
                     <th class="py-2 text-center">OK CONTAB.</th>
+                    <th class="py-2 text-center">OK VENTA</th>
                     <th class="pe-3 py-2 text-center">ACCIONES</th>
                 </tr>
             </thead>
@@ -63,6 +64,18 @@
                                 onclick="toggleOkContabilidad({{ r.id }}, this)"
                                 title="Haz clic para cambiar estado de OK Contabilidad">
                             {% if r.ok_contabilidad %}
+                                <i class="fa-solid fa-circle-check me-1"></i> OK
+                            {% else %}
+                                <i class="fa-regular fa-circle me-1"></i> Pendiente
+                            {% endif %}
+                        </button>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" 
+                                class="btn btn-sm {% if r.ok_venta %}btn-success text-white fw-bold{% else %}btn-outline-secondary text-muted{% endif %} rounded-pill px-2 py-1 shadow-sm"
+                                onclick="toggleOkVenta({{ r.id }}, this)"
+                                title="Haz clic para cambiar estado de OK Venta">
+                            {% if r.ok_venta %}
                                 <i class="fa-solid fa-circle-check me-1"></i> OK
                             {% else %}
                                 <i class="fa-regular fa-circle me-1"></i> Pendiente
@@ -398,9 +411,38 @@
                 }
             }
         })
-        .catch(err => {
-            btnEl.disabled = false;
-            console.error(err);
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error de red al intentar actualizar el estado.");
+        });
+    }
+
+    function toggleOkVenta(retomaId, buttonElement) {
+        fetch(`/retomas/toggle_ok_venta/${retomaId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.ok_venta) {
+                    buttonElement.className = 'btn btn-sm btn-success text-white fw-bold rounded-pill px-2 py-1 shadow-sm';
+                    buttonElement.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> OK';
+                } else {
+                    buttonElement.className = 'btn btn-sm btn-outline-secondary text-muted rounded-pill px-2 py-1 shadow-sm';
+                    buttonElement.innerHTML = '<i class="fa-regular fa-circle me-1"></i> Pendiente';
+                }
+            } else {
+                alert("Error al actualizar el estado: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error de red al intentar actualizar el estado.");
         });
     }
 </script>
