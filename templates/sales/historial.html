@@ -32,54 +32,72 @@
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid var(--brand-blue) !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
-                <h5 class="fw-bolder m-0" style="color: var(--brand-blue); font-size: 1.1rem;">${{ (total_efectivo)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
+                    <h5 class="fw-bolder m-0" style="color: var(--brand-blue); font-size: 1.1rem;">${{ (total_efectivo)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: var(--brand-blue);" onclick="filtrarTabla('efectivo')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
     
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid #fd7e14 !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
-                <h5 class="fw-bolder m-0" style="color: #fd7e14; font-size: 1.1rem;">${{ (total_bancolombia)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
+                    <h5 class="fw-bolder m-0" style="color: #fd7e14; font-size: 1.1rem;">${{ (total_bancolombia)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #fd7e14;" onclick="filtrarTabla('bancolombia')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid #dc3545 !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
-                <h5 class="fw-bolder m-0" style="color: #dc3545; font-size: 1.1rem;">${{ (total_daviplata)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
+                    <h5 class="fw-bolder m-0" style="color: #dc3545; font-size: 1.1rem;">${{ (total_daviplata)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #dc3545;" onclick="filtrarTabla('daviplata')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid #20c997 !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-credit-card me-1"></i> T. Crédito</p>
-                <h5 class="fw-bolder m-0" style="color: #20c997; font-size: 1.1rem;">${{ (total_tarjeta_credito)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-credit-card me-1"></i> T. Crédito</p>
+                    <h5 class="fw-bolder m-0" style="color: #20c997; font-size: 1.1rem;">${{ (total_tarjeta_credito)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #20c997;" onclick="filtrarTabla('tarjeta_credito')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid #6f42c1 !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-cart-shopping me-1"></i> Addi</p>
-                <h5 class="fw-bolder m-0" style="color: #6f42c1; font-size: 1.1rem;">${{ (total_addi)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-cart-shopping me-1"></i> Addi</p>
+                    <h5 class="fw-bolder m-0" style="color: #6f42c1; font-size: 1.1rem;">${{ (total_addi)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #6f42c1;" onclick="filtrarTabla('addi')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 4px solid #198754 !important;">
-            <div class="card-body py-2 ps-2">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-id-card me-1"></i> Sitecredito</p>
-                <h5 class="fw-bolder m-0" style="color: #198754; font-size: 1.1rem;">${{ (total_sitecredito)|cop }}</h5>
+            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
+                <div>
+                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-id-card me-1"></i> Sitecredito</p>
+                    <h5 class="fw-bolder m-0" style="color: #198754; font-size: 1.1rem;">${{ (total_sitecredito)|cop }}</h5>
+                </div>
+                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #198754;" onclick="filtrarTabla('sitecredito')">Ver operaciones &raquo;</button>
             </div>
         </div>
     </div>
@@ -145,7 +163,15 @@
             </thead>
             <tbody>
                 {% for venta in ventas %}
-                <tr>
+                {% set metodos_usados = [] %}
+                {% if venta.pagos %}
+                    {% for p in venta.pagos %}
+                        {% set _ = metodos_usados.append(p.metodo_pago) %}
+                    {% endfor %}
+                {% else %}
+                    {% set _ = metodos_usados.append(venta.metodo_pago) %}
+                {% endif %}
+                <tr class="venta-row" data-pagos="{{ metodos_usados|join(',') }}">
                     <td class="fw-bold text-brand-black align-middle">Ticket #{{ "%05d"|format(venta.id) }}</td>
                     <td class="align-middle text-muted"><i class="fa-regular fa-calendar text-brand-pink me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
                     <td class="align-middle fw-semibold text-brand-black">
@@ -394,5 +420,42 @@
             return new bootstrap.Tooltip(el);
         });
     });
+
+    function filtrarTabla(metodo) {
+        const filas = document.querySelectorAll('tr.venta-row');
+        let visibles = 0;
+        
+        filas.forEach(fila => {
+            const pagosStr = fila.getAttribute('data-pagos') || '';
+            const metodosFila = pagosStr.split(',');
+            
+            if (metodo === 'todos' || metodosFila.includes(metodo)) {
+                fila.style.display = '';
+                visibles++;
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+        
+        let filterBanner = document.getElementById('filter-banner');
+        if (metodo !== 'todos') {
+            if (!filterBanner) {
+                filterBanner = document.createElement('div');
+                filterBanner.id = 'filter-banner';
+                filterBanner.className = 'alert py-2 mb-3 d-flex justify-content-between align-items-center d-print-none shadow-sm';
+                filterBanner.style.backgroundColor = '#e0f7fa';
+                filterBanner.style.border = '1px solid #b2ebf2';
+                filterBanner.style.color = '#006064';
+                
+                const tableContainer = document.querySelector('.table-responsive');
+                tableContainer.parentNode.insertBefore(filterBanner, tableContainer);
+            }
+            filterBanner.innerHTML = `<span><i class="fa-solid fa-filter me-2"></i> Mostrando operaciones que incluyen: <strong class="text-uppercase">${metodo.replace('_', ' ')}</strong> (${visibles} resultados)</span>
+                                      <button class="btn btn-sm btn-outline-secondary rounded-pill fw-bold bg-white" onclick="filtrarTabla('todos')"><i class="fa-solid fa-times me-1"></i> Quitar Filtro</button>`;
+            filterBanner.style.display = 'flex';
+        } else if (filterBanner) {
+            filterBanner.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}
