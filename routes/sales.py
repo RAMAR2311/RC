@@ -656,3 +656,35 @@ def caja_visual():
     
     return render_template('sales/caja_visual.html', productos=productos, asesores=asesores, providers=providers, hoy=hoy_bogota.strftime('%Y-%m-%d'))
 
+
+# Endpoint para Editar Métodos de Pago
+@sales_bp.route('/editar_pago/<int:sale_id>', methods=['POST'])
+@login_required
+@admin_required
+def editar_pago_venta(sale_id):
+    venta = Sale.query.get_or_404(sale_id)
+    
+    try:
+        if venta.pagos:
+            for pago in venta.pagos:
+                nuevo_metodo = request.form.get(f'payment_method_{pago.id}')
+                if nuevo_metodo:
+                    pago.metodo_pago = nuevo_metodo
+            
+            # Actualizamos también el método legacy en la venta si es 1 solo pago para mantener consistencia
+            if len(venta.pagos) == 1:
+                venta.metodo_pago = venta.pagos[0].metodo_pago
+        else:
+            # Venta legacy, actualizar el metodo_pago
+            nuevo_metodo_legacy = request.form.get('sale_metodo_pago')
+            if nuevo_metodo_legacy:
+                venta.metodo_pago = nuevo_metodo_legacy
+                
+        db.session.commit()
+        flash('Métodos de pago actualizados correctamente.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ocurrió un error al actualizar los pagos: {str(e)}', 'danger')
+        
+    return redirect(url_for('sales_bp.historial'))
