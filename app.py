@@ -25,20 +25,22 @@ def create_app():
                 pass
             app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
         except Exception:
+            os.makedirs(app.instance_path, exist_ok=True)
             instance_db = os.path.join(app.instance_path, 'crm_inventory.db')
             root_db = os.path.join(app.root_path, 'crm_inventory.db')
-            if os.path.exists(instance_db):
-                app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_db}'
-            elif os.path.exists(root_db):
+            if os.path.exists(root_db):
                 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{root_db}'
             else:
                 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_db}'
-            print(f"⚠️ [INFO] PostgreSQL no disponible localmente. Usando SQLite: {app.config['SQLALCHEMY_DATABASE_URI']}")
+            print(f"[INFO] PostgreSQL no disponible localmente. Usando SQLite: {app.config['SQLALCHEMY_DATABASE_URI']}")
     else:
+        if raw_db_url and 'sqlite' in raw_db_url:
+            os.makedirs(app.instance_path, exist_ok=True)
         app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Inicializar Extensiones
     db.init_app(app)

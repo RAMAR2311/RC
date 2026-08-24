@@ -228,7 +228,10 @@
                                             <div class="row g-3 mb-3">
                                                 <div class="col-md-7">
                                                     <label class="form-label fw-bold">Nombre Definitivo (Visible en Venta) <span class="text-danger">*</span></label>
-                                                    <input type="text" name="nombre_definitivo" class="form-control bg-light" value="{{ (r.marca or '') + ' ' + r.modelo + ' (Usado)' }}" required>
+                                                    {% set clean_m = (r.marca or '').strip() %}
+                                                    {% set clean_mod = (r.modelo or '').strip() %}
+                                                    {% set default_name = clean_mod if (clean_m and clean_m.lower() in clean_mod.lower()) else ((clean_m + ' ' + clean_mod).strip() if clean_m else clean_mod) %}
+                                                    <input type="text" name="nombre_definitivo" class="form-control bg-light" value="{{ default_name }}" required>
                                                 </div>
                                                 <div class="col-md-5">
                                                     <label class="form-label fw-bold">Inventario / Ubicación <span class="text-danger">*</span></label>

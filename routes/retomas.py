@@ -205,8 +205,14 @@ def editar_retoma(id):
         prod.imei2 = imei2
         prod.precio_costo = valor_retoma + (retoma.arreglos or Decimal('0.00'))
         prod.observacion = observaciones
-        if prod.nombre and ' (Usado)' in prod.nombre:
-            prod.nombre = f"{marca} {modelo} (Usado)".strip()
+        if prod.nombre:
+            clean_marca = (marca or '').strip()
+            clean_modelo = (modelo or '').strip()
+            if clean_marca and clean_marca.lower() in clean_modelo.lower():
+                nombre_base = clean_modelo
+            else:
+                nombre_base = f"{clean_marca} {clean_modelo}".strip() if clean_marca else clean_modelo
+            prod.nombre = re.sub(r'\s*\([Uu]sado\)', '', nombre_base).strip()
 
     try:
         db.session.commit()
