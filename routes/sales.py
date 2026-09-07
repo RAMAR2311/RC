@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
+from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for, send_file
 from flask_login import login_required, current_user
 from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor, Provider
 from decorators import admin_required
@@ -505,6 +505,142 @@ def historial():
                            total_mixto=total_mixto,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
+
+
+@sales_bp.route('/exportar-excel', methods=['GET'])
+@login_required
+@admin_required
+def exportar_excel():
+    import io
+    import pandas as pd
+    from decimal import Decimal
+    from datetime import datetime, timedelta
+
+    hoy_bogota = obtener_hora_bogota().strftime('%Y-%m-%d')
+    fecha_inicio = request.args.get('fecha_inicio', hoy_bogota)
+    fecha_fin = request.args.get('fecha_fin', hoy_bogota)
+
+    query = Sale.query.options(
+        joinedload(Sale.vendedor),
+        joinedload(Sale.asesor),
+        joinedload(Sale.detalles).joinedload(SaleDetail.producto),
+        joinedload(Sale.detalles).joinedload(SaleDetail.variante),
+        joinedload(Sale.pagos),
+        joinedload(Sale.retomas_asociadas)
+    )
+
+    if fecha_inicio:
+        inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        query = query.filter(Sale.fecha_venta >= inicio_dt)
+
+    if fecha_fin:
+        fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+        query = query.filter(Sale.fecha_venta < fin_dt + timedelta(days=1))
+
+    ventas = query.order_by(Sale.fecha_venta.asc()).all()
+
+    filas = []
+    for v in ventas:
+        ticket_str = f"#{v.id:05d}"
+        fecha_str = v.fecha_venta.strftime('%Y-%m-%d %H:%M') if v.fecha_venta else ''
+        vendedor_str = v.vendedor.nombre if v.vendedor else 'N/A'
+        asesor_str = v.asesor.nombre if v.asesor else 'N/A'
+        sucursal_str = v.sucursal or 'LOCAL 136'
+        metodo_pago_str = v.metodo_pago_display
+        retomas_valor_total = sum(Decimal(str(r.valor_retoma or 0)) for r in v.retomas_asociadas)
+
+        if not v.detalles:
+            filas.append({
+                'Ticket': ticket_str,
+                'Fecha': fecha_str,
+                'Vendedor': vendedor_str,
+                'Asesor': asesor_str,
+                'Sucursal': sucursal_str,
+                'Producto / Artículo': 'Venta sin detalle específico',
+                'Cant.': 1,
+                'Costo Unitario ($)': 0.0,
+                'Costo Total ($)': 0.0,
+                'Precio Venta Unitario ($)': float(v.monto_total or 0),
+                'Precio Venta Total ($)': float(v.monto_total or 0),
+                'Utilidad Bruta ($)': float(v.monto_total or 0),
+                'Margen (%)': 100.0,
+                'Vía de Pago': metodo_pago_str,
+                'Valor Retoma ($)': float(retomas_valor_total)
+            })
+            continue
+
+        for d in v.detalles:
+            cant = d.cantidad_vendida or 1
+            precio_venta_u = Decimal(str(d.precio_venta_final or 0))
+            precio_venta_tot = precio_venta_u * cant
+
+            # Determinar nombre del producto y costo
+            if d.nombre_manual:
+                prod_nombre = f"{d.nombre_manual} (Externo/Manual)"
+                costo_u = Decimal(str(d.precio_costo_manual or 0))
+            elif d.variant_id:
+                vari = d.variante
+                prod = d.producto or (vari.producto if vari else None)
+                p_nombre = prod.nombre if prod else 'Producto'
+                v_nombre = vari.nombre_variante if vari else ''
+                prod_nombre = f"{p_nombre} [{v_nombre}]"
+                costo_u = Decimal(str((vari.precio_costo if (vari and vari.precio_costo is not None) else (prod.precio_costo if prod else 0)) or 0))
+            elif d.product_id:
+                prod = d.producto
+                if prod:
+                    if prod.imei:
+                        prod_nombre = f"{prod.nombre} (IMEI: {prod.imei})"
+                    else:
+                        prod_nombre = prod.nombre
+                    costo_u = Decimal(str(prod.precio_costo or 0))
+                else:
+                    prod_nombre = f"Producto ID {d.product_id}"
+                    costo_u = Decimal('0.00')
+            else:
+                prod_nombre = 'Artículo sin identificar'
+                costo_u = Decimal('0.00')
+
+            costo_tot = costo_u * cant
+            utilidad_bruta = precio_venta_tot - costo_tot
+            margen_pct = round(float((utilidad_bruta / precio_venta_tot * 100)), 1) if precio_venta_tot > 0 else 0.0
+
+            filas.append({
+                'Ticket': ticket_str,
+                'Fecha': fecha_str,
+                'Vendedor': vendedor_str,
+                'Asesor': asesor_str,
+                'Sucursal': sucursal_str,
+                'Producto / Artículo': prod_nombre,
+                'Cant.': cant,
+                'Costo Unitario ($)': float(costo_u),
+                'Costo Total ($)': float(costo_tot),
+                'Precio Venta Unitario ($)': float(precio_venta_u),
+                'Precio Venta Total ($)': float(precio_venta_tot),
+                'Utilidad Bruta ($)': float(utilidad_bruta),
+                'Margen (%)': margen_pct,
+                'Vía de Pago': metodo_pago_str,
+                'Valor Retoma ($)': float(retomas_valor_total)
+            })
+
+    df = pd.DataFrame(filas)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Reporte_Ventas_Costos')
+        ws = writer.sheets['Reporte_Ventas_Costos']
+        # Ajustar ancho de columnas
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+    output.seek(0)
+    filename = f"Reporte_Ventas_Costos_{fecha_inicio}_al_{fecha_fin}.xlsx"
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
 
 
 # Endpoint Visor de Ventas del Día para Cajeros (Solo lectura, se resetea cada día)

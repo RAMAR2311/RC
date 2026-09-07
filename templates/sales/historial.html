@@ -7,7 +7,10 @@
         <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de Operaciones
         </h2>
-        <div class="d-flex align-items-center gap-2 d-print-none">
+        <div class="d-flex align-items-center gap-2 d-print-none flex-wrap">
+            <a href="{{ url_for('sales_bp.exportar_excel', fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm">
+                <i class="fa-solid fa-file-excel me-1"></i> Exportar a Excel con Costos
+            </a>
             <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-dark border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
                 <i class="fa-solid fa-print me-1"></i> Imprimir a PDF
             </button>
@@ -218,6 +221,9 @@
                             </a>
                             
                             {% if current_user.rol == 'admin' %}
+                            <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 fw-bold shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#costModal{{ venta.id }}">
+                                <i class="fa-solid fa-tags me-1 text-brand-pink"></i> Ver Costos
+                            </button>
                             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#editPaymentModal{{ venta.id }}">
                                 <i class="fa-solid fa-pen me-1"></i> Editar Pago
                             </button>
@@ -227,6 +233,120 @@
                                     <i class="fa-solid fa-trash me-1"></i> Anular
                                 </button>
                             </form>
+                            
+                            <!-- Modal Ver Costos y Rentabilidad -->
+                            <div class="modal fade text-start" id="costModal{{ venta.id }}" tabindex="-1" aria-labelledby="costModalLabel{{ venta.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content border-0 shadow rounded-4">
+                                        <div class="modal-header bg-dark text-white">
+                                            <h5 class="modal-title fw-bold" id="costModalLabel{{ venta.id }}">
+                                                <i class="fa-solid fa-file-invoice-dollar me-2 text-brand-pink"></i> Auditoría de Costos - Ticket #{{ "%05d"|format(venta.id) }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4">
+                                            <div class="d-flex justify-content-between mb-3 text-muted small border-bottom pb-2 flex-wrap gap-2">
+                                                <span><strong>Fecha:</strong> {{ venta.fecha_venta.strftime('%Y-%m-%d %H:%M') }}</span>
+                                                <span><strong>Vendedor:</strong> {{ venta.vendedor.nombre if venta.vendedor else 'N/A' }}</span>
+                                                <span><strong>Asesor:</strong> {{ venta.asesor.nombre if venta.asesor else 'N/A' }}</span>
+                                            </div>
+                                            
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered align-middle mb-0">
+                                                    <thead class="bg-light text-center small">
+                                                        <tr>
+                                                            <th>Producto</th>
+                                                            <th width="50">Cant.</th>
+                                                            <th width="105">Costo U.</th>
+                                                            <th width="105">Costo Tot.</th>
+                                                            <th width="105">Venta U.</th>
+                                                            <th width="105">Venta Tot.</th>
+                                                            <th width="105">Ganancia</th>
+                                                            <th width="65">Margen</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% set ns = namespace(costo_total_ticket=0, venta_total_ticket=0) %}
+                                                        {% for d in venta.detalles %}
+                                                            {% set cant = d.cantidad_vendida or 1 %}
+                                                            {% set v_tot = d.precio_venta_final * cant %}
+                                                            {% if d.nombre_manual %}
+                                                                {% set c_u = d.precio_costo_manual or 0 %}
+                                                                {% set p_nombre = d.nombre_manual ~ ' (Externo/Manual)' %}
+                                                            {% elif d.variant_id %}
+                                                                {% set vari = d.variante %}
+                                                                {% set prod = d.producto or (vari.producto if vari else None) %}
+                                                                {% set c_u = (vari.precio_costo if (vari and vari.precio_costo is not None) else (prod.precio_costo if prod else 0)) or 0 %}
+                                                                {% set p_nombre = (prod.nombre if prod else 'Producto') ~ ' [' ~ (vari.nombre_variante if vari else '') ~ ']' %}
+                                                            {% elif d.product_id %}
+                                                                {% set prod = d.producto %}
+                                                                {% set c_u = prod.precio_costo if prod else 0 %}
+                                                                {% set p_nombre = prod.nombre ~ (' (IMEI: ' ~ prod.imei ~ ')' if prod and prod.imei else '') if prod else 'Producto ID ' ~ d.product_id %}
+                                                            {% else %}
+                                                                {% set c_u = 0 %}
+                                                                {% set p_nombre = 'Artículo no especificado' %}
+                                                            {% endif %}
+                                                            {% set c_tot = c_u * cant %}
+                                                            {% set ganancia = v_tot - c_tot %}
+                                                            {% set margen = ((ganancia / v_tot) * 100) if v_tot > 0 else 0 %}
+                                                            {% set ns.costo_total_ticket = ns.costo_total_ticket + c_tot %}
+                                                            {% set ns.venta_total_ticket = ns.venta_total_ticket + v_tot %}
+                                                            <tr>
+                                                                <td class="small fw-semibold">{{ p_nombre }}</td>
+                                                                <td class="text-center small">{{ cant }}</td>
+                                                                <td class="text-end small text-muted">${{ (c_u)|cop }}</td>
+                                                                <td class="text-end small text-danger fw-semibold">-${{ (c_tot)|cop }}</td>
+                                                                <td class="text-end small text-muted">${{ (d.precio_venta_final)|cop }}</td>
+                                                                <td class="text-end small text-dark fw-semibold">${{ (v_tot)|cop }}</td>
+                                                                <td class="text-end small fw-bold {% if ganancia >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                                    ${{ (ganancia)|cop }}
+                                                                </td>
+                                                                <td class="text-center small">
+                                                                    <span class="badge {% if margen >= 15 %}bg-success{% elif margen > 0 %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill">
+                                                                        {{ "%.1f"|format(margen) }}%
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                    <tfoot class="bg-light fw-bold">
+                                                        <tr>
+                                                            <td colspan="3" class="text-end">TOTALES:</td>
+                                                            <td class="text-end text-danger">-${{ (ns.costo_total_ticket)|cop }}</td>
+                                                            <td></td>
+                                                            <td class="text-end text-dark">${{ (ns.venta_total_ticket)|cop }}</td>
+                                                            <td class="text-end {% if (ns.venta_total_ticket - ns.costo_total_ticket) >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                                ${{ (ns.venta_total_ticket - ns.costo_total_ticket)|cop }}
+                                                            </td>
+                                                            <td class="text-center">
+                                                                {% if ns.venta_total_ticket > 0 %}
+                                                                    {{ "%.1f"|format(((ns.venta_total_ticket - ns.costo_total_ticket) / ns.venta_total_ticket) * 100) }}%
+                                                                {% else %}
+                                                                    0%
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+
+                                            {% if venta.retomas_asociadas %}
+                                            <div class="alert alert-info mt-3 p-2 small mb-0">
+                                                <strong><i class="fa-solid fa-recycle me-1"></i> Retomas recibidas en este ticket:</strong>
+                                                <ul class="mb-0 ps-3">
+                                                    {% for r in venta.retomas_asociadas %}
+                                                    <li>{{ r.modelo }} (IMEI: {{ r.imei1 }}) - Valor recibido: ${{ (r.valor_retoma)|cop }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer border-top-0 pt-0">
+                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <!-- Modal Editar Pago -->
                             <div class="modal fade text-start" id="editPaymentModal{{ venta.id }}" tabindex="-1" aria-labelledby="editPaymentModalLabel{{ venta.id }}" aria-hidden="true">
