@@ -548,6 +548,14 @@ def exportar_excel():
         sucursal_str = v.sucursal or 'LOCAL 136'
         metodo_pago_str = v.metodo_pago_display
         retomas_valor_total = sum(Decimal(str(r.valor_retoma or 0)) for r in v.retomas_asociadas)
+        retomas_info_str = ", ".join(f"{r.modelo} (IMEI: {r.imei1})" for r in v.retomas_asociadas) if v.retomas_asociadas else ""
+        
+        # Detalle de vía de pago clarificado si incluye retoma
+        if retomas_valor_total > 0 and 'retoma' not in metodo_pago_str.lower():
+            if float(v.monto_total or 0) > 0:
+                metodo_pago_str = f"{metodo_pago_str} + Retoma"
+            else:
+                metodo_pago_str = "Retoma (100%)"
 
         if not v.detalles:
             filas.append({
@@ -565,11 +573,12 @@ def exportar_excel():
                 'Utilidad Bruta ($)': float(v.monto_total or 0),
                 'Margen (%)': 100.0,
                 'Vía de Pago': metodo_pago_str,
-                'Valor Retoma ($)': float(retomas_valor_total)
+                'Valor Retoma ($)': float(retomas_valor_total),
+                'Equipo(s) Recibido en Retoma': retomas_info_str
             })
             continue
 
-        for d in v.detalles:
+        for idx, d in enumerate(v.detalles):
             cant = d.cantidad_vendida or 1
             precio_venta_u = Decimal(str(d.precio_venta_final or 0))
             precio_venta_tot = precio_venta_u * cant
@@ -604,6 +613,11 @@ def exportar_excel():
             utilidad_bruta = precio_venta_tot - costo_tot
             margen_pct = round(float((utilidad_bruta / precio_venta_tot * 100)), 1) if precio_venta_tot > 0 else 0.0
 
+            # Si el ticket tiene varios productos, asignar el valor de la retoma solo a la primera fila
+            # para evitar que una suma general de la columna en Excel duplique el valor de las retomas
+            val_retoma_fila = float(retomas_valor_total) if idx == 0 else 0.0
+            detalle_retoma_fila = retomas_info_str if idx == 0 else (f"(Retoma incluida en {ticket_str})" if retomas_info_str else "")
+
             filas.append({
                 'Ticket': ticket_str,
                 'Fecha': fecha_str,
@@ -619,7 +633,8 @@ def exportar_excel():
                 'Utilidad Bruta ($)': float(utilidad_bruta),
                 'Margen (%)': margen_pct,
                 'Vía de Pago': metodo_pago_str,
-                'Valor Retoma ($)': float(retomas_valor_total)
+                'Valor Retoma ($)': val_retoma_fila,
+                'Equipo(s) Recibido en Retoma': detalle_retoma_fila
             })
 
     df = pd.DataFrame(filas)
