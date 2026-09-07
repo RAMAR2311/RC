@@ -574,6 +574,7 @@ def balance_financiero():
     inventario_celulares = Decimal('0.00')
     inventario_accesorios = Decimal('0.00')
 
+    detalle_accesorios = []
     productos_stock = Product.query.filter(Product.cantidad_stock > 0).all()
     for p in productos_stock:
         if p.variantes:
@@ -589,10 +590,36 @@ def balance_financiero():
         else:
             inventario_136 += val_p
 
-        if p.tipo_inventario == 'celulares':
+        # Clasificación estricta: si tiene IMEI, modelo_celular o es celulares/externos, es un CELULAR
+        es_celular = (p.tipo_inventario in ['celulares', 'externos']) or bool(p.imei) or bool(p.modelo_celular)
+        if es_celular:
             inventario_celulares += val_p
         else:
             inventario_accesorios += val_p
+            if p.variantes:
+                for v in p.variantes:
+                    if (v.cantidad_stock or 0) > 0:
+                        c_u = float(v.precio_costo or p.precio_costo or 0)
+                        detalle_accesorios.append({
+                            'id': p.id,
+                            'nombre': f"{p.nombre} ({v.nombre_variante})",
+                            'sku': p.sku,
+                            'stock': v.cantidad_stock,
+                            'costo_u': c_u,
+                            'costo_total': c_u * v.cantidad_stock,
+                            'inventario': p.inventario or 'LOCAL 136'
+                        })
+            else:
+                c_u = float(p.precio_costo or 0)
+                detalle_accesorios.append({
+                    'id': p.id,
+                    'nombre': p.nombre,
+                    'sku': p.sku,
+                    'stock': p.cantidad_stock,
+                    'costo_u': c_u,
+                    'costo_total': c_u * p.cantidad_stock,
+                    'inventario': p.inventario or 'LOCAL 136'
+                })
 
     inventario_total = inventario_136 + inventario_197
 
@@ -638,6 +665,8 @@ def balance_financiero():
         'inventario_valorado_activo': float(inventario_activo),
         'inventario_valorado_celulares': float(inventario_celulares),
         'inventario_valorado_accesorios': float(inventario_accesorios),
+        'detalle_accesorios': detalle_accesorios,
+        'conteo_accesorios': len(detalle_accesorios),
         'cartera_clientes': float(cartera_clientes),
         'total_activos': float(total_activos),
         'cuentas_por_pagar_proveedores': float(cuentas_por_pagar_proveedores),
@@ -652,6 +681,38 @@ def balance_financiero():
         fecha_generacion=hoy.strftime('%Y-%m-%d %H:%M'),
         datos=datos_financieros
     )
+
+@admin_bp.route('/limpiar-accesorios-prueba', methods=['POST'])
+@login_required
+@admin_required
+def limpiar_accesorios_prueba():
+    prods = Product.query.filter(
+        Product.tipo_inventario.notin_(['celulares', 'externos']),
+        (Product.imei == None) | (Product.imei == '')
+    ).all()
+
+    modificados = 0
+    for p in prods:
+        if p.cantidad_stock > 0:
+            p.cantidad_stock = 0
+            modificados += 1
+        if p.variantes:
+            for v in p.variantes:
+                if (v.cantidad_stock or 0) > 0:
+                    v.cantidad_stock = 0
+                    modificados += 1
+
+    try:
+        db.session.commit()
+        flash(f'Inventario de accesorios/prueba ajustado a 0 unidades con éxito ({modificados} ítems actualizados).', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al ajustar inventario: {str(e)}', 'danger')
+
+    fecha_inicio = request.form.get('fecha_inicio', '')
+    fecha_fin = request.form.get('fecha_fin', '')
+    ambito = request.form.get('ambito', 'consolidado')
+    return redirect(url_for('admin_bp.balance_financiero', fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, ambito=ambito))
 
 @admin_bp.route('/ventas-vendedores', methods=['GET'])
 @login_required

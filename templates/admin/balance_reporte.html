@@ -193,8 +193,17 @@
                                         <td class="text-end fw-semibold">${{ (datos.inventario_valorado_celulares)|cop }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Inventario Accesorios y Otros (Costo en Stock)</td>
-                                        <td class="text-end fw-semibold">${{ (datos.inventario_valorado_accesorios)|cop }}</td>
+                                        <td>
+                                            Inventario Accesorios y Otros (Costo en Stock)
+                                            {% if datos.inventario_valorado_accesorios > 0 %}
+                                            <div class="mt-1 d-print-none">
+                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-0 px-2 fw-semibold" style="font-size: 0.72rem;" data-bs-toggle="modal" data-bs-target="#modalDetalleAccesorios">
+                                                    <i class="fa-solid fa-magnifying-glass me-1"></i> Auditar {{ datos.conteo_accesorios }} productos en stock
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end fw-semibold align-top">${{ (datos.inventario_valorado_accesorios)|cop }}</td>
                                     </tr>
                                     {% if datos.ambito == 'consolidado' %}
                                     <tr class="border-top text-muted small">
@@ -262,6 +271,64 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle de Productos en Stock de Accesorios -->
+<div class="modal fade d-print-none" id="modalDetalleAccesorios" tabindex="-1" aria-labelledby="modalDetalleAccesoriosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="fw-bold text-brand-black" id="modalDetalleAccesoriosLabel">
+                    <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Auditoría de Inventario de Accesorios / Otros
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">
+                    El sistema detectó <strong>{{ datos.conteo_accesorios }}</strong> artículos con stock positivo en la base de datos sumando <strong>${{ (datos.inventario_valorado_accesorios)|cop }}</strong>. 
+                    Si estos productos corresponden a datos de prueba cargados al inicializar el software y no a mercancía física real en tu tienda, puedes presionar el botón inferior para <strong>ajustar su stock a 0</strong>.
+                </p>
+
+                <div class="table-responsive" style="max-height: 350px;">
+                    <table class="table table-sm table-hover table-bordered small mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Producto</th>
+                                <th>SKU</th>
+                                <th class="text-center">Local</th>
+                                <th class="text-center">Stock</th>
+                                <th class="text-end">Costo Unit.</th>
+                                <th class="text-end">Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in datos.detalle_accesorios %}
+                            <tr>
+                                <td class="fw-semibold">{{ item.nombre }}</td>
+                                <td class="text-muted font-monospace">{{ item.sku }}</td>
+                                <td class="text-center">{{ item.inventario }}</td>
+                                <td class="text-center fw-bold">{{ item.stock }}</td>
+                                <td class="text-end">${{ (item.costo_u)|cop }}</td>
+                                <td class="text-end fw-bold text-danger">${{ (item.costo_total)|cop }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
+                <form action="{{ url_for('admin_bp.limpiar_accesorios_prueba') }}" method="POST" onsubmit="return confirm('¿Está seguro de poner en stock 0 todos los productos de accesorios/prueba? Esta acción actualizará el stock a 0 sin borrar ventas anteriores.');">
+                    <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+                    <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
+                    <input type="hidden" name="ambito" value="{{ datos.ambito }}">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-broom me-1"></i> Poner Stock de Accesorios a Cero (Limpiar Pruebas)
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
