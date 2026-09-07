@@ -175,25 +175,51 @@ def maneos():
     # Priorizar PENDIENTE temporalmente
     lista_maneos.sort(key=lambda m: 0 if m.estado == 'PENDIENTE' else 1)
     
-    productos = Product.query.order_by(Product.nombre).all()
+    # Obtener productos activos con stock > 0 para el selector rápido de préstamos
+    productos = Product.query.filter(Product.cantidad_stock > 0).order_by(Product.tipo_inventario.desc(), Product.nombre).all()
     return render_template('admin/maneos.html', maneos=lista_maneos, productos=productos)
 
 @admin_bp.route('/maneos/prestar', methods=['POST'])
 @login_required
 def maneos_prestar():
-    sku = request.form.get('sku')
-    cantidad = int(request.form.get('cantidad', 0))
-    local_vecino = request.form.get('local_vecino')
+    sku = request.form.get('sku', '').strip()
+    cantidad = int(request.form.get('cantidad', 1))
+    local_vecino = request.form.get('local_vecino', '').strip()
     variant_id_str = request.form.get('variant_id')
 
     if not sku:
-        flash('Asegúrate de escanear o ingresar un SKU válido.', 'danger')
+        flash('Asegúrate de escanear o ingresar un SKU o IMEI válido.', 'danger')
         return redirect(url_for('admin_bp.maneos'))
 
-    producto = Product.query.filter_by(sku=sku.strip()).first()
-    if not producto:
-        flash(f'Error: El producto con SKU "{sku}" no existe en el catálogo.', 'danger')
+    if not local_vecino:
+        flash('Debes especificar el nombre del local vecino o persona.', 'danger')
         return redirect(url_for('admin_bp.maneos'))
+
+    # Buscar por SKU, IMEI o IMEI2
+    from sqlalchemy import or_
+    producto = Product.query.filter(
+        or_(
+            Product.sku == sku,
+            Product.imei == sku,
+            Product.imei2 == sku
+        )
+    ).first()
+
+    # Si no se encontró directo, intentar buscar en variantes si tiene IMEI o subcategoría
+    if not producto:
+        variante_busqueda = ProductVariant.query.filter(ProductVariant.nombre_variante.ilike(f"%{sku}%")).first()
+        if variante_busqueda:
+            producto = variante_busqueda.producto
+            if not variant_id_str:
+                variant_id_str = str(variante_busqueda.id)
+
+    if not producto:
+        flash(f'Error: No se encontró ningún producto o celular con el SKU o IMEI "{sku}".', 'danger')
+        return redirect(url_for('admin_bp.maneos'))
+
+    es_celular = (producto.tipo_inventario == 'celulares' or bool(producto.imei))
+    if es_celular:
+        cantidad = 1 # Cada celular físico con IMEI se presta de forma individual
 
     # Determinar si se seleccionó una variante
     variante = None
@@ -216,6 +242,7 @@ def maneos_prestar():
         if variante:
             stock_anterior = variante.cantidad_stock
             variante.cantidad_stock -= cantidad
+            producto.cantidad_stock -= cantidad
         else:
             stock_anterior = producto.cantidad_stock
             producto.cantidad_stock -= cantidad
@@ -223,27 +250,33 @@ def maneos_prestar():
         nuevo_maneo = Maneo(
             product_id=producto.id,
             variant_id=variante.id if variante else None,
-            local_vecino=local_vecino.strip(),
+            local_vecino=local_vecino,
             cantidad=cantidad,
             estado='PENDIENTE'
         )
         db.session.add(nuevo_maneo)
 
-        # Registro en el Kardex
+        # Registro detallado en el Kardex
+        detalle_extra = ''
+        if es_celular and producto.imei:
+            detalle_extra = f' [IMEI: {producto.imei}]'
+        elif variante:
+            detalle_extra = f' [{variante.nombre_variante}]'
+
         ajuste = StockAdjustment(
             product_id=producto.id,
             admin_id=current_user.id,
-            tipo_movimiento=f'Préstamo (Maneo) a {local_vecino}' + (f' [{variante.nombre_variante}]' if variante else ''),
+            tipo_movimiento=f'Préstamo (Maneo) a {local_vecino}{detalle_extra}',
             stock_anterior=stock_anterior,
             stock_nuevo=variante.cantidad_stock if variante else producto.cantidad_stock
         )
         db.session.add(ajuste)
 
         db.session.commit()
-        flash('Maneo registrado y stock descontado exitosamente.', 'success')
+        flash(f'Maneo de "{producto.nombre}" prestado a {local_vecino} registrado y stock descontado exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash('Error al registrar el maneo. Transacción revertida.', 'danger')
+        flash(f'Error al registrar el maneo: {str(e)}', 'danger')
 
     return redirect(url_for('admin_bp.maneos'))
 
@@ -310,11 +343,16 @@ def maneos_facturar(id):
 
         metodo_pago_seleccionado = request.form.get('metodo_pago', 'efectivo')
         
+        sucursal_actual = getattr(current_user, 'sucursal', 'LOCAL 136') or 'LOCAL 136'
+        es_celular = (maneo.producto.tipo_inventario == 'celulares' or bool(maneo.producto.imei))
+
         # Registrar la venta real del Maneo
         nueva_venta = Sale(
             vendedor_id=current_user.id,
             monto_total=(precio_venta * cantidad_vendida),
-            metodo_pago=metodo_pago_seleccionado
+            metodo_pago=metodo_pago_seleccionado,
+            sucursal=sucursal_actual,
+            tipo_venta='celulares' if es_celular else 'general'
         )
         db.session.add(nueva_venta)
         db.session.flush() # forzar DB a darnos un ID para nueva_venta
@@ -335,6 +373,24 @@ def maneos_facturar(id):
             monto=(precio_venta * cantidad_vendida)
         )
         db.session.add(pago)
+
+        # Facturación automática al proveedor si es un celular/externo con proveedor y costo
+        prod = maneo.producto
+        if prod.proveedor and prod.tipo_inventario in ['celulares', 'externos']:
+            from models import Provider, ProviderInvoice
+            provider_obj = Provider.query.filter(Provider.nombre.ilike(prod.proveedor.strip())).first()
+            if provider_obj and prod.precio_costo and prod.precio_costo > 0:
+                ref_factura = prod.modelo_celular if prod.modelo_celular else prod.nombre
+                if prod.imei:
+                    ref_factura = f"{ref_factura} (IMEI: {prod.imei})"
+                factura_prov = ProviderInvoice(
+                    provider_id=provider_obj.id,
+                    sale_id=nueva_venta.id,
+                    monto_total=(prod.precio_costo * cantidad_vendida),
+                    numero_factura=ref_factura,
+                    descripcion=f"Facturación Maneo #{maneo.id} (Local: {maneo.local_vecino})"
+                )
+                db.session.add(factura_prov)
         
         db.session.commit()
 

@@ -112,6 +112,15 @@ class Product(db.Model):
             return min_p
         return (min_p, max_p)
 
+    @property
+    def maneo_activo(self):
+        if not self.maneos:
+            return None
+        for m in self.maneos:
+            if m.estado == 'PENDIENTE':
+                return m
+        return None
+
 class ProductVariant(db.Model):
     __tablename__ = 'product_variants'
 

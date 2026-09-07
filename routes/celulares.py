@@ -1,14 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from sqlalchemy import or_
-from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant
+from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant, ArqueoCaja, Maneo, StockAdjustment
 from decorators import admin_required
 from datetime import datetime
 import pytz
 import os
 from werkzeug.utils import secure_filename
 from decimal import Decimal
-from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant, ArqueoCaja
 
 celulares_bp = Blueprint('celulares_bp', __name__)
 
@@ -36,21 +35,32 @@ def inventario():
             costo_total += float(c.precio_costo) * c.cantidad_stock
             ventas_estimadas += float(c.precio_sugerido) * c.cantidad_stock
 
-    from sqlalchemy.orm import selectinload, joinedload
-    from models import SaleDetail
+    # Celulares actualmente prestados a locales vecinos (Maneo pendiente)
+    celulares_en_maneo = Product.query.filter(
+        Product.tipo_inventario == 'celulares',
+        Product.maneos.any(Maneo.estado == 'PENDIENTE')
+    ).count()
 
-    # Base query for table
+    from sqlalchemy.orm import selectinload, joinedload
+
+    # Base query for table with eager loading of ventas and maneos
     base_query = Product.query.options(
-        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta),
+        selectinload(Product.maneos)
     ).filter_by(tipo_inventario='celulares')
 
     if estado == 'activos':
         base_query = base_query.filter(Product.cantidad_stock > 0)
+    elif estado == 'maneo':
+        base_query = base_query.filter(Product.maneos.any(Maneo.estado == 'PENDIENTE'))
     elif estado == 'vendidos':
-        base_query = base_query.filter(Product.cantidad_stock == 0)
+        # Vendidos reales: sin stock y que no estén en préstamo de maneo
+        base_query = base_query.filter(
+            Product.cantidad_stock == 0,
+            ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
+        )
 
     if q:
-        from sqlalchemy import or_
         base_query = base_query.filter(
             or_(
                 Product.marca.ilike(f'%{q}%'),
@@ -72,7 +82,54 @@ def inventario():
                            estado=estado,
                            stock_activo=stock_activo,
                            costo_total=costo_total,
-                           ventas_estimadas=ventas_estimadas)
+                           ventas_estimadas=ventas_estimadas,
+                           celulares_en_maneo=celulares_en_maneo)
+
+@celulares_bp.route('/prestar/<int:id>', methods=['POST'])
+@login_required
+def prestar_celular(id):
+    celular = Product.query.get_or_404(id)
+    if celular.tipo_inventario != 'celulares' and not celular.imei:
+        flash('El producto seleccionado no es un celular válido.', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+
+    if celular.cantidad_stock <= 0:
+        flash(f'El celular "{celular.nombre}" no tiene unidades disponibles en stock para prestar.', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+
+    local_vecino = request.form.get('local_vecino', '').strip()
+    if not local_vecino:
+        flash('Debes indicar el nombre del local vecino o persona que recibe el celular.', 'danger')
+        return redirect(url_for('celulares_bp.inventario'))
+
+    try:
+        stock_anterior = celular.cantidad_stock
+        celular.cantidad_stock -= 1
+
+        nuevo_maneo = Maneo(
+            product_id=celular.id,
+            local_vecino=local_vecino,
+            cantidad=1,
+            estado='PENDIENTE'
+        )
+        db.session.add(nuevo_maneo)
+
+        ajuste = StockAdjustment(
+            product_id=celular.id,
+            admin_id=current_user.id,
+            tipo_movimiento=f'Préstamo (Maneo) a {local_vecino} [IMEI: {celular.imei or celular.sku}]',
+            stock_anterior=stock_anterior,
+            stock_nuevo=celular.cantidad_stock
+        )
+        db.session.add(ajuste)
+
+        db.session.commit()
+        flash(f'Celular {celular.nombre} (IMEI: {celular.imei}) entregado como préstamo a "{local_vecino}".', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al registrar el préstamo del celular: {str(e)}', 'danger')
+
+    return redirect(url_for('celulares_bp.inventario', estado='maneo'))
 
 
 from sqlalchemy.exc import IntegrityError

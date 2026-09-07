@@ -10,16 +10,25 @@
 
 <!-- Formulario para Nuevo Maneo -->
 <div class="card card-custom p-4 mb-4">
-    <h5 class="text-brand-black fw-bold mb-3"><i class="fa-solid fa-box-open text-brand-blue me-2"></i>Registrar Nuevo Maneo</h5>
+    <h5 class="text-brand-black fw-bold mb-3"><i class="fa-solid fa-handshake text-brand-blue me-2"></i>Registrar Nuevo Maneo (Préstamo a Local Vecino)</h5>
     <form method="POST" action="{{ url_for('admin_bp.maneos_prestar') }}" id="formNuevoManeo">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="variant_id" id="variant_id_hidden" value="">
         <div class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label fw-bold text-brand-black">Producto a Prestar / Entregar (SKU)</label>
-                <input type="text" name="sku" id="maneo_sku_input" class="form-control bg-light border-0" autofocus placeholder="Escanea o digita el SKU..." required>
+            <div class="col-md-5">
+                <label class="form-label fw-bold text-brand-black">Producto o Celular a Prestar (SKU o IMEI)</label>
+                <div class="input-group">
+                    <input type="text" name="sku" id="maneo_sku_input" list="listaProductosDisponibles" class="form-control bg-light border-0" autofocus placeholder="Escanea o digita SKU o IMEI..." required autocomplete="off">
+                    <button type="button" class="btn btn-outline-secondary border-0 bg-light" id="btnBuscarManeo"><i class="fa-solid fa-search"></i></button>
+                </div>
+                <datalist id="listaProductosDisponibles">
+                    {% for p in productos %}
+                        <option value="{{ p.imei if p.imei else p.sku }}">{{ p.nombre }} {% if p.imei %}[IMEI: {{ p.imei }}]{% endif %} (Stock: {{ p.cantidad_stock }})</option>
+                    {% endfor %}
+                </datalist>
+                <div id="producto_preview" class="mt-2 p-2 rounded-3 bg-light border d-none small"></div>
             </div>
-            <!-- Selector de Subcategoría (aparece dinámicamente) -->
+            <!-- Selector de Subcategoría (aparece dinámicamente si es accesorio con variantes) -->
             <div class="col-md-3" id="variant_selector_col" style="display: none;">
                 <label class="form-label fw-bold text-brand-black"><i class="fa-solid fa-layer-group text-primary me-1"></i>Subcategoría</label>
                 <select id="variant_selector" class="form-select bg-light border-0" onchange="onVariantChange()">
@@ -27,13 +36,13 @@
                 </select>
                 <small class="text-muted" id="variant_stock_info"></small>
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold text-brand-black">Local Vecino / Persona</label>
-                <input type="text" name="local_vecino" class="form-control bg-light border-0" placeholder="Ej: Fundas Alex" required>
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-brand-black">Local Vecino / Receptor</label>
+                <input type="text" name="local_vecino" class="form-control bg-light border-0" placeholder="Ej: Fundas Alex / Local 102" required>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-2" id="col_cantidad">
                 <label class="form-label fw-bold text-brand-black">Cantidad</label>
-                <input type="number" name="cantidad" class="form-control bg-light border-0" min="1" value="1" required>
+                <input type="number" name="cantidad" id="maneo_cantidad_input" class="form-control bg-light border-0" min="1" value="1" required>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-blue w-100 rounded-pill"><i class="fa-solid fa-paper-plane me-1"></i> Prestar</button>
@@ -50,7 +59,7 @@
                 <tr>
                     <th class="ps-4">FECHA PRÉSTAMO</th>
                     <th>LOCAL VECINO</th>
-                    <th>PRODUCTO (SKU)</th>
+                    <th>ARTÍCULO / CELULAR</th>
                     <th class="text-center">CANTIDAD</th>
                     <th class="text-center">ESTADO</th>
                     <th class="text-center">ACCIONES RÁPIDAS</th>
@@ -62,9 +71,26 @@
                     <td class="ps-4 text-muted"><small>{{ m.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</small></td>
                     <td class="fw-bold text-brand-black"><i class="fa-solid fa-store text-muted me-2"></i>{{ m.local_vecino }}</td>
                     <td>
-                        <span class="text-brand-black fw-semibold">{{ m.producto.nombre }}</span> <small class="text-muted">({{ m.producto.sku }})</small>
+                        {% if m.producto.tipo_inventario == 'celulares' or m.producto.imei %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 me-1" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-mobile-screen me-1"></i>Celular
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-0 me-1" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-cube me-1"></i>Accesorio
+                            </span>
+                        {% endif %}
+                        <span class="text-brand-black fw-bold">{{ m.producto.nombre }}</span>
+                        {% if m.producto.imei %}
+                            <div class="small text-muted mt-1">
+                                <span class="badge bg-dark bg-opacity-10 text-dark border font-monospace px-2 py-0">IMEI: {{ m.producto.imei }}</span>
+                                {% if m.producto.imei2 %}<span class="badge bg-light text-muted border font-monospace px-2 py-0 ms-1">IMEI2: {{ m.producto.imei2 }}</span>{% endif %}
+                            </div>
+                        {% else %}
+                            <small class="text-muted d-block">SKU: {{ m.producto.sku }}</small>
+                        {% endif %}
                         {% if m.variante %}
-                            <br><span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-2 mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-layer-group me-1"></i>{{ m.variante.nombre_variante }}</span>
+                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-2 mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-layer-group me-1"></i>{{ m.variante.nombre_variante }}</span>
                         {% endif %}
                     </td>
                     <td class="text-center fw-bold">{{ m.cantidad }} uds</td>
@@ -197,7 +223,7 @@
     </div>
 </div>
 
-<!-- Script para cargar subcategorías dinámicamente al digitar el SKU -->
+<!-- Script para cargar subcategorías y detalles dinámicamente al digitar o escanear SKU/IMEI -->
 <script>
     let debounceTimer = null;
     const skuInput = document.getElementById('maneo_sku_input');
@@ -205,31 +231,41 @@
     const variantSelect = document.getElementById('variant_selector');
     const variantHidden = document.getElementById('variant_id_hidden');
     const variantStockInfo = document.getElementById('variant_stock_info');
+    const productoPreview = document.getElementById('producto_preview');
+    const cantidadInput = document.getElementById('maneo_cantidad_input');
+    const btnBuscarManeo = document.getElementById('btnBuscarManeo');
 
     skuInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             const sku = skuInput.value.trim();
             if (sku.length > 0) {
-                buscarVariantes(sku);
+                buscarProducto(sku);
             } else {
                 ocultarVariantes();
             }
-        }, 400);
+        }, 350);
     });
 
-    // También al presionar Enter (por si usa escáner)
+    if (btnBuscarManeo) {
+        btnBuscarManeo.addEventListener('click', () => {
+            const sku = skuInput.value.trim();
+            if (sku) buscarProducto(sku);
+        });
+    }
+
+    // También al presionar Enter (por si usa escáner de código de barras)
     skuInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Detener el submit automático del escáner
+            e.preventDefault();
             const sku = skuInput.value.trim();
             if (sku.length > 0) {
-                buscarVariantesYEnviar(sku);
+                buscarProducto(sku);
             }
         }
     });
 
-    async function buscarVariantes(sku) {
+    async function buscarProducto(sku) {
         try {
             const response = await fetch(`/sales/api/producto/${encodeURIComponent(sku)}`);
             if (!response.ok) {
@@ -238,36 +274,41 @@
             }
             const producto = await response.json();
 
+            // Preview visual
+            if (productoPreview) {
+                productoPreview.classList.remove('d-none');
+                if (producto.tipo_inventario === 'celulares' || producto.imei) {
+                    productoPreview.innerHTML = `
+                        <div class="alert alert-primary py-2 px-3 mb-0 border-0 rounded-3">
+                            <div class="fw-bold text-primary"><i class="fa-solid fa-mobile-screen me-2"></i>${producto.nombre}</div>
+                            <div class="text-muted font-monospace small mt-1">IMEI: <strong>${producto.imei || 'Sin IMEI'}</strong> ${producto.imei2 ? '| IMEI 2: ' + producto.imei2 : ''}</div>
+                            <div class="small mt-1"><span class="badge bg-success bg-opacity-10 text-success border border-success">Stock: ${producto.cantidad_stock} ud.</span></div>
+                        </div>`;
+                    if (cantidadInput) {
+                        cantidadInput.value = 1;
+                        cantidadInput.max = 1;
+                        cantidadInput.readOnly = true;
+                    }
+                } else {
+                    productoPreview.innerHTML = `
+                        <div class="alert alert-light py-2 px-3 mb-0 border rounded-3">
+                            <div class="fw-bold text-dark"><i class="fa-solid fa-cube me-2 text-secondary"></i>${producto.nombre}</div>
+                            <small class="text-muted">Stock actual: <strong>${producto.cantidad_stock}</strong> uds.</small>
+                        </div>`;
+                    if (cantidadInput) {
+                        cantidadInput.readOnly = false;
+                        cantidadInput.max = producto.cantidad_stock || 999;
+                    }
+                }
+            }
+
             if (producto.variantes && producto.variantes.length > 0) {
                 mostrarSelectorVariantes(producto.variantes);
             } else {
-                ocultarVariantes();
+                ocultarVariantes(false);
             }
         } catch (err) {
             ocultarVariantes();
-        }
-    }
-
-    async function buscarVariantesYEnviar(sku) {
-        try {
-            const response = await fetch(`/sales/api/producto/${encodeURIComponent(sku)}`);
-            if (!response.ok) {
-                document.getElementById('formNuevoManeo').submit();
-                return;
-            }
-            const producto = await response.json();
-
-            if (producto.variantes && producto.variantes.length > 0) {
-                // Hay variantes, NO enviamos el formulario automáticamente.
-                mostrarSelectorVariantes(producto.variantes);
-                // Enfocar el selector para que el usuario elija
-                variantSelect.focus();
-            } else {
-                // Si no tiene variantes, enviamos el formulario automáticamente
-                document.getElementById('formNuevoManeo').submit();
-            }
-        } catch(e) {
-            document.getElementById('formNuevoManeo').submit();
         }
     }
 
@@ -282,11 +323,19 @@
         variantStockInfo.textContent = '';
     }
 
-    function ocultarVariantes() {
+    function ocultarVariantes(limpiarPreview = true) {
         variantCol.style.display = 'none';
         variantSelect.innerHTML = '<option value="">— Producto general —</option>';
         variantHidden.value = '';
         variantStockInfo.textContent = '';
+        if (limpiarPreview && productoPreview) {
+            productoPreview.classList.add('d-none');
+            productoPreview.innerHTML = '';
+            if (cantidadInput) {
+                cantidadInput.readOnly = false;
+                cantidadInput.max = '';
+            }
+        }
     }
 
     function onVariantChange() {
@@ -295,6 +344,9 @@
         
         if (variantSelect.value && selectedOption.dataset.stock) {
             variantStockInfo.innerHTML = `<i class="fa-solid fa-cubes text-primary me-1"></i> Stock disponible: <strong>${selectedOption.dataset.stock}</strong> uds`;
+            if (cantidadInput) {
+                cantidadInput.max = selectedOption.dataset.stock;
+            }
         } else {
             variantStockInfo.textContent = '';
         }

@@ -46,29 +46,35 @@
 
 <!-- Tarjetas KPI -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3 col-6">
         <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0f8ff);">
             <div class="fs-1 fw-bold text-brand-blue">{{ stock_activo }}</div>
-            <div class="text-muted small fw-bold">STOCK (UNIDADES ACTIVAS)</div>
+            <div class="text-muted small fw-bold">STOCK ACTIVO (EN TIENDA)</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #fffdf0); border: 1px solid #ffeeba !important;">
+            <div class="fs-1 fw-bold text-warning">{{ celulares_en_maneo }}</div>
+            <div class="text-muted small fw-bold">EN MANEO (PRESTADOS)</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
         <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #fff5f5);">
             <div class="fs-1 fw-bold text-danger">${{ costo_total|cop }}</div>
-            <div class="text-muted small fw-bold">COSTO TOTAL DE MERCANCÍA</div>
+            <div class="text-muted small fw-bold">COSTO TOTAL MERCANCÍA</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3 col-6">
         <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0fff4);">
             <div class="fs-1 fw-bold text-success">${{ ventas_estimadas|cop }}</div>
-            <div class="text-muted small fw-bold">VALOR ESTIMADO DE VENTAS</div>
+            <div class="text-muted small fw-bold">VALOR ESTIMADO VENTAS</div>
         </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <!-- Barra de Búsqueda Server-Side -->
-    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex gap-2 w-100" style="max-width: 600px;">
+    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex gap-2 w-100" style="max-width: 550px;">
         <div class="input-group shadow-sm">
             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
             <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
@@ -83,8 +89,15 @@
     </form>
     
     <div class="btn-group shadow-sm">
-        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">Activos</a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">Vendidos</a>
+        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
+            <i class="fa-solid fa-boxes-stacked me-1"></i> Activos
+        </a>
+        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
+            <i class="fa-solid fa-handshake me-1"></i> En Maneo ({{ celulares_en_maneo }})
+        </a>
+        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
+            <i class="fa-solid fa-check me-1"></i> Vendidos
+        </a>
     </div>
 </div>
 
@@ -104,6 +117,8 @@
                     <th class="py-2 fw-bold">INVENTARIO</th>
                     {% if estado == 'vendidos' %}
                         <th class="py-2 fw-bold text-primary">FECHA VENTA</th>
+                    {% elif estado == 'maneo' %}
+                        <th class="py-2 fw-bold text-warning">LOCAL RECEPTOR</th>
                     {% else %}
                         <th class="py-2 fw-bold">FECHA INGRESO</th>
                     {% endif %}
@@ -121,14 +136,17 @@
                     <td>{{ c.memoria or '-' }}</td>
                     <td>{{ c.bateria or '-' }}</td>
                     <td>{{ c.color or '-' }}</td>
-                    <td class="text-muted">{{ c.imei or '-' }}</td>
-                    <td class="text-muted">{{ c.imei2 or '-' }}</td>
+                    <td class="text-muted font-monospace">{{ c.imei or '-' }}</td>
+                    <td class="text-muted font-monospace">{{ c.imei2 or '-' }}</td>
                     <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
                     <td class="text-truncate" style="max-width: 100px;" title="{{ c.inventario or '-' }}">{{ c.inventario or '-' }}</td>
                     <td>
                         {% if estado == 'vendidos' and c.detalles_venta %}
                             <span class="fw-bold text-dark">{{ c.detalles_venta[0].venta.fecha_venta.strftime('%d/%m/%Y') }}</span>
                             <small class="text-muted d-block" style="font-size: 0.7rem;" title="Fecha de Ingreso al Inventario">Ingreso: {{ c.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                        {% elif estado == 'maneo' and c.maneo_activo %}
+                            <span class="fw-bold text-dark"><i class="fa-solid fa-store text-warning me-1"></i>{{ c.maneo_activo.local_vecino }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">Prestado: {{ c.maneo_activo.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</small>
                         {% else %}
                             <span>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</span>
                         {% endif %}
@@ -139,10 +157,23 @@
                     <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
                     
                     <td class="pe-3 text-center">
-                        {% if c.total_stock <= 0 %}
+                        {% if c.maneo_activo %}
+                            <div class="d-flex flex-column align-items-center gap-1">
+                                <span class="badge bg-warning text-dark fw-bold shadow-sm rounded-pill px-2 py-1" style="font-size: 0.72rem;" title="Prestado a {{ c.maneo_activo.local_vecino }}">
+                                    <i class="fa-solid fa-handshake me-1"></i>En Maneo: {{ c.maneo_activo.local_vecino }}
+                                </span>
+                                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-xs btn-outline-dark rounded-pill py-0 px-2 shadow-sm" style="font-size: 0.7rem;" title="Gestionar Maneo (Cobrar o Devolver)">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Gestionar
+                                </a>
+                            </div>
+                        {% elif c.total_stock <= 0 %}
                             <span class="badge bg-dark fw-bold shadow-sm rounded-pill px-3 py-1">VENDIDO</span>
                         {% else %}
-                            <div class="d-flex justify-content-center gap-2">
+                            <div class="d-flex justify-content-center gap-1">
+                                <!-- Botón Rápido: Prestar a Local Vecino (Maneo) -->
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Prestar a Local Vecino (Maneo)" data-bs-toggle="modal" data-bs-target="#modalPrestarCelular{{ c.id }}">
+                                    <i class="fa-solid fa-handshake text-dark" style="font-size: 0.75rem;"></i>
+                                </button>
                                 <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar">
                                     <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
                                 </a>
@@ -153,12 +184,42 @@
                                     </button>
                                 </form>
                             </div>
+
+                            <!-- Modal Prestar Celular Directo -->
+                            <div class="modal fade text-start" id="modalPrestarCelular{{ c.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content border-0 shadow-lg rounded-4">
+                                        <div class="modal-header border-bottom-0 pb-0">
+                                            <h6 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-handshake text-warning me-2"></i>Prestar Celular (Maneo)</h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('celulares_bp.prestar_celular', id=c.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="modal-body py-3">
+                                                <p class="small text-muted mb-2">
+                                                    Vas a prestar este celular a un local vecino. Su stock pasará a 0 y quedará registrado en Maneos.
+                                                </p>
+                                                <div class="p-2 rounded-3 bg-light border mb-3 small">
+                                                    <strong>{{ c.marca }} {{ c.modelo_celular }}</strong><br>
+                                                    <span class="font-monospace text-muted">IMEI: {{ c.imei }}</span>
+                                                </div>
+                                                <label class="form-label fw-bold small text-muted">Local Vecino / Persona *</label>
+                                                <input type="text" name="local_vecino" class="form-control" placeholder="Ej: Fundas Alex / Local 102" required autofocus>
+                                            </div>
+                                            <div class="modal-footer border-top-0 pt-0">
+                                                <button type="button" class="btn btn-light rounded-pill btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-warning text-dark rounded-pill btn-sm px-3 fw-bold shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> Prestar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         {% endif %}
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="13" class="text-center py-4 text-muted">
+                    <td colspan="14" class="text-center py-4 text-muted">
                         <i class="fa-solid fa-mobile-screen-button fs-3 mb-2 opacity-50"></i>
                         <p class="mb-0">No hay celulares registrados.</p>
                     </td>
