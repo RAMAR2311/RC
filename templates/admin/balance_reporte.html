@@ -15,11 +15,11 @@
                  <div class="d-flex align-items-center gap-2 flex-wrap">
                      <form method="GET" action="{{ url_for('admin_bp.balance_financiero') }}" class="d-flex align-items-center gap-2 flex-wrap m-0">
                          <div class="input-group input-group-sm">
-                             <span class="input-group-text bg-light border-1 fw-semibold">Canal</span>
+                             <span class="input-group-text bg-light border-1 fw-semibold">Local</span>
                              <select name="ambito" class="form-select form-select-sm" onchange="this.form.submit()">
-                                 <option value="consolidado" {% if datos.ambito == 'consolidado' %}selected{% endif %}>Consolidado (Toda la Empresa)</option>
-                                 <option value="tienda" {% if datos.ambito == 'tienda' %}selected{% endif %}>Tienda Mostrador (Local 136)</option>
-                                 <option value="bodega" {% if datos.ambito == 'bodega' %}selected{% endif %}>Bodega Mayorista</option>
+                                 <option value="consolidado" {% if datos.ambito == 'consolidado' %}selected{% endif %}>Consolidado (Ambos Locales: 136 + 197)</option>
+                                 <option value="local_136" {% if datos.ambito == 'local_136' %}selected{% endif %}>Local 136</option>
+                                 <option value="local_197" {% if datos.ambito == 'local_197' %}selected{% endif %}>Local 197</option>
                              </select>
                          </div>
                          <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
@@ -43,7 +43,7 @@
                 <h2 class="fw-bold text-brand-black mb-0">RedCover</h2>
                 <p class="fw-bold text-brand-black mb-2" style="margin-top: 2px;">NIT: 1013679035-0</p>
                 <div class="badge bg-dark px-3 py-2 text-uppercase mb-2" style="letter-spacing: 1px;">
-                    Ámbito: {% if datos.ambito == 'tienda' %}Tienda Mostrador{% elif datos.ambito == 'bodega' %}Bodega Mayorista{% else %}Consolidado General{% endif %}
+                    Ámbito: {% if datos.ambito == 'local_136' %}Local 136{% elif datos.ambito == 'local_197' %}Local 197{% else %}Consolidado General (Local 136 + Local 197){% endif %}
                 </div>
                 <h4 class="text-brand-black fw-bold mb-1">ESTADO DE RESULTADOS CONTABLE</h4>
                 <p class="mb-0 text-secondary">
@@ -58,9 +58,8 @@
             </h5>
             <table class="table table-borderless table-sm fw-semibold text-secondary fs-6 mb-5">
                 <tbody>
-                    {% if datos.ambito in ['tienda', 'consolidado'] %}
                     <tr>
-                        <td width="70%">Ventas Validadas en Efectivo (Tienda)</td>
+                        <td width="70%">Ventas Validadas en Efectivo</td>
                         <td width="30%" class="text-end">${{ (datos.ventas_efectivo)|cop }}</td>
                     </tr>
                     <tr>
@@ -74,28 +73,44 @@
                         </td>
                         <td class="text-end text-primary fw-bold">+${{ (datos.ventas_retoma)|cop }}</td>
                     </tr>
-                    {% if datos.ambito == 'consolidado' %}
-                    <tr class="text-muted small">
-                        <td class="ps-3 fst-italic">Subtotal Ventas Tienda Mostrador</td>
-                        <td class="text-end fst-italic">${{ (datos.ventas_tienda_brutas)|cop }}</td>
-                    </tr>
-                    {% endif %}
-                    {% endif %}
 
-                    {% if datos.ambito in ['bodega', 'consolidado'] %}
+                    {% if datos.ambito == 'consolidado' %}
                     <tr class="border-top">
-                        <td>Facturación de Bodega de Contado</td>
-                        <td class="text-end">${{ (datos.ventas_bodega_contado)|cop }}</td>
-                    </tr>
-                    <tr>
-                        <td>Facturación de Bodega a Crédito</td>
-                        <td class="text-end">${{ (datos.ventas_bodega_credito)|cop }}</td>
-                    </tr>
-                    <tr class="text-muted small">
-                        <td class="ps-3 fst-italic">
-                            Abonos de Cartera Recaudados en el período (Bodega)
+                        <td colspan="2" class="pt-3 pb-2">
+                            <div class="small fw-bold text-uppercase text-muted mb-2"><i class="fa-solid fa-code-compare me-1"></i> Comparativo por Local Comercial:</div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered bg-light mb-0 small text-center align-middle">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-start">Punto de Venta</th>
+                                            <th>Ventas</th>
+                                            <th class="text-end">Ingresos Brutos</th>
+                                            <th class="text-end">Costo Mercancía (COGS)</th>
+                                            <th class="text-end">Utilidad Bruta</th>
+                                            <th>Margen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-start fw-bold"><i class="fa-solid fa-shop me-1 text-primary"></i> Local 136</td>
+                                            <td>{{ datos.res_136.cantidad_ventas }}</td>
+                                            <td class="text-end fw-semibold">${{ (datos.res_136.ventas_brutas)|cop }}</td>
+                                            <td class="text-end text-danger">-${{ (datos.res_136.costos_directos)|cop }}</td>
+                                            <td class="text-end fw-bold text-success">${{ (datos.res_136.utilidad_bruta)|cop }}</td>
+                                            <td><span class="badge bg-success bg-opacity-75">{{ "%.1f"|format(datos.res_136.margen_bruto_pct) }}%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-start fw-bold"><i class="fa-solid fa-shop me-1 text-info"></i> Local 197</td>
+                                            <td>{{ datos.res_197.cantidad_ventas }}</td>
+                                            <td class="text-end fw-semibold">${{ (datos.res_197.ventas_brutas)|cop }}</td>
+                                            <td class="text-end text-danger">-${{ (datos.res_197.costos_directos)|cop }}</td>
+                                            <td class="text-end fw-bold text-success">${{ (datos.res_197.utilidad_bruta)|cop }}</td>
+                                            <td><span class="badge bg-success bg-opacity-75">{{ "%.1f"|format(datos.res_197.margen_bruto_pct) }}%</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </td>
-                        <td class="text-end fst-italic">${{ (datos.abonos_bodega_recaudo)|cop }}</td>
                     </tr>
                     {% endif %}
 
@@ -174,20 +189,26 @@
                             <table class="table table-borderless table-sm mb-0">
                                 <tbody>
                                     <tr>
-                                        <td>Inventario Celulares (Costo)</td>
+                                        <td>Inventario Celulares (Costo en Stock)</td>
                                         <td class="text-end fw-semibold">${{ (datos.inventario_valorado_celulares)|cop }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Inventario Tienda Accesorios (Costo)</td>
-                                        <td class="text-end fw-semibold">${{ (datos.inventario_valorado_tienda)|cop }}</td>
+                                        <td>Inventario Accesorios y Otros (Costo en Stock)</td>
+                                        <td class="text-end fw-semibold">${{ (datos.inventario_valorado_accesorios)|cop }}</td>
                                     </tr>
-                                    <tr>
-                                        <td>Inventario Bodega Mayorista (Costo)</td>
-                                        <td class="text-end fw-semibold">${{ (datos.inventario_valorado_bodega)|cop }}</td>
+                                    {% if datos.ambito == 'consolidado' %}
+                                    <tr class="border-top text-muted small">
+                                        <td class="ps-3"><i class="fa-solid fa-shop me-1"></i> Stock Valorado Local 136</td>
+                                        <td class="text-end">${{ (datos.inventario_valorado_136)|cop }}</td>
                                     </tr>
+                                    <tr class="text-muted small">
+                                        <td class="ps-3"><i class="fa-solid fa-shop me-1"></i> Stock Valorado Local 197</td>
+                                        <td class="text-end">${{ (datos.inventario_valorado_197)|cop }}</td>
+                                    </tr>
+                                    {% endif %}
                                     <tr class="border-top">
-                                        <td class="fw-bold">Σ Total Inventario Físico en Stock</td>
-                                        <td class="text-end fw-bold text-primary">${{ (datos.inventario_valorado_total)|cop }}</td>
+                                        <td class="fw-bold">Σ Total Inventario Físico {% if datos.ambito == 'local_136' %}(Local 136){% elif datos.ambito == 'local_197' %}(Local 197){% else %}(Ambos Locales){% endif %}</td>
+                                        <td class="text-end fw-bold text-primary">${{ (datos.inventario_valorado_activo)|cop }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Cuentas por Cobrar (Cartera Clientes)</td>

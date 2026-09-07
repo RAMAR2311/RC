@@ -28,13 +28,13 @@
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
           <div class="modal-body">
-              <p class="text-muted small">Selecciona el canal y rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
+              <p class="text-muted small">Selecciona el local comercial y rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
               <div class="mb-3">
-                  <label class="form-label fw-bold text-brand-black small">Canal / Ámbito</label>
+                  <label class="form-label fw-bold text-brand-black small">Punto de Venta / Local</label>
                   <select name="ambito" class="form-select bg-light border-1">
-                      <option value="consolidado" selected>Consolidado General (Toda la Empresa)</option>
-                      <option value="tienda">Tienda Mostrador (Local 136)</option>
-                      <option value="bodega">Bodega Mayorista</option>
+                      <option value="consolidado" selected>Consolidado General (Ambos Locales: 136 + 197)</option>
+                      <option value="local_136">Local 136</option>
+                      <option value="local_197">Local 197</option>
                   </select>
               </div>
               <div class="mb-3">

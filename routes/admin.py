@@ -443,113 +443,136 @@ def balance_financiero():
         flash("Formato de fecha inválido.", "danger")
         return redirect(url_for('admin_bp.dashboard'))
 
-    from models import Retoma, FacturaBodega, FacturaBodegaDetalle, AbonoBodega, Cliente, Provider
+    from models import Retoma, Cliente, Provider, Expense, Sale, SaleDetail, Product
 
     # ----------------------------------------------------
-    # 1. TIENDA / MOSTRADOR
+    # VALIDAR ÁMBITO (Consolidado, Local 136, Local 197)
+    # ----------------------------------------------------
+    ambito = request.args.get('ambito', 'consolidado').strip().lower()
+    if ambito not in ['consolidado', 'local_136', 'local_197']:
+        ambito = 'consolidado'
+
+    # ----------------------------------------------------
+    # 1. CARGA DE VENTAS SEGÚN PERÍODO
     # ----------------------------------------------------
     ventas_query = Sale.query.filter(Sale.fecha_venta >= inicio_dt, Sale.fecha_venta < fin_dt_query).all()
-    detalles_query = SaleDetail.query.join(Sale).filter(
-        Sale.fecha_venta >= inicio_dt,
-        Sale.fecha_venta < fin_dt_query
-    ).all()
-    
-    # Ventas brutas reales facturadas en tienda
-    ventas_tienda_brutas = sum(Decimal(str(d.precio_venta_final)) * d.cantidad_vendida for d in detalles_query)
-    
-    # Desglose de recaudos en tienda
-    ventas_efectivo = Decimal('0.00')
-    ventas_transferencia = Decimal('0.00')
-    for v in ventas_query:
-        if v.pagos:
-            for pago in v.pagos:
-                if pago.metodo_pago == 'efectivo':
-                    ventas_efectivo += Decimal(str(pago.monto or 0))
-                elif pago.metodo_pago != 'retoma':
-                    ventas_transferencia += Decimal(str(pago.monto or 0))
-        else:
-            if v.metodo_pago == 'efectivo':
-                ventas_efectivo += Decimal(str(v.monto_total or 0))
-            elif v.metodo_pago != 'retoma':
-                ventas_transferencia += Decimal(str(v.monto_total or 0))
 
-    # Valor total de las retomas recibidas en tienda en este período
-    ventas_retoma = sum(Decimal(str(r.valor_retoma or 0)) for v in ventas_query for r in v.retomas_asociadas)
+    # Clasificar ventas por local
+    ventas_136 = [v for v in ventas_query if '197' not in (v.sucursal or '')]
+    ventas_197 = [v for v in ventas_query if '197' in (v.sucursal or '')]
 
-    # Costos Directos Tienda (COGS)
-    costos_directos_tienda = Decimal('0.00')
-    for d in detalles_query:
-        if d.nombre_manual:
-            costos_directos_tienda += Decimal(str(d.precio_costo_manual or 0)) * d.cantidad_vendida
-        elif d.variant_id:
-            v = d.variante
-            p = d.producto or (v.producto if v else None)
-            costo_u = (v.precio_costo if (v and v.precio_costo is not None) else (p.precio_costo if p else Decimal('0.00'))) or Decimal('0.00')
-            costos_directos_tienda += Decimal(str(costo_u)) * d.cantidad_vendida
-        elif d.product_id:
-            p = d.producto
-            if p:
-                costos_directos_tienda += Decimal(str(p.precio_costo or 0)) * d.cantidad_vendida
+    def calcular_metricas_ventas(lista_ventas):
+        brutas = Decimal('0.00')
+        costos = Decimal('0.00')
+        efectivo = Decimal('0.00')
+        transferencia = Decimal('0.00')
+        retoma = Decimal('0.00')
+
+        for v in lista_ventas:
+            for d in v.detalles:
+                cant = d.cantidad_vendida or 1
+                pv = Decimal(str(d.precio_venta_final or 0))
+                brutas += (pv * cant)
+
+                if d.nombre_manual:
+                    costos += Decimal(str(d.precio_costo_manual or 0)) * cant
+                elif d.variant_id:
+                    var = d.variante
+                    p = d.producto or (var.producto if var else None)
+                    c_u = (var.precio_costo if (var and var.precio_costo is not None) else (p.precio_costo if p else Decimal('0.00'))) or Decimal('0.00')
+                    costos += Decimal(str(c_u)) * cant
+                elif d.product_id:
+                    p = d.producto
+                    if p:
+                        costos += Decimal(str(p.precio_costo or 0)) * cant
+
+            if v.pagos:
+                for p in v.pagos:
+                    if p.metodo_pago == 'efectivo':
+                        efectivo += Decimal(str(p.monto or 0))
+                    elif p.metodo_pago != 'retoma':
+                        transferencia += Decimal(str(p.monto or 0))
+            else:
+                if v.metodo_pago == 'efectivo':
+                    efectivo += Decimal(str(v.monto_total or 0))
+                elif v.metodo_pago != 'retoma':
+                    transferencia += Decimal(str(v.monto_total or 0))
+
+            for r in v.retomas_asociadas:
+                retoma += Decimal(str(r.valor_retoma or 0))
+
+        utilidad = brutas - costos
+        margen = (utilidad / brutas * 100) if brutas > 0 else Decimal('0.00')
+
+        return {
+            'ventas_brutas': float(brutas),
+            'costos_directos': float(costos),
+            'utilidad_bruta': float(utilidad),
+            'margen_bruto_pct': float(margen),
+            'ventas_efectivo': float(efectivo),
+            'ventas_transferencia': float(transferencia),
+            'ventas_retoma': float(retoma),
+            'cantidad_ventas': len(lista_ventas)
+        }
+
+    res_136 = calcular_metricas_ventas(ventas_136)
+    res_197 = calcular_metricas_ventas(ventas_197)
+    res_consolidado = calcular_metricas_ventas(ventas_query)
+
+    if ambito == 'local_136':
+        res_activo = res_136
+    elif ambito == 'local_197':
+        res_activo = res_197
+    else:
+        res_activo = res_consolidado
 
     # ----------------------------------------------------
-    # 2. BODEGA / MAYORISTA
+    # 2. GASTOS Y COSTOS INDIRECTOS
     # ----------------------------------------------------
-    facturas_bodega = FacturaBodega.query.filter(FacturaBodega.fecha_subida >= inicio_dt, FacturaBodega.fecha_subida < fin_dt_query).all()
-    detalles_bodega = FacturaBodegaDetalle.query.join(FacturaBodega).filter(FacturaBodega.fecha_subida >= inicio_dt, FacturaBodega.fecha_subida < fin_dt_query).all()
-    abonos_bodega = AbonoBodega.query.filter(AbonoBodega.fecha_abono >= inicio_dt, AbonoBodega.fecha_abono < fin_dt_query).all()
+    gastos_base = Expense.query.filter(Expense.fecha_gasto >= inicio_dt, Expense.fecha_gasto < fin_dt_query).all()
 
-    ventas_bodega_brutas = sum(Decimal(str(f.monto_total or 0)) for f in facturas_bodega)
-    ventas_bodega_contado = sum(Decimal(str(f.monto_total or 0)) for f in facturas_bodega if f.modalidad == 'contado')
-    ventas_bodega_credito = sum(Decimal(str(f.monto_total or 0)) for f in facturas_bodega if f.modalidad == 'credito')
-    abonos_bodega_recaudo = sum(Decimal(str(a.monto or 0)) for a in abonos_bodega)
+    def es_gasto_197(g):
+        if g.sucursal and '197' in g.sucursal:
+            return True
+        if g.usuario and g.usuario.sucursal and '197' in g.usuario.sucursal:
+            return True
+        return False
 
-    costos_directos_bodega = Decimal('0.00')
-    for dbod in detalles_bodega:
-        p = dbod.producto
-        v = dbod.variante
-        costo_u = (v.precio_costo if (v and v.precio_costo is not None) else (p.precio_costo if p else Decimal('0.00'))) or Decimal('0.00')
-        costos_directos_bodega += Decimal(str(costo_u)) * dbod.cantidad
+    gastos_197 = [g for g in gastos_base if es_gasto_197(g)]
+    gastos_136 = [g for g in gastos_base if not es_gasto_197(g)]
 
-    # ----------------------------------------------------
-    # 3. GASTOS Y COSTOS INDIRECTOS (SIN DUPLICIDAD)
-    # ----------------------------------------------------
-    gastos_query = Expense.query.filter(Expense.fecha_gasto >= inicio_dt, Expense.fecha_gasto < fin_dt_query).all()
-    
-    costos_indirectos = sum(Decimal(str(g.monto)) for g in gastos_query if g.tipo_gasto == 'Costo Indirecto')
-    # Excluimos 'Pago Prod. Externo' porque su costo directo ya se computa en costos_directos (COGS)
+    if ambito == 'local_136':
+        gastos_auditar = gastos_136
+    elif ambito == 'local_197':
+        gastos_auditar = gastos_197
+    else:
+        gastos_auditar = gastos_base
+
+    costos_indirectos = sum(Decimal(str(g.monto or 0)) for g in gastos_auditar if g.tipo_gasto == 'Costo Indirecto')
     gastos_operacionales = sum(
-        Decimal(str(g.monto)) for g in gastos_query 
+        Decimal(str(g.monto or 0)) for g in gastos_auditar
         if g.tipo_gasto == 'Gasto Diario' and (g.categoria or '').strip().lower() != 'pago prod. externo'
     )
 
     # ----------------------------------------------------
-    # 4. CONSOLIDACIÓN SEGÚN ÁMBITO
+    # 3. CONSOLIDACIÓN P&L (RESULTADOS OPERATIVOS)
     # ----------------------------------------------------
-    if ambito == 'tienda':
-        total_ingresos = ventas_tienda_brutas
-        costos_directos = costos_directos_tienda
-    elif ambito == 'bodega':
-        total_ingresos = ventas_bodega_brutas
-        costos_directos = costos_directos_bodega
-    else:
-        ambito = 'consolidado'
-        total_ingresos = ventas_tienda_brutas + ventas_bodega_brutas
-        costos_directos = costos_directos_tienda + costos_directos_bodega
-
-    utilidad_bruta = total_ingresos - costos_directos
-    margen_bruto_pct = (utilidad_bruta / total_ingresos * 100) if total_ingresos > 0 else Decimal('0.00')
+    total_ingresos = Decimal(str(res_activo['ventas_brutas']))
+    costos_directos = Decimal(str(res_activo['costos_directos']))
+    utilidad_bruta = Decimal(str(res_activo['utilidad_bruta']))
+    margen_bruto_pct = res_activo['margen_bruto_pct']
 
     total_salidas = costos_directos + costos_indirectos + gastos_operacionales
     balance_neto = total_ingresos - total_salidas
-    margen_neto_pct = (balance_neto / total_ingresos * 100) if total_ingresos > 0 else Decimal('0.00')
+    margen_neto_pct = float((balance_neto / total_ingresos * 100)) if total_ingresos > 0 else 0.0
 
     # ----------------------------------------------------
-    # 5. BALANCE GENERAL PATRIMONIAL (AL CORTE ACTUAL)
+    # 4. BALANCE GENERAL PATRIMONIAL (SITUACIÓN A LA FECHA)
     # ----------------------------------------------------
-    inventario_valorado_total = Decimal('0.00')
-    inventario_valorado_tienda = Decimal('0.00')
-    inventario_valorado_bodega = Decimal('0.00')
-    inventario_valorado_celulares = Decimal('0.00')
+    inventario_136 = Decimal('0.00')
+    inventario_197 = Decimal('0.00')
+    inventario_celulares = Decimal('0.00')
+    inventario_accesorios = Decimal('0.00')
 
     productos_stock = Product.query.filter(Product.cantidad_stock > 0).all()
     for p in productos_stock:
@@ -561,39 +584,42 @@ def balance_financiero():
         else:
             val_p = Decimal(str(p.precio_costo or 0)) * p.cantidad_stock
 
-        inventario_valorado_total += val_p
-        if p.tipo_inventario == 'celulares':
-            inventario_valorado_celulares += val_p
-        elif p.tipo_inventario == 'bodega':
-            inventario_valorado_bodega += val_p
+        if p.inventario and '197' in p.inventario:
+            inventario_197 += val_p
         else:
-            inventario_valorado_tienda += val_p
+            inventario_136 += val_p
+
+        if p.tipo_inventario == 'celulares':
+            inventario_celulares += val_p
+        else:
+            inventario_accesorios += val_p
+
+    inventario_total = inventario_136 + inventario_197
+
+    if ambito == 'local_136':
+        inventario_activo = inventario_136
+    elif ambito == 'local_197':
+        inventario_activo = inventario_197
+    else:
+        inventario_activo = inventario_total
 
     cartera_clientes = sum(Decimal(str(c.deuda_total or 0)) for c in Cliente.query.all() if (c.deuda_total or 0) > 0)
     cuentas_por_pagar_proveedores = sum(
         Decimal(str(prov.saldo_pendiente or 0)) for prov in Provider.query.all() if (prov.saldo_pendiente or 0) > 0
     )
 
-    total_activos = inventario_valorado_total + cartera_clientes
+    total_activos = inventario_activo + cartera_clientes
     total_pasivos = cuentas_por_pagar_proveedores
     patrimonio_neto = total_activos - total_pasivos
 
     datos_financieros = {
         'ambito': ambito,
-        # Tienda
-        'ventas_tienda_brutas': float(ventas_tienda_brutas),
-        'ventas_efectivo': float(ventas_efectivo),
-        'ventas_transferencia': float(ventas_transferencia),
-        'ventas_retoma': float(ventas_retoma),
-        'costos_directos_tienda': float(costos_directos_tienda),
-        # Bodega
-        'ventas_bodega_brutas': float(ventas_bodega_brutas),
-        'ventas_bodega_contado': float(ventas_bodega_contado),
-        'ventas_bodega_credito': float(ventas_bodega_credito),
-        'abonos_bodega_recaudo': float(abonos_bodega_recaudo),
-        'costos_directos_bodega': float(costos_directos_bodega),
-        # P&L Consolidado o Filtrado
+        # Métricas del ámbito activo
         'total_ingresos': float(total_ingresos),
+        'ventas_efectivo': res_activo['ventas_efectivo'],
+        'ventas_transferencia': res_activo['ventas_transferencia'],
+        'ventas_retoma': res_activo['ventas_retoma'],
+        'cantidad_ventas': res_activo['cantidad_ventas'],
         'costos_directos': float(costos_directos),
         'utilidad_bruta': float(utilidad_bruta),
         'margen_bruto_pct': float(margen_bruto_pct),
@@ -602,11 +628,16 @@ def balance_financiero():
         'total_salidas': float(total_salidas),
         'balance_neto': float(balance_neto),
         'margen_neto_pct': float(margen_neto_pct),
+        # Desgloses por Local para el reporte comparativo
+        'res_136': res_136,
+        'res_197': res_197,
         # Balance General Patrimonial
-        'inventario_valorado_total': float(inventario_valorado_total),
-        'inventario_valorado_tienda': float(inventario_valorado_tienda),
-        'inventario_valorado_bodega': float(inventario_valorado_bodega),
-        'inventario_valorado_celulares': float(inventario_valorado_celulares),
+        'inventario_valorado_total': float(inventario_total),
+        'inventario_valorado_136': float(inventario_136),
+        'inventario_valorado_197': float(inventario_197),
+        'inventario_valorado_activo': float(inventario_activo),
+        'inventario_valorado_celulares': float(inventario_celulares),
+        'inventario_valorado_accesorios': float(inventario_accesorios),
         'cartera_clientes': float(cartera_clientes),
         'total_activos': float(total_activos),
         'cuentas_por_pagar_proveedores': float(cuentas_por_pagar_proveedores),
