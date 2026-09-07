@@ -189,8 +189,15 @@
                             <table class="table table-borderless table-sm mb-0">
                                 <tbody>
                                     <tr>
-                                        <td>Inventario Celulares (Costo en Stock)</td>
-                                        <td class="text-end fw-semibold">${{ (datos.inventario_valorado_celulares)|cop }}</td>
+                                        <td>Inventario Celulares Propios (Costo en Stock)</td>
+                                        <td class="text-end fw-semibold">${{ (datos.inventario_celulares_propios)|cop }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Celulares Externos en Tienda (Consignación / Préstamo)
+                                            <small class="d-block text-muted">Equipos registrados que aún no han sido enviados al inventario propio</small>
+                                        </td>
+                                        <td class="text-end fw-semibold text-primary">${{ (datos.inventario_celulares_externos)|cop }}</td>
                                     </tr>
                                     <tr>
                                         <td>

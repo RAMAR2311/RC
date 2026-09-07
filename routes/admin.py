@@ -571,7 +571,8 @@ def balance_financiero():
     # ----------------------------------------------------
     inventario_136 = Decimal('0.00')
     inventario_197 = Decimal('0.00')
-    inventario_celulares = Decimal('0.00')
+    inventario_celulares_propios = Decimal('0.00')
+    inventario_celulares_externos = Decimal('0.00')
     inventario_accesorios = Decimal('0.00')
 
     detalle_accesorios = []
@@ -590,10 +591,14 @@ def balance_financiero():
         else:
             inventario_136 += val_p
 
-        # Clasificación estricta: si tiene IMEI, modelo_celular o es celulares/externos, es un CELULAR
-        es_celular = (p.tipo_inventario in ['celulares', 'externos']) or bool(p.imei) or bool(p.modelo_celular)
-        if es_celular:
-            inventario_celulares += val_p
+        # Clasificación transparente:
+        # 1. Celulares Externos (consignación/prestados no enviados al inventario propio)
+        if p.tipo_inventario == 'externos' or (p.sku and p.sku.startswith('EXT-')):
+            inventario_celulares_externos += val_p
+        # 2. Celulares Propios (con IMEI, modelo celular o tipo celulares)
+        elif p.tipo_inventario == 'celulares' or bool(p.imei) or bool(p.modelo_celular):
+            inventario_celulares_propios += val_p
+        # 3. Accesorios y otros artículos de tienda
         else:
             inventario_accesorios += val_p
             if p.variantes:
@@ -621,6 +626,7 @@ def balance_financiero():
                     'inventario': p.inventario or 'LOCAL 136'
                 })
 
+    inventario_celulares_total = inventario_celulares_propios + inventario_celulares_externos
     inventario_total = inventario_136 + inventario_197
 
     if ambito == 'local_136':
@@ -663,7 +669,9 @@ def balance_financiero():
         'inventario_valorado_136': float(inventario_136),
         'inventario_valorado_197': float(inventario_197),
         'inventario_valorado_activo': float(inventario_activo),
-        'inventario_valorado_celulares': float(inventario_celulares),
+        'inventario_valorado_celulares': float(inventario_celulares_total),
+        'inventario_celulares_propios': float(inventario_celulares_propios),
+        'inventario_celulares_externos': float(inventario_celulares_externos),
         'inventario_valorado_accesorios': float(inventario_accesorios),
         'detalle_accesorios': detalle_accesorios,
         'conteo_accesorios': len(detalle_accesorios),
