@@ -23,12 +23,20 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2 text-brand-pink"></i>Balance Financiero</h5>
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2 text-brand-pink"></i>Balance Financiero y General</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
           <div class="modal-body">
-              <p class="text-muted small">Selecciona el rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
+              <p class="text-muted small">Selecciona el canal y rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
+              <div class="mb-3">
+                  <label class="form-label fw-bold text-brand-black small">Canal / Ámbito</label>
+                  <select name="ambito" class="form-select bg-light border-1">
+                      <option value="consolidado" selected>Consolidado General (Toda la Empresa)</option>
+                      <option value="tienda">Tienda Mostrador (Local 136)</option>
+                      <option value="bodega">Bodega Mayorista</option>
+                  </select>
+              </div>
               <div class="mb-3">
                   <label class="form-label fw-bold text-brand-black small">Fecha de Inicio</label>
                   <input type="date" name="fecha_inicio" class="form-control" required>
