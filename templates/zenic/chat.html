@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  /* ── Variables ZENIC ────────────────────────── */
+  :root {
+    --z-dark:    #0a0a0f;
+    --z-card:    #13131a;
+    --z-surface: #1c1c28;
+    --z-border:  #2a2a3d;
+    --z-red:     #D91616;
+    --z-red-glow:rgba(217,22,22,0.25);
+    --z-accent:  #ff4a4a;
+    --z-text:    #e8e8f0;
+    --z-muted:   #6b6b8a;
+    --z-user-bg: #1e0a0a;
+    --z-ai-bg:   #0d1a2e;
+    --z-ai-border:#1a3a5c;
+  }
+
+  body { background: var(--z-dark) !important; color: var(--z-text); }
+
+  /* ── Wrapper principal ─────────────────────── */
+  .zenic-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 90px);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem 1rem;
+  }
+
+  /* ── Header ────────────────────────────────── */
+  .zenic-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 1rem 0 .75rem;
+    border-bottom: 1px solid var(--z-border);
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+  .zenic-logo {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--z-red), #7b0000);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 0 18px var(--z-red-glow);
+    flex-shrink: 0;
+  }
+  .zenic-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+  .zenic-title span { color: var(--z-red); }
+  .zenic-badge {
+    font-size: .65rem; font-weight: 700; letter-spacing: 1.5px;
+    background: var(--z-red-glow); color: var(--z-accent);
+    border: 1px solid var(--z-red);
+    padding: 2px 8px; border-radius: 20px;
+    text-transform: uppercase; margin-left: auto;
+  }
+
+  /* ── Chat container ────────────────────────── */
+  .zenic-chat {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: .5rem .25rem;
+    scroll-behavior: smooth;
+  }
+  .zenic-chat::-webkit-scrollbar { width: 5px; }
+  .zenic-chat::-webkit-scrollbar-track { background: transparent; }
+  .zenic-chat::-webkit-scrollbar-thumb { background: var(--z-border); border-radius: 10px; }
+
+  /* ── Burbujas ──────────────────────────────── */
+  .bubble-wrap {
+    display: flex;
+    gap: 10px;
+    animation: fadeUp .3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* Avatar */
+  .bubble-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; flex-shrink: 0; margin-top: 2px;
+  }
+  .avatar-ai   { background: linear-gradient(135deg,#1a3a5c,#0d1a2e); border:1px solid var(--z-ai-border); }
+  .avatar-user { background: linear-gradient(135deg,#3d0a0a,#1e0a0a); border:1px solid #5c1a1a; order: 2; }
+
+  /* Burbuja */
+  .bubble {
+    max-width: 78%;
+    padding: .85rem 1.1rem;
+    border-radius: 16px;
+    font-size: .92rem;
+    line-height: 1.65;
+    word-break: break-word;
+  }
+  .bubble-ai {
+    background: var(--z-ai-bg);
+    border: 1px solid var(--z-ai-border);
+    border-radius: 4px 16px 16px 16px;
+    color: var(--z-text);
+  }
+  .bubble-user {
+    background: var(--z-user-bg);
+    border: 1px solid #5c1a1a;
+    border-radius: 16px 4px 16px 16px;
+    color: var(--z-text);
+    margin-left: auto;
+    order: 1;
+  }
+  .bubble-wrap.is-user { flex-direction: row-reverse; }
+
+  /* Nombre */
+  .bubble-name {
+    font-size: .7rem; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; margin-bottom: 4px;
+    color: var(--z-muted);
+  }
+  .bubble-name.ai-name { color: #5a8fc7; }
+
+  /* Markdown en respuestas */
+  .bubble-ai strong { color: #8ecaff; }
+  .bubble-ai em     { color: #b0c4de; }
+  .bubble-ai code {
+    background: rgba(255,255,255,.07); padding: 1px 5px;
+    border-radius: 4px; font-size: .85em;
+  }
+
+  /* ── Typing indicator ──────────────────────── */
+  .typing-indicator {
+    display: flex; gap: 5px;
+    align-items: center; padding: .5rem 0;
+  }
+  .typing-dot {
+    width: 7px; height: 7px; background: var(--z-muted);
+    border-radius: 50%; animation: bounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: .2s; }
+  .typing-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); }
+    40%          { transform: translateY(-6px); background: var(--z-red); }
+  }
+
+  /* ── Sugerencias ───────────────────────────── */
+  .suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .6rem;
+    margin-bottom: 1rem;
+  }
+  .suggestion-btn {
+    background: var(--z-surface);
+    border: 1px solid var(--z-border);
+    color: var(--z-text);
+    border-radius: 10px;
+    padding: .65rem .9rem;
+    font-size: .82rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all .2s ease;
+    line-height: 1.4;
+  }
+  .suggestion-btn:hover {
+    border-color: var(--z-red);
+    background: var(--z-user-bg);
+    color: var(--z-accent);
+    transform: translateY(-1px);
+  }
+  .suggestion-btn i { color: var(--z-red); margin-right: 6px; }
+
+  /* ── Área de input ─────────────────────────── */
+  .zenic-input-area {
+    flex-shrink: 0;
+    padding-top: .75rem;
+    border-top: 1px solid var(--z-border);
+  }
+  .input-row {
+    display: flex;
+    gap: .6rem;
+    background: var(--z-surface);
+    border: 1px solid var(--z-border);
+    border-radius: 16px;
+    padding: .6rem .6rem .6rem 1rem;
+    transition: border-color .2s;
+  }
+  .input-row:focus-within { border-color: var(--z-red); box-shadow: 0 0 0 3px var(--z-red-glow); }
+
+  #zenicInput {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    color: var(--z-text);
+    font-size: .95rem;
+    resize: none;
+    max-height: 140px;
+    min-height: 24px;
+    line-height: 1.5;
+    font-family: inherit;
+  }
+  #zenicInput::placeholder { color: var(--z-muted); }
+
+  #sendBtn {
+    width: 38px; height: 38px; flex-shrink: 0;
+    background: var(--z-red);
+    border: none; border-radius: 10px; cursor: pointer;
+    color: #fff; font-size: 1rem;
+    transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+    align-self: flex-end;
+  }
+  #sendBtn:hover:not(:disabled) { background: var(--z-accent); transform: scale(1.05); }
+  #sendBtn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .input-hint {
+    font-size: .7rem; color: var(--z-muted);
+    text-align: center; margin-top: .4rem;
+  }
+
+  /* ── Bienvenida ────────────────────────────── */
+  .welcome-state {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 1rem;
+    padding: 2rem;
+  }
+  .welcome-logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg,var(--z-red),#7b0000);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    box-shadow: 0 0 40px var(--z-red-glow);
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%,100% { box-shadow: 0 0 30px var(--z-red-glow); }
+    50%      { box-shadow: 0 0 55px rgba(217,22,22,.45); }
+  }
+  .welcome-title {
+    font-size: 1.8rem; font-weight: 800; margin: 0;
+  }
+  .welcome-sub { color: var(--z-muted); font-size: .92rem; max-width: 380px; }
+
+  /* ── Responsive ────────────────────────────── */
+  @media (max-width: 576px) {
+    .bubble { max-width: 90%; font-size: .87rem; }
+    .zenic-title { font-size: 1.3rem; }
+  }
+</style>
+
+<div class="zenic-wrapper">
+
+  <!-- Header -->
+  <div class="zenic-header">
+    <div class="zenic-logo">🤖</div>
+    <div>
+      <div class="zenic-title">ZEN<span>IC</span></div>
+      <div style="font-size:.75rem;color:var(--z-muted);">Asistente IA · RedCover</div>
+    </div>
+    <div class="zenic-badge">IA Activa</div>
+  </div>
+
+  <!-- Área de chat -->
+  <div class="zenic-chat" id="zenicChat">
+
+    <!-- Estado de bienvenida (se oculta al enviar el primer mensaje) -->
+    <div class="welcome-state" id="welcomeState">
+      <div class="welcome-logo">🤖</div>
+      <h2 class="welcome-title">Hola, soy ZENIC</h2>
+      <p class="welcome-sub">
+        Tu asistente de inteligencia artificial para analizar datos de RedCover en tiempo real.
+        Pregúntame sobre ventas, inventario, retomas, caja o cualquier dato del sistema.
+      </p>
+
+      <!-- Sugerencias rápidas -->
+      <div class="suggestions-grid" style="width:100%;max-width:640px;">
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-chart-line"></i>¿Cuánto vendimos hoy y este mes?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-box-open"></i>¿Qué productos tienen stock bajo?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-recycle"></i>¿Cuántas retomas están pendientes?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-calculator"></i>¿Cuál fue la diferencia en el último arqueo?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-money-bill-transfer"></i>¿Cuánto llevamos en gastos este mes?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-truck"></i>¿Cuánto le debemos a proveedores?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-mobile-screen"></i>¿Cuántos celulares hay disponibles?
+        </button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)">
+          <i class="fa-solid fa-shield-halved"></i>¿Hay garantías sin resolver?
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /zenic-chat -->
+
+  <!-- Input area -->
+  <div class="zenic-input-area">
+    <div class="input-row">
+      <textarea
+        id="zenicInput"
+        placeholder="Escribe tu pregunta sobre el sistema..."
+        rows="1"
+      ></textarea>
+      <button id="sendBtn" title="Enviar (Enter)">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+    <div class="input-hint">Enter para enviar · Shift+Enter para nueva línea</div>
+  </div>
+
+</div><!-- /zenic-wrapper -->
+
+<script>
+  // ── Estado ────────────────────────────────────
+  const chat      = document.getElementById('zenicChat');
+  const input     = document.getElementById('zenicInput');
+  const sendBtn   = document.getElementById('sendBtn');
+  const welcome   = document.getElementById('welcomeState');
+  let historial   = [];   // {role, content}[]
+  let enviando    = false;
+
+  // ── Auto-resize textarea ──────────────────────
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  });
+
+  // ── Keyboard shortcuts ────────────────────────
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      enviar();
+    }
+  });
+
+  sendBtn.addEventListener('click', enviar);
+
+  // ── Sugerencias rápidas ───────────────────────
+  function sendSuggestion(btn) {
+    const texto = btn.textContent.trim();
+    input.value = texto;
+    enviar();
+  }
+
+  // ── Helpers de burbuja ────────────────────────
+  function crearBurbuja(rol, texto) {
+    const esUser = rol === 'user';
+    const wrap = document.createElement('div');
+    wrap.className = `bubble-wrap ${esUser ? 'is-user' : ''}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `bubble-avatar ${esUser ? 'avatar-user' : 'avatar-ai'}`;
+    avatar.innerHTML = esUser
+      ? '<i class="fa-solid fa-user" style="color:#ff6b6b;"></i>'
+      : '🤖';
+
+    const inner = document.createElement('div');
+
+    const nombre = document.createElement('div');
+    nombre.className = `bubble-name ${esUser ? '' : 'ai-name'}`;
+    nombre.textContent = esUser ? 'Tú' : 'ZENIC';
+
+    const burbuja = document.createElement('div');
+    burbuja.className = `bubble ${esUser ? 'bubble-user' : 'bubble-ai'}`;
+    burbuja.innerHTML = formatearTexto(texto);
+
+    inner.appendChild(nombre);
+    inner.appendChild(burbuja);
+    wrap.appendChild(avatar);
+    wrap.appendChild(inner);
+
+    return wrap;
+  }
+
+  function crearTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap';
+    wrap.id = 'typingIndicator';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'bubble-avatar avatar-ai';
+    avatar.innerHTML = '🤖';
+
+    const inner = document.createElement('div');
+    const nombre = document.createElement('div');
+    nombre.className = 'bubble-name ai-name';
+    nombre.textContent = 'ZENIC';
+
+    const typing = document.createElement('div');
+    typing.className = 'bubble bubble-ai typing-indicator';
+    typing.innerHTML = `
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    `;
+
+    inner.appendChild(nombre);
+    inner.appendChild(typing);
+    wrap.appendChild(avatar);
+    wrap.appendChild(inner);
+    return wrap;
+  }
+
+  function formatearTexto(texto) {
+    // Markdown básico: bold, italic, code
+    return texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function scrollAbajo() {
+    chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+  }
+
+  function setEnviando(estado) {
+    enviando = estado;
+    sendBtn.disabled = estado;
+    input.disabled   = estado;
+  }
+
+  // ── Función principal de envío ────────────────
+  async function enviar() {
+    const texto = input.value.trim();
+    if (!texto || enviando) return;
+
+    // Ocultar bienvenida al primer mensaje
+    if (welcome) welcome.style.display = 'none';
+
+    // Burbuja del usuario
+    chat.appendChild(crearBurbuja('user', texto));
+    historial.push({ role: 'user', content: texto });
+    input.value = '';
+    input.style.height = 'auto';
+    scrollAbajo();
+
+    // Typing indicator
+    setEnviando(true);
+    const typing = crearTyping();
+    chat.appendChild(typing);
+    scrollAbajo();
+
+    try {
+      const resp = await fetch('/zenic/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensaje: texto, historial })
+      });
+
+      const datos = await resp.json();
+      typing.remove();
+
+      if (datos.error) {
+        const errBurbuja = crearBurbuja('assistant',
+          `⚠️ **Error:** ${datos.error}`);
+        chat.appendChild(errBurbuja);
+      } else {
+        const respuesta = datos.respuesta || '';
+        chat.appendChild(crearBurbuja('assistant', respuesta));
+        historial.push({ role: 'assistant', content: respuesta });
+      }
+    } catch (err) {
+      typing.remove();
+      chat.appendChild(crearBurbuja('assistant',
+        '⚠️ **Error de conexión.** Verifica que el servidor esté activo.'));
+    } finally {
+      setEnviando(false);
+      scrollAbajo();
+      input.focus();
+    }
+  }
+</script>
+
+{% endblock %}

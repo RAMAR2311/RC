@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Carga variables desde .env (incluye OPENAI_API_KEY)
 from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -99,6 +101,10 @@ def create_app():
     # Registro de Blueprint Aprobaciones
     from routes.approvals import approvals_bp
     app.register_blueprint(approvals_bp)
+
+    # Registro de Blueprint ZENIC (Asistente IA)
+    from routes.zenic import zenic_bp
+    app.register_blueprint(zenic_bp, url_prefix='/zenic')
 
 
     @app.template_filter('cop')
