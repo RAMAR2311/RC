@@ -16,11 +16,12 @@
     --z-user-bg: #1e0a0a;
     --z-ai-bg:   #0d1a2e;
     --z-ai-border:#1a3a5c;
+    --z-ok:      #2ecc71;
+    --z-warn:    #f1c40f;
   }
 
   body { background: var(--z-dark) !important; color: var(--z-text); }
 
-  /* ── Navbar override para ZENIC dark ──────── */
   .navbar-custom { background: var(--z-dark) !important; border-bottom-color: var(--z-border) !important; box-shadow: none !important; margin-bottom: 0 !important; }
 
   /* ── Wrapper principal ─────────────────────── */
@@ -28,7 +29,7 @@
     display: flex;
     flex-direction: column;
     height: calc(100vh - 72px);
-    max-width: 900px;
+    max-width: 920px;
     margin: 0 auto;
     padding: 0 1rem 1rem;
   }
@@ -40,7 +41,6 @@
     gap: 14px;
     padding: 1rem 0 .75rem;
     border-bottom: 1px solid var(--z-border);
-    margin-bottom: 0;
     flex-shrink: 0;
   }
   .zenic-logo {
@@ -61,50 +61,28 @@
     padding: 2px 8px; border-radius: 20px;
     text-transform: uppercase;
   }
-  .zenic-header-actions {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-  }
+  .zenic-header-actions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
   .btn-clear-chat {
-    background: transparent;
-    border: 1px solid var(--z-border);
-    color: var(--z-muted);
-    font-size: .75rem;
-    padding: 4px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all .2s;
+    background: transparent; border: 1px solid var(--z-border);
+    color: var(--z-muted); font-size: .75rem;
+    padding: 4px 10px; border-radius: 8px; cursor: pointer; transition: all .2s;
   }
   .btn-clear-chat:hover { border-color: var(--z-red); color: var(--z-accent); }
 
   /* ── Chat container ────────────────────────── */
   .zenic-chat {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem .25rem;
-    scroll-behavior: smooth;
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 1rem;
+    padding: 1rem .25rem; scroll-behavior: smooth;
   }
   .zenic-chat::-webkit-scrollbar { width: 5px; }
   .zenic-chat::-webkit-scrollbar-track { background: transparent; }
   .zenic-chat::-webkit-scrollbar-thumb { background: var(--z-border); border-radius: 10px; }
 
   /* ── Burbujas ──────────────────────────────── */
-  .bubble-wrap {
-    display: flex;
-    gap: 10px;
-    animation: fadeUp .3s ease;
-  }
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(8px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
+  .bubble-wrap { display: flex; gap: 10px; animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
-  /* Avatar */
   .bubble-avatar {
     width: 34px; height: 34px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
@@ -113,81 +91,133 @@
   .avatar-ai   { background: linear-gradient(135deg,#1a3a5c,#0d1a2e); border:1px solid var(--z-ai-border); }
   .avatar-user { background: linear-gradient(135deg,#3d0a0a,#1e0a0a); border:1px solid #5c1a1a; order: 2; }
 
-  /* Burbuja */
   .bubble {
-    max-width: 78%;
+    max-width: 100%;
     padding: .85rem 1.1rem;
     border-radius: 16px;
-    font-size: .92rem;
-    line-height: 1.65;
+    font-size: .92rem; line-height: 1.65;
     word-break: break-word;
   }
   .bubble-ai {
-    background: var(--z-ai-bg);
-    border: 1px solid var(--z-ai-border);
-    border-radius: 4px 16px 16px 16px;
-    color: var(--z-text);
+    background: var(--z-ai-bg); border: 1px solid var(--z-ai-border);
+    border-radius: 4px 16px 16px 16px; color: var(--z-text);
   }
   .bubble-user {
-    background: var(--z-user-bg);
-    border: 1px solid #5c1a1a;
-    border-radius: 16px 4px 16px 16px;
-    color: var(--z-text);
-    margin-left: auto;
-    order: 1;
+    background: var(--z-user-bg); border: 1px solid #5c1a1a;
+    border-radius: 16px 4px 16px 16px; color: var(--z-text);
+    margin-left: auto; order: 1;
   }
   .bubble-wrap.is-user { flex-direction: row-reverse; }
+  .bubble-wrap.is-user .bubble-inner { max-width: 78%; margin-left: auto; }
+  .bubble-inner { max-width: 82%; min-width: 0; }
 
-  /* Nombre y hora */
-  .bubble-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
+  .bubble-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .bubble-name {
     font-size: .7rem; font-weight: 700; letter-spacing: .5px;
-    text-transform: uppercase;
-    color: var(--z-muted);
+    text-transform: uppercase; color: var(--z-muted);
   }
   .bubble-name.ai-name { color: #5a8fc7; }
-  .bubble-time {
-    font-size: .62rem;
-    color: var(--z-muted);
-    opacity: .7;
-  }
+  .bubble-time { font-size: .62rem; color: var(--z-muted); opacity: .7; }
 
-  /* Markdown en respuestas */
+  /* ── Markdown en respuestas ────────────────── */
   .bubble-ai strong { color: #8ecaff; }
   .bubble-ai em     { color: #b0c4de; }
   .bubble-ai code {
     background: rgba(255,255,255,.07); padding: 1px 5px;
-    border-radius: 4px; font-size: .85em;
+    border-radius: 4px; font-size: .85em; color: #ffd479;
   }
-  .bubble-ai ul, .bubble-ai ol {
-    margin: .4rem 0; padding-left: 1.2rem;
-  }
+  .bubble-ai ul, .bubble-ai ol { margin: .4rem 0; padding-left: 1.2rem; }
   .bubble-ai li { margin-bottom: .2rem; }
   .bubble-ai p { margin: .3rem 0; }
-
-  /* ── Token counter ─────────────────────────── */
-  .token-counter {
-    font-size: .6rem;
-    color: var(--z-muted);
-    text-align: right;
-    margin-top: 2px;
-    opacity: .6;
+  .bubble-ai h4 { font-size: 1rem; color: #8ecaff; margin: .6rem 0 .3rem; font-weight: 700; }
+  .md-table-wrap { overflow-x: auto; margin: .6rem 0; }
+  .bubble-ai table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+  .bubble-ai th, .bubble-ai td {
+    border: 1px solid var(--z-border); padding: .35rem .6rem; text-align: left; white-space: nowrap;
   }
+  .bubble-ai th { background: rgba(255,255,255,.05); color: #8ecaff; font-weight: 700; }
+
+  /* ── Pie de respuesta (tokens + herramientas) ── */
+  .bubble-footer {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: .6rem; color: var(--z-muted); margin-top: 4px; opacity: .75;
+  }
+  .tool-chip {
+    background: rgba(90,143,199,.12); border: 1px solid rgba(90,143,199,.3);
+    color: #7fb0e0; padding: 1px 7px; border-radius: 20px; font-size: .58rem;
+  }
+
+  /* ── Tarjeta de confirmación ───────────────── */
+  .confirm-card {
+    background: var(--z-card);
+    border: 1px solid var(--z-red);
+    border-radius: 14px;
+    margin-top: .6rem;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(217,22,22,.18);
+  }
+  .confirm-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: .75rem 1rem;
+    background: linear-gradient(90deg, rgba(217,22,22,.18), transparent);
+    border-bottom: 1px solid var(--z-border);
+  }
+  .confirm-head i { color: var(--z-accent); font-size: 1.05rem; }
+  .confirm-title { font-weight: 700; font-size: .95rem; }
+  .confirm-tag {
+    margin-left: auto; font-size: .58rem; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--z-muted); border: 1px solid var(--z-border);
+    padding: 2px 8px; border-radius: 20px;
+  }
+  .confirm-body { padding: .5rem 1rem .75rem; }
+  .confirm-row {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: .38rem 0; border-bottom: 1px dashed rgba(255,255,255,.06);
+    font-size: .86rem;
+  }
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-row .k { color: var(--z-muted); flex-shrink: 0; }
+  .confirm-row .v { text-align: right; font-weight: 600; word-break: break-word; }
+  .confirm-row.total { border-top: 1px solid var(--z-border); margin-top: .3rem; padding-top: .5rem; }
+  .confirm-row.total .k, .confirm-row.total .v { color: #8ecaff; font-size: .98rem; font-weight: 800; }
+
+  .confirm-warn {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: rgba(241,196,15,.08); border: 1px solid rgba(241,196,15,.3);
+    color: var(--z-warn); border-radius: 8px;
+    padding: .5rem .7rem; margin: .5rem 0 0; font-size: .78rem; line-height: 1.45;
+  }
+
+  .confirm-actions {
+    display: flex; gap: .6rem; padding: .75rem 1rem;
+    background: rgba(0,0,0,.25); border-top: 1px solid var(--z-border);
+  }
+  .btn-confirm, .btn-cancel {
+    flex: 1; border: none; border-radius: 10px;
+    padding: .6rem 1rem; font-size: .85rem; font-weight: 700;
+    cursor: pointer; transition: all .18s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .btn-confirm { background: var(--z-red); color: #fff; }
+  .btn-confirm:hover:not(:disabled) { background: var(--z-accent); transform: translateY(-1px); }
+  .btn-cancel { background: transparent; color: var(--z-muted); border: 1px solid var(--z-border); }
+  .btn-cancel:hover:not(:disabled) { color: var(--z-text); border-color: var(--z-muted); }
+  .btn-confirm:disabled, .btn-cancel:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* Resultado de la acción */
+  .result-card {
+    display: flex; align-items: center; gap: 10px;
+    border-radius: 10px; padding: .7rem .9rem; margin-top: .6rem;
+    font-size: .87rem; line-height: 1.5;
+  }
+  .result-ok  { background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.35); color: #7ee2a8; }
+  .result-err { background: rgba(217,22,22,.1);  border: 1px solid rgba(217,22,22,.35);  color: #ff8080; }
+  .result-card i { font-size: 1.1rem; flex-shrink: 0; }
+  .result-card a { color: inherit; text-decoration: underline; font-weight: 700; white-space: nowrap; }
 
   /* ── Typing indicator ──────────────────────── */
-  .typing-indicator {
-    display: flex; gap: 5px;
-    align-items: center; padding: .5rem 0;
-  }
-  .typing-dot {
-    width: 7px; height: 7px; background: var(--z-muted);
-    border-radius: 50%; animation: bounce 1.2s infinite;
-  }
+  .typing-indicator { display: flex; gap: 5px; align-items: center; padding: .5rem 0; }
+  .typing-dot { width: 7px; height: 7px; background: var(--z-muted); border-radius: 50%; animation: bounce 1.2s infinite; }
   .typing-dot:nth-child(2) { animation-delay: .2s; }
   .typing-dot:nth-child(3) { animation-delay: .4s; }
   @keyframes bounce {
@@ -196,125 +226,92 @@
   }
 
   /* ── Sugerencias ───────────────────────────── */
+  .sugg-tabs { display: flex; gap: .4rem; justify-content: center; margin-bottom: .8rem; }
+  .sugg-tab {
+    background: transparent; border: 1px solid var(--z-border); color: var(--z-muted);
+    border-radius: 20px; padding: .3rem .9rem; font-size: .76rem; cursor: pointer; transition: all .2s;
+  }
+  .sugg-tab.active { border-color: var(--z-red); color: var(--z-accent); background: var(--z-red-glow); }
+
   .suggestions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: .6rem;
-    margin-bottom: 1rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: .6rem; margin-bottom: 1rem;
   }
   .suggestion-btn {
-    background: var(--z-surface);
-    border: 1px solid var(--z-border);
-    color: var(--z-text);
-    border-radius: 10px;
-    padding: .65rem .9rem;
-    font-size: .82rem;
-    cursor: pointer;
-    text-align: left;
-    transition: all .2s ease;
-    line-height: 1.4;
+    background: var(--z-surface); border: 1px solid var(--z-border); color: var(--z-text);
+    border-radius: 10px; padding: .65rem .9rem; font-size: .81rem;
+    cursor: pointer; text-align: left; transition: all .2s ease; line-height: 1.4;
   }
   .suggestion-btn:hover {
-    border-color: var(--z-red);
-    background: var(--z-user-bg);
-    color: var(--z-accent);
-    transform: translateY(-1px);
+    border-color: var(--z-red); background: var(--z-user-bg);
+    color: var(--z-accent); transform: translateY(-1px);
   }
   .suggestion-btn i { color: var(--z-red); margin-right: 6px; }
 
   /* ── Área de input ─────────────────────────── */
-  .zenic-input-area {
-    flex-shrink: 0;
-    padding-top: .75rem;
-    border-top: 1px solid var(--z-border);
-  }
+  .zenic-input-area { flex-shrink: 0; padding-top: .75rem; border-top: 1px solid var(--z-border); }
   .input-row {
-    display: flex;
-    gap: .6rem;
-    background: var(--z-surface);
-    border: 1px solid var(--z-border);
-    border-radius: 16px;
-    padding: .6rem .6rem .6rem 1rem;
+    display: flex; gap: .6rem;
+    background: var(--z-surface); border: 1px solid var(--z-border);
+    border-radius: 16px; padding: .6rem .6rem .6rem 1rem;
     transition: border-color .2s, box-shadow .2s;
   }
   .input-row:focus-within { border-color: var(--z-red); box-shadow: 0 0 0 3px var(--z-red-glow); }
 
   #zenicInput {
-    flex: 1;
-    background: transparent;
-    border: none; outline: none;
-    color: var(--z-text);
-    font-size: .95rem;
-    resize: none;
-    max-height: 140px;
-    min-height: 24px;
-    line-height: 1.5;
-    font-family: inherit;
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--z-text); font-size: .95rem; resize: none;
+    max-height: 140px; min-height: 24px; line-height: 1.5; font-family: inherit;
   }
   #zenicInput::placeholder { color: var(--z-muted); }
 
   #sendBtn {
     width: 38px; height: 38px; flex-shrink: 0;
-    background: var(--z-red);
-    border: none; border-radius: 10px; cursor: pointer;
-    color: #fff; font-size: 1rem;
-    transition: all .2s;
-    display: flex; align-items: center; justify-content: center;
-    align-self: flex-end;
+    background: var(--z-red); border: none; border-radius: 10px; cursor: pointer;
+    color: #fff; font-size: 1rem; transition: all .2s;
+    display: flex; align-items: center; justify-content: center; align-self: flex-end;
   }
   #sendBtn:hover:not(:disabled) { background: var(--z-accent); transform: scale(1.05); }
   #sendBtn:disabled { opacity: .4; cursor: not-allowed; }
 
-  .input-hint {
-    font-size: .7rem; color: var(--z-muted);
-    text-align: center; margin-top: .4rem;
-  }
+  .input-hint { font-size: .7rem; color: var(--z-muted); text-align: center; margin-top: .4rem; }
 
   /* ── Error banner ──────────────────────────── */
   .error-banner {
-    background: rgba(217,22,22,.1);
-    border: 1px solid rgba(217,22,22,.3);
-    color: var(--z-accent);
-    padding: .5rem 1rem;
-    border-radius: 10px;
-    font-size: .82rem;
-    display: none;
-    margin-bottom: .5rem;
-    text-align: center;
+    background: rgba(217,22,22,.1); border: 1px solid rgba(217,22,22,.3);
+    color: var(--z-accent); padding: .5rem 1rem; border-radius: 10px;
+    font-size: .82rem; display: none; margin-bottom: .5rem; text-align: center;
   }
 
   /* ── Bienvenida ────────────────────────────── */
   .welcome-state {
-    flex: 1;
-    display: flex; flex-direction: column;
+    flex: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    text-align: center; gap: 1rem;
-    padding: 2rem;
+    text-align: center; gap: 1rem; padding: 1.5rem;
   }
   .welcome-logo {
-    width: 80px; height: 80px;
+    width: 76px; height: 76px;
     background: linear-gradient(135deg,var(--z-red),#7b0000);
-    border-radius: 24px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2.2rem;
-    box-shadow: 0 0 40px var(--z-red-glow);
+    border-radius: 24px; display: flex; align-items: center; justify-content: center;
+    font-size: 2.1rem; box-shadow: 0 0 40px var(--z-red-glow);
     animation: pulse-glow 2.5s ease-in-out infinite;
   }
   @keyframes pulse-glow {
     0%,100% { box-shadow: 0 0 30px var(--z-red-glow); }
     50%      { box-shadow: 0 0 55px rgba(217,22,22,.45); }
   }
-  .welcome-title {
-    font-size: 1.8rem; font-weight: 800; margin: 0;
-  }
-  .welcome-sub { color: var(--z-muted); font-size: .92rem; max-width: 380px; }
+  .welcome-title { font-size: 1.7rem; font-weight: 800; margin: 0; }
+  .welcome-sub { color: var(--z-muted); font-size: .9rem; max-width: 460px; }
 
   /* ── Responsive ────────────────────────────── */
   @media (max-width: 576px) {
-    .bubble { max-width: 90%; font-size: .87rem; }
+    .bubble { font-size: .87rem; }
+    .bubble-inner, .bubble-wrap.is-user .bubble-inner { max-width: 88%; }
     .zenic-title { font-size: 1.3rem; }
     .suggestions-grid { grid-template-columns: 1fr; }
     .zenic-wrapper { padding: 0 .5rem .5rem; }
+    .confirm-row { flex-direction: column; gap: .1rem; }
+    .confirm-row .v { text-align: left; }
   }
 </style>
 
@@ -335,173 +332,235 @@
     </div>
   </div>
 
-  <!-- Error banner -->
   <div class="error-banner" id="errorBanner"></div>
 
   <!-- Área de chat -->
   <div class="zenic-chat" id="zenicChat">
-
-    <!-- Estado de bienvenida -->
     <div class="welcome-state" id="welcomeState">
       <div class="welcome-logo">🤖</div>
       <h2 class="welcome-title">Hola, soy ZENIC</h2>
       <p class="welcome-sub">
-        Tu asistente de inteligencia artificial para analizar datos de RedCover en tiempo real.
-        Pregúntame sobre ventas, inventario, retomas, caja o cualquier dato del sistema.
+        Consulto los datos de RedCover en tiempo real y también puedo <strong>registrar</strong>
+        ventas, gastos, productos y celulares por ti. Toda acción que modifique el sistema te la
+        muestro primero para que la apruebes.
       </p>
 
-      <!-- Sugerencias rápidas -->
-      <div class="suggestions-grid" style="width:100%;max-width:640px;">
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-chart-line"></i>¿Cuánto vendimos hoy y este mes?
+      <div class="sugg-tabs">
+        <button class="sugg-tab active" data-grupo="consultar" onclick="cambiarTab(this)">
+          <i class="fa-solid fa-magnifying-glass me-1"></i>Consultar
         </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-box-open"></i>¿Qué productos tienen stock bajo?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-recycle"></i>¿Cuántas retomas están pendientes?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-calculator"></i>¿Cuál fue la diferencia en el último arqueo?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-money-bill-transfer"></i>¿Cuánto llevamos en gastos este mes?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-truck"></i>¿Cuánto le debemos a proveedores?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-mobile-screen"></i>¿Cuántos celulares hay disponibles?
-        </button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">
-          <i class="fa-solid fa-shield-halved"></i>¿Hay garantías sin resolver?
+        <button class="sugg-tab" data-grupo="registrar" onclick="cambiarTab(this)">
+          <i class="fa-solid fa-pen-to-square me-1"></i>Registrar
         </button>
       </div>
+
+      <div class="suggestions-grid" id="suggConsultar" style="width:100%;max-width:680px;">
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-chart-line"></i>¿Cómo vamos de ventas hoy comparado con ayer?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-scale-balanced"></i>Dame el balance de este mes: ingresos, gastos y utilidad</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-box-open"></i>¿Qué productos están por agotarse?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-trophy"></i>¿Cuáles fueron los 5 productos más vendidos del mes?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-calculator"></i>¿Hubo diferencias en los arqueos de los últimos 15 días?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-truck"></i>¿A qué proveedores les debemos y cuánto?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-hand-holding-dollar"></i>¿Qué clientes de bodega tienen cartera vencida?</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-mobile-screen"></i>¿Qué celulares iPhone tenemos disponibles y a qué precio?</button>
+      </div>
+
+      <div class="suggestions-grid" id="suggRegistrar" style="width:100%;max-width:680px;display:none;">
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-money-bill-wave"></i>Registra un gasto de $45.000 en almuerzo del equipo, en efectivo</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-receipt"></i>Registra un gasto de arriendo de $2.500.000 por transferencia</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-cart-shopping"></i>Vende 2 vidrios templados a $25.000 cada uno en efectivo</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-box"></i>Crea el producto "Cargador tipo C 25W": costo $18.000, mínimo $28.000, sugerido $35.000, 20 unidades</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-mobile-screen-button"></i>Ingresa un iPhone 13 128GB negro, IMEI 350000000000001, costo $1.600.000, sugerido $2.100.000</button>
+        <button class="suggestion-btn" onclick="usarSugerencia(this)"><i class="fa-solid fa-arrow-up-9-1"></i>Súmale 15 unidades al stock de los vidrios templados, llegó mercancía</button>
+      </div>
     </div>
+  </div>
 
-  </div><!-- /zenic-chat -->
-
-  <!-- Input area -->
+  <!-- Input -->
   <div class="zenic-input-area">
     <div class="input-row">
-      <textarea
-        id="zenicInput"
-        placeholder="Escribe tu pregunta sobre el sistema..."
-        rows="1"
-      ></textarea>
-      <button id="sendBtn" title="Enviar (Enter)">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
+      <textarea id="zenicInput" placeholder="Pregunta por los datos o pídeme registrar algo..." rows="1"></textarea>
+      <button id="sendBtn" title="Enviar (Enter)"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
     <div class="input-hint">Enter para enviar · Shift+Enter para nueva línea</div>
   </div>
 
-</div><!-- /zenic-wrapper -->
+</div>
 
 <script>
-  // ── Estado ────────────────────────────────────
   const chat        = document.getElementById('zenicChat');
   const input       = document.getElementById('zenicInput');
   const sendBtn     = document.getElementById('sendBtn');
   const welcome     = document.getElementById('welcomeState');
   const errorBanner = document.getElementById('errorBanner');
-  let historial     = [];   // {role, content}[]
-  let enviando      = false;
 
-  // ── CSRF token (Flask-WTF) ────────────────────
   const csrfToken = "{{ csrf_token() }}";
 
-  // ── Auto-resize textarea ──────────────────────
+  let historial = [];
+  let enviando  = false;
+
+  // ── Sugerencias ───────────────────────────────
+  function cambiarTab(btn) {
+    document.querySelectorAll('.sugg-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const esConsultar = btn.dataset.grupo === 'consultar';
+    document.getElementById('suggConsultar').style.display = esConsultar ? 'grid' : 'none';
+    document.getElementById('suggRegistrar').style.display = esConsultar ? 'none' : 'grid';
+  }
+
+  function usarSugerencia(btn) {
+    input.value = btn.textContent.trim();
+    enviar();
+  }
+
+  // ── Input ─────────────────────────────────────
   input.addEventListener('input', () => {
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 140) + 'px';
   });
 
-  // ── Keyboard shortcuts ────────────────────────
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      enviar();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
   });
 
   sendBtn.addEventListener('click', enviar);
 
-  // ── Sugerencias rápidas ───────────────────────
-  function sendSuggestion(btn) {
-    const texto = btn.textContent.trim();
-    input.value = texto;
-    enviar();
-  }
-
-  // ── Limpiar chat ──────────────────────────────
   function limpiarChat() {
     historial = [];
-    // Remove all bubbles but keep welcome
-    const bubbles = chat.querySelectorAll('.bubble-wrap');
-    bubbles.forEach(b => b.remove());
-    // Show welcome again
+    chat.querySelectorAll('.bubble-wrap').forEach(b => b.remove());
     if (welcome) welcome.style.display = '';
     errorBanner.style.display = 'none';
+    fetch('/zenic/cancelar', { method: 'POST', headers: cabeceras() }).catch(() => {});
   }
 
-  // ── Hora actual ───────────────────────────────
+  function cabeceras() {
+    return { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken };
+  }
+
   function horaActual() {
     return new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
   }
 
-  // ── Helpers de burbuja ────────────────────────
-  function crearBurbuja(rol, texto, tokens) {
+  function escapar(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  // ── Markdown → HTML (sobre texto ya escapado) ──
+  function formatearTexto(texto) {
+    const lineas = escapar(texto).split('\n');
+    const salida = [];
+    let i = 0;
+
+    while (i < lineas.length) {
+      const linea = lineas[i];
+
+      // Tabla markdown: | a | b |  /  |---|---|
+      if (/^\s*\|.*\|\s*$/.test(linea) && i + 1 < lineas.length && /^\s*\|[\s:-]+\|\s*$/.test(lineas[i + 1])) {
+        const celdas = (l) => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+        const encabezado = celdas(linea);
+        i += 2;
+        const filas = [];
+        while (i < lineas.length && /^\s*\|.*\|\s*$/.test(lineas[i])) {
+          filas.push(celdas(lineas[i]));
+          i++;
+        }
+        salida.push(
+          '<div class="md-table-wrap"><table><thead><tr>' +
+          encabezado.map(c => `<th>${enLinea(c)}</th>`).join('') +
+          '</tr></thead><tbody>' +
+          filas.map(f => '<tr>' + f.map(c => `<td>${enLinea(c)}</td>`).join('') + '</tr>').join('') +
+          '</tbody></table></div>'
+        );
+        continue;
+      }
+
+      // Listas
+      if (/^\s*([-*•]|\d+\.)\s+/.test(linea)) {
+        const ordenada = /^\s*\d+\.\s+/.test(linea);
+        const items = [];
+        while (i < lineas.length && /^\s*([-*•]|\d+\.)\s+/.test(lineas[i])) {
+          items.push(`<li>${enLinea(lineas[i].replace(/^\s*([-*•]|\d+\.)\s+/, ''))}</li>`);
+          i++;
+        }
+        salida.push(`<${ordenada ? 'ol' : 'ul'}>${items.join('')}</${ordenada ? 'ol' : 'ul'}>`);
+        continue;
+      }
+
+      // Encabezados
+      const h = linea.match(/^\s*#{1,4}\s+(.+)$/);
+      if (h) { salida.push(`<h4>${enLinea(h[1])}</h4>`); i++; continue; }
+
+      if (linea.trim() === '') { salida.push('<div style="height:.4rem"></div>'); i++; continue; }
+
+      salida.push(`<p>${enLinea(linea)}</p>`);
+      i++;
+    }
+    return salida.join('');
+  }
+
+  function enLinea(t) {
+    return t
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+
+  // ── Burbujas ──────────────────────────────────
+  function crearBurbuja(rol, texto, extra = {}) {
     const esUser = rol === 'user';
     const wrap = document.createElement('div');
     wrap.className = `bubble-wrap ${esUser ? 'is-user' : ''}`;
 
     const avatar = document.createElement('div');
     avatar.className = `bubble-avatar ${esUser ? 'avatar-user' : 'avatar-ai'}`;
-    avatar.innerHTML = esUser
-      ? '<i class="fa-solid fa-user" style="color:#ff6b6b;"></i>'
-      : '🤖';
+    avatar.innerHTML = esUser ? '<i class="fa-solid fa-user" style="color:#ff6b6b;"></i>' : '🤖';
 
     const inner = document.createElement('div');
-    if (!esUser) inner.style.maxWidth = '78%';
+    inner.className = 'bubble-inner';
 
-    // Meta (nombre + hora)
     const meta = document.createElement('div');
     meta.className = 'bubble-meta';
-
     const nombre = document.createElement('div');
     nombre.className = `bubble-name ${esUser ? '' : 'ai-name'}`;
     nombre.textContent = esUser ? 'Tú' : 'ZENIC';
-
     const hora = document.createElement('div');
     hora.className = 'bubble-time';
     hora.textContent = horaActual();
-
-    meta.appendChild(nombre);
-    meta.appendChild(hora);
-
-    const burbuja = document.createElement('div');
-    burbuja.className = `bubble ${esUser ? 'bubble-user' : 'bubble-ai'}`;
-    burbuja.innerHTML = formatearTexto(texto);
-
+    meta.append(nombre, hora);
     inner.appendChild(meta);
-    inner.appendChild(burbuja);
 
-    // Token counter for AI responses
-    if (!esUser && tokens) {
-      const tc = document.createElement('div');
-      tc.className = 'token-counter';
-      tc.textContent = `${tokens} tokens`;
-      inner.appendChild(tc);
+    if (texto && texto.trim()) {
+      const burbuja = document.createElement('div');
+      burbuja.className = `bubble ${esUser ? 'bubble-user' : 'bubble-ai'}`;
+      burbuja.innerHTML = formatearTexto(texto);
+      inner.appendChild(burbuja);
     }
 
-    wrap.appendChild(avatar);
-    wrap.appendChild(inner);
+    if (!esUser && (extra.tokens || (extra.herramientas || []).length)) {
+      const footer = document.createElement('div');
+      footer.className = 'bubble-footer';
+      (extra.herramientas || []).forEach(h => {
+        const chip = document.createElement('span');
+        chip.className = 'tool-chip';
+        chip.innerHTML = `<i class="fa-solid fa-database"></i> ${escapar(h.replace(/_/g, ' '))}`;
+        footer.appendChild(chip);
+      });
+      if (extra.tokens) {
+        const t = document.createElement('span');
+        t.textContent = `${extra.tokens} tokens`;
+        footer.appendChild(t);
+      }
+      inner.appendChild(footer);
+    }
 
-    return wrap;
+    wrap.append(avatar, inner);
+    return { wrap, inner };
   }
 
-  function crearTyping() {
+  function crearTyping(mensaje) {
     const wrap = document.createElement('div');
     wrap.className = 'bubble-wrap';
     wrap.id = 'typingIndicator';
@@ -511,67 +570,130 @@
     avatar.innerHTML = '🤖';
 
     const inner = document.createElement('div');
+    inner.className = 'bubble-inner';
     const meta = document.createElement('div');
     meta.className = 'bubble-meta';
     const nombre = document.createElement('div');
     nombre.className = 'bubble-name ai-name';
-    nombre.textContent = 'ZENIC está analizando...';
+    nombre.textContent = mensaje || 'ZENIC está consultando el sistema...';
     meta.appendChild(nombre);
 
     const typing = document.createElement('div');
     typing.className = 'bubble bubble-ai typing-indicator';
-    typing.innerHTML = `
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    `;
+    typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
 
-    inner.appendChild(meta);
-    inner.appendChild(typing);
-    wrap.appendChild(avatar);
-    wrap.appendChild(inner);
+    inner.append(meta, typing);
+    wrap.append(avatar, inner);
     return wrap;
   }
 
-  function formatearTexto(texto) {
-    // Markdown: headers, bold, italic, code, lists, line breaks
-    let html = texto
-      // Headers
-      .replace(/^### (.+)$/gm, '<strong style="font-size:1rem;color:#8ecaff;">$1</strong>')
-      .replace(/^## (.+)$/gm, '<strong style="font-size:1.05rem;color:#8ecaff;">$1</strong>')
-      .replace(/^# (.+)$/gm, '<strong style="font-size:1.1rem;color:#8ecaff;">$1</strong>')
-      // Bold + Italic
-      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Code
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // Unordered lists
-      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
-      // Numbered lists
-      .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
-      // Line breaks
-      .replace(/\n/g, '<br>');
+  // ── Tarjeta de confirmación ───────────────────
+  function crearTarjetaConfirmacion(accion) {
+    const card = document.createElement('div');
+    card.className = 'confirm-card';
 
-    // Wrap consecutive <li> in <ul>
-    html = html.replace(/((<li>.*?<\/li>)(<br>)?)+/g, (match) => {
-      const cleaned = match.replace(/<br>/g, '');
-      return '<ul style="margin:.4rem 0;padding-left:1.2rem;">' + cleaned + '</ul>';
-    });
+    const filas = (accion.campos || []).map(c => {
+      const esTotal = (c.label || '').toUpperCase() === 'TOTAL';
+      return `<div class="confirm-row ${esTotal ? 'total' : ''}">
+                <span class="k">${escapar(c.label)}</span>
+                <span class="v">${escapar(c.valor)}</span>
+              </div>`;
+    }).join('');
 
-    return html;
+    const avisos = (accion.avisos || []).map(a =>
+      `<div class="confirm-warn"><i class="fa-solid fa-triangle-exclamation"></i><span>${escapar(a)}</span></div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="confirm-head">
+        <i class="fa-solid ${escapar(accion.icono || 'fa-circle-question')}"></i>
+        <span class="confirm-title">${escapar(accion.titulo || 'Confirmar acción')}</span>
+        <span class="confirm-tag">Requiere tu aprobación</span>
+      </div>
+      <div class="confirm-body">${filas}${avisos}</div>
+      <div class="confirm-actions">
+        <button class="btn-cancel"><i class="fa-solid fa-xmark"></i>Cancelar</button>
+        <button class="btn-confirm"><i class="fa-solid fa-check"></i>Confirmar y registrar</button>
+      </div>`;
+
+    const btnConfirmar = card.querySelector('.btn-confirm');
+    const btnCancelar  = card.querySelector('.btn-cancel');
+
+    btnConfirmar.addEventListener('click', () => ejecutarAccion(accion, card));
+    btnCancelar.addEventListener('click', () => cancelarAccion(card));
+
+    return card;
   }
 
+  function cerrarAcciones(card, textoEstado) {
+    card.querySelector('.confirm-actions')?.remove();
+    const tag = card.querySelector('.confirm-tag');
+    if (tag && textoEstado) tag.textContent = textoEstado;
+  }
+
+  async function ejecutarAccion(accion, card) {
+    const botones = card.querySelectorAll('button');
+    botones.forEach(b => b.disabled = true);
+    card.querySelector('.btn-confirm').innerHTML =
+      '<i class="fa-solid fa-spinner fa-spin"></i>Registrando...';
+
+    try {
+      const resp = await fetch('/zenic/ejecutar', {
+        method: 'POST',
+        headers: cabeceras(),
+        body: JSON.stringify({ token: accion.token })
+      });
+      const datos = await resp.json();
+
+      const resultado = document.createElement('div');
+      if (datos.exito) {
+        card.style.borderColor = 'rgba(46,204,113,.5)';
+        card.style.boxShadow = 'none';
+        cerrarAcciones(card, 'Registrado');
+        resultado.className = 'result-card result-ok';
+        resultado.innerHTML =
+          `<i class="fa-solid fa-circle-check"></i><span>${escapar(datos.mensaje)}</span>` +
+          (datos.enlace ? ` <a href="${escapar(datos.enlace)}">${escapar(datos.enlace_texto || 'Ver')}</a>` : '');
+        historial.push({ role: 'assistant', content: `[Acción ejecutada] ${datos.mensaje}` });
+      } else {
+        cerrarAcciones(card, 'No se registró');
+        resultado.className = 'result-card result-err';
+        resultado.innerHTML =
+          `<i class="fa-solid fa-circle-exclamation"></i><span>${escapar(datos.error || 'No se pudo completar la acción.')}</span>`;
+        historial.push({ role: 'assistant', content: `[Acción fallida] ${datos.error || ''}` });
+      }
+      card.parentElement.appendChild(resultado);
+    } catch (err) {
+      botones.forEach(b => b.disabled = false);
+      card.querySelector('.btn-confirm').innerHTML = '<i class="fa-solid fa-check"></i>Confirmar y registrar';
+      showError('Error de conexión al ejecutar la acción.');
+    } finally {
+      scrollAbajo();
+    }
+  }
+
+  async function cancelarAccion(card) {
+    card.querySelectorAll('button').forEach(b => b.disabled = true);
+    cerrarAcciones(card, 'Cancelado');
+    card.style.borderColor = 'var(--z-border)';
+    card.style.boxShadow = 'none';
+    card.style.opacity = '.6';
+    historial.push({ role: 'assistant', content: '[El usuario canceló la acción propuesta]' });
+    try {
+      await fetch('/zenic/cancelar', { method: 'POST', headers: cabeceras() });
+    } catch (err) { /* sin efecto: la acción expira sola */ }
+    scrollAbajo();
+  }
+
+  // ── Utilidades ────────────────────────────────
   function scrollAbajo() {
-    requestAnimationFrame(() => {
-      chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
-    });
+    requestAnimationFrame(() => chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' }));
   }
 
   function setEnviando(estado) {
     enviando = estado;
     sendBtn.disabled = estado;
-    input.disabled   = estado;
+    input.disabled = estado;
   }
 
   function showError(msg) {
@@ -580,24 +702,20 @@
     setTimeout(() => { errorBanner.style.display = 'none'; }, 8000);
   }
 
-  // ── Función principal de envío ────────────────
+  // ── Envío ─────────────────────────────────────
   async function enviar() {
     const texto = input.value.trim();
     if (!texto || enviando) return;
 
     errorBanner.style.display = 'none';
-
-    // Ocultar bienvenida al primer mensaje
     if (welcome) welcome.style.display = 'none';
 
-    // Burbuja del usuario
-    chat.appendChild(crearBurbuja('user', texto));
+    chat.appendChild(crearBurbuja('user', texto).wrap);
     historial.push({ role: 'user', content: texto });
     input.value = '';
     input.style.height = 'auto';
     scrollAbajo();
 
-    // Typing indicator
     setEnviando(true);
     const typing = crearTyping();
     chat.appendChild(typing);
@@ -606,43 +724,37 @@
     try {
       const resp = await fetch('/zenic/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
+        headers: cabeceras(),
         body: JSON.stringify({ mensaje: texto, historial })
       });
 
       typing.remove();
-
-      if (!resp.ok && resp.status !== 200) {
-        const text = await resp.text();
-        try {
-          const d = JSON.parse(text);
-          showError(d.error || `Error ${resp.status}`);
-          chat.appendChild(crearBurbuja('assistant', `⚠️ **Error:** ${d.error || 'Error del servidor'}`));
-        } catch {
-          showError(`Error ${resp.status}: ${text.substring(0, 100)}`);
-          chat.appendChild(crearBurbuja('assistant', '⚠️ **Error del servidor.** Intenta de nuevo.'));
-        }
-        return;
-      }
-
-      const datos = await resp.json();
+      const datos = await resp.json().catch(() => ({ error: `Error ${resp.status} del servidor.` }));
 
       if (datos.error) {
         showError(datos.error);
-        chat.appendChild(crearBurbuja('assistant', `⚠️ **Error:** ${datos.error}`));
-      } else {
-        const respuesta = datos.respuesta || '';
-        chat.appendChild(crearBurbuja('assistant', respuesta, datos.tokens_usados));
-        historial.push({ role: 'assistant', content: respuesta });
+        chat.appendChild(crearBurbuja('assistant', `⚠️ **Error:** ${datos.error}`).wrap);
+        return;
+      }
+
+      const { wrap, inner } = crearBurbuja('assistant', datos.respuesta || '', {
+        tokens: datos.tokens_usados,
+        herramientas: datos.herramientas
+      });
+      chat.appendChild(wrap);
+
+      if (datos.respuesta) historial.push({ role: 'assistant', content: datos.respuesta });
+
+      if (datos.accion_pendiente) {
+        inner.insertBefore(
+          crearTarjetaConfirmacion(datos.accion_pendiente),
+          inner.querySelector('.bubble-footer')
+        );
       }
     } catch (err) {
       typing.remove();
       showError('Error de conexión con el servidor.');
-      chat.appendChild(crearBurbuja('assistant',
-        '⚠️ **Error de conexión.** Verifica que el servidor esté activo.'));
+      chat.appendChild(crearBurbuja('assistant', '⚠️ **Error de conexión.** Verifica que el servidor esté activo.').wrap);
     } finally {
       setEnviando(false);
       scrollAbajo();
@@ -650,7 +762,6 @@
     }
   }
 
-  // Focus input on load
   input.focus();
 </script>
 
