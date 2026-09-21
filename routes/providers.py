@@ -87,51 +87,61 @@ def detail(id):
     facturas = ProviderInvoice.query.filter_by(provider_id=id).order_by(ProviderInvoice.fecha_factura.desc()).all()
     pagos = ProviderPayment.query.filter_by(provider_id=id).order_by(ProviderPayment.fecha_pago.desc()).all()
     
-    from models import Product, SaleDetail
+    from models import Product, SaleDetail, ProviderInvoice
     from sqlalchemy.orm import selectinload, joinedload
-    from sqlalchemy import not_
+    from sqlalchemy import or_
     
-    # Filtrar productos del proveedor excluyendo copias residuales con -EXT o estado 'Enviado'
-    celulares_raw = Product.query.options(
-        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
-    ).filter(
-        Product.tipo_inventario.in_(['celulares', 'externos']),
-        Product.proveedor.ilike(proveedor.nombre.strip()),
-        not_(Product.imei.like('%-EXT')),
-        Product.estado_celular != 'Enviado'
-    ).order_by(Product.fecha_creacion.desc()).all()
+    try:
+        # Filtrar productos del proveedor excluyendo copias residuales con -EXT o estado 'Enviado'
+        celulares_raw = Product.query.options(
+            selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
+        ).filter(
+            Product.tipo_inventario.in_(['celulares', 'externos']),
+            Product.proveedor.ilike(proveedor.nombre.strip()),
+            or_(Product.imei == None, ~Product.imei.like('%-EXT')),
+            or_(Product.estado_celular == None, Product.estado_celular != 'Enviado')
+        ).order_by(Product.fecha_creacion.desc()).all()
 
-    # Mapear ventas asociadas a cada celular (por detalles de venta, ProviderInvoice o por IMEI base)
-    from models import ProviderInvoice
-    celulares = []
-    for c in celulares_raw:
-        sale_id = None
-        if c.detalles_venta and len(c.detalles_venta) > 0:
-            sale_id = c.detalles_venta[0].sale_id
-        
-        # Si no lo tiene directamente, buscar en las facturas de proveedor generadas para este IMEI
-        clean_imei = (c.imei or '').replace('-EXT', '').strip()
-        if not sale_id and clean_imei:
-            inv = ProviderInvoice.query.filter(
-                ProviderInvoice.provider_id == id,
-                (ProviderInvoice.numero_factura.ilike(f'%{clean_imei}%') | ProviderInvoice.descripcion.ilike(f'%{clean_imei}%'))
-            ).first()
-            if inv and inv.sale_id_detected:
-                sale_id = inv.sale_id_detected
+        # Mapear ventas asociadas a cada celular (por detalles de venta, ProviderInvoice o por IMEI base)
+        celulares = []
+        for c in celulares_raw:
+            sale_id = None
+            if c.detalles_venta and len(c.detalles_venta) > 0:
+                sale_id = c.detalles_venta[0].sale_id
+            
+            clean_imei = (c.imei or '').replace('-EXT', '').strip()
+            # 1. Si no lo tiene directamente, buscar en facturas del proveedor generadas con ese IMEI
+            if not sale_id and clean_imei and len(clean_imei) >= 6:
+                try:
+                    inv = ProviderInvoice.query.filter(
+                        ProviderInvoice.provider_id == id,
+                        (ProviderInvoice.numero_factura.ilike(f"%{clean_imei}%") | ProviderInvoice.descripcion.ilike(f"%{clean_imei}%"))
+                    ).first()
+                    if inv and inv.sale_id_detected:
+                        sale_id = inv.sale_id_detected
+                except Exception:
+                    pass
 
-        # Si aún no, buscar si el IMEI estuvo en otro producto vendido (ej. histórico o retoma)
-        if not sale_id and clean_imei:
-            other_prod = Product.query.options(
-                selectinload(Product.detalles_venta)
-            ).filter(
-                (Product.imei == clean_imei) | (Product.imei == f"{clean_imei}-EXT") | (Product.imei2 == clean_imei),
-                Product.id != c.id
-            ).first()
-            if other_prod and other_prod.detalles_venta and len(other_prod.detalles_venta) > 0:
-                sale_id = other_prod.detalles_venta[0].sale_id
-        
-        c.sale_id_display = sale_id
-        celulares.append(c)
+            # 2. Si aún no, buscar si el IMEI estuvo en otro producto vendido (ej. producto externo anterior)
+            if not sale_id and clean_imei and len(clean_imei) >= 6:
+                try:
+                    other_prod = Product.query.options(
+                        selectinload(Product.detalles_venta)
+                    ).filter(
+                        (Product.imei == clean_imei) | (Product.imei == f"{clean_imei}-EXT") | (Product.imei2 == clean_imei),
+                        Product.id != c.id
+                    ).first()
+                    if other_prod and other_prod.detalles_venta and len(other_prod.detalles_venta) > 0:
+                        sale_id = other_prod.detalles_venta[0].sale_id
+                except Exception:
+                    pass
+            
+            c.sale_id_display = sale_id
+            celulares.append(c)
+
+    except Exception as err:
+        current_app.logger.error(f"Error cargando celulares del proveedor: {err}", exc_info=True)
+        celulares = []
 
     return render_template('providers/detail.html', 
                            proveedor=proveedor, 
