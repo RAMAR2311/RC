@@ -85,31 +85,68 @@
             {% endif %}
         </div>
 
-        <!-- Filtro desplegable intuitivo por Referencia -->
-        <div class="input-group shadow-sm" style="flex: 0 1 240px;">
-            <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-layer-group"></i></span>
-            <select name="referencia" id="referenciaSelect" class="form-select border-start-0 bg-white fw-semibold" onchange="document.getElementById('searchForm').submit();" style="cursor: pointer;">
-                <option value="">-- Todas las Referencias --</option>
-                {% for ref in referencias_disponibles %}
-                <option value="{{ ref }}" {% if referencia == ref %}selected{% endif %}>{{ ref }}</option>
-                {% endfor %}
-            </select>
-            {% if referencia %}
-            <a href="{{ url_for('celulares_bp.inventario', estado=estado, q=q) }}" class="btn btn-outline-secondary border-start-0" title="Quitar filtro de referencia"><i class="fa-solid fa-xmark"></i></a>
-            {% endif %}
+        <!-- Filtro desplegable intuitivo con Selección Múltiple de Referencias -->
+        <div class="dropdown shadow-sm" style="flex: 0 1 260px;">
+            <button class="btn btn-white bg-white border dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center fw-semibold text-truncate" 
+                    type="button" id="referenciasDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="padding: 0.375rem 0.75rem;">
+                <span class="text-truncate">
+                    <i class="fa-solid fa-layer-group text-muted me-1"></i>
+                    {% if referencias_seleccionadas|length == 0 %}
+                        <span class="text-muted fw-normal">Todas las Referencias</span>
+                    {% elif referencias_seleccionadas|length == 1 %}
+                        {{ referencias_seleccionadas[0] }}
+                    {% else %}
+                        <span class="badge bg-primary rounded-pill me-1">{{ referencias_seleccionadas|length }}</span> Ref. seleccionadas
+                    {% endif %}
+                </span>
+            </button>
+            <div class="dropdown-menu p-2 shadow-lg border-0 rounded-3 w-100" style="min-width: 280px; max-height: 380px; overflow-y: auto;" aria-labelledby="referenciasDropdown">
+                <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <span class="fw-bold small text-muted text-uppercase">Filtrar por modelo</span>
+                    <div>
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 me-2 text-primary" onclick="seleccionarTodasRefs(true)">Todas</button>
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" onclick="seleccionarTodasRefs(false)">Limpiar</button>
+                    </div>
+                </div>
+                <div class="mb-2 px-1">
+                    <input type="text" id="buscarRefInMenu" class="form-control form-control-sm" placeholder="Buscar en lista..." oninput="filtrarListaRefs(this.value)">
+                </div>
+                <hr class="my-1">
+                <div id="listaReferenciasContainer">
+                    {% for ref in referencias_disponibles %}
+                    <div class="form-check py-1 px-2 rounded ref-item-check hover-bg">
+                        <input class="form-check-input ref-checkbox" type="checkbox" name="referencias" value="{{ ref }}" id="ref_check_{{ loop.index }}"
+                               {% if ref in referencias_seleccionadas %}checked{% endif %}>
+                        <label class="form-check-label w-100 text-truncate small fw-medium" for="ref_check_{{ loop.index }}" style="cursor: pointer;">
+                            {{ ref }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-2 pt-2 border-top d-grid gap-1">
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold" onclick="document.getElementById('searchForm').submit();">
+                        <i class="fa-solid fa-filter me-1"></i> Aplicar Filtro
+                    </button>
+                </div>
+            </div>
         </div>
+        {% if referencias_seleccionadas %}
+        <a href="{{ url_for('celulares_bp.inventario', estado=estado, q=q) }}" class="btn btn-outline-secondary border shadow-sm" title="Quitar filtro de referencias">
+            <i class="fa-solid fa-xmark text-danger"></i>
+        </a>
+        {% endif %}
         
         <input type="hidden" name="estado" id="estadoInput" value="{{ estado }}">
     </form>
     
     <div class="btn-group shadow-sm">
-        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q, referencia=referencia) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
             <i class="fa-solid fa-boxes-stacked me-1"></i> Activos
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q, referencia=referencia) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
             <i class="fa-solid fa-handshake me-1"></i> En Maneo ({{ celulares_en_maneo }})
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencia=referencia) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
             <i class="fa-solid fa-check me-1"></i> Vendidos
         </a>
     </div>
@@ -250,14 +287,14 @@
     <ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
         <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
             <a class="page-link rounded-pill px-3 shadow-sm"
-               href="{% if paginacion.has_prev %}{{ url_for('celulares_bp.inventario', page=paginacion.prev_num, q=q, estado=estado, referencia=referencia) }}{% else %}#{% endif %}"
+               href="{% if paginacion.has_prev %}{{ url_for('celulares_bp.inventario', page=paginacion.prev_num, q=q, estado=estado, referencias=referencias_seleccionadas) }}{% else %}#{% endif %}"
                aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></a>
         </li>
         {% for p_num in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
             {% if p_num %}
                 <li class="page-item {% if p_num == paginacion.page %}active{% endif %}">
                     <a class="page-link rounded-pill px-3 shadow-sm"
-                       href="{{ url_for('celulares_bp.inventario', page=p_num, q=q, estado=estado, referencia=referencia) }}">{{ p_num }}</a>
+                       href="{{ url_for('celulares_bp.inventario', page=p_num, q=q, estado=estado, referencias=referencias_seleccionadas) }}">{{ p_num }}</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link rounded-pill px-3">…</span></li>
@@ -265,7 +302,7 @@
         {% endfor %}
         <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
             <a class="page-link rounded-pill px-3 shadow-sm"
-               href="{% if paginacion.has_next %}{{ url_for('celulares_bp.inventario', page=paginacion.next_num, q=q, estado=estado, referencia=referencia) }}{% else %}#{% endif %}"
+               href="{% if paginacion.has_next %}{{ url_for('celulares_bp.inventario', page=paginacion.next_num, q=q, estado=estado, referencias=referencias_seleccionadas) }}{% else %}#{% endif %}"
                aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></a>
         </li>
     </ul>
@@ -291,5 +328,27 @@
             searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
         }
     });
+
+    function filtrarListaRefs(texto) {
+        const query = (texto || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.ref-item-check');
+        items.forEach(el => {
+            const label = el.querySelector('label').innerText.toLowerCase();
+            if (label.includes(query)) {
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+    }
+
+    function seleccionarTodasRefs(marcar) {
+        const checkboxes = document.querySelectorAll('.ref-checkbox');
+        checkboxes.forEach(cb => {
+            if (cb.closest('.ref-item-check').style.display !== 'none') {
+                cb.checked = marcar;
+            }
+        });
+    }
 </script>
 {% endblock %}

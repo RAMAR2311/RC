@@ -18,7 +18,11 @@ def obtener_hora_bogota():
 @login_required
 def inventario():
     q = request.args.get('q', '').strip()
-    referencia = request.args.get('referencia', '').strip()
+    # Permitir filtrar por múltiples referencias
+    referencias_seleccionadas = request.args.getlist('referencias')
+    # Soporte por si viene una sola referencia como 'referencia' o separada por comas
+    if not referencias_seleccionadas and request.args.get('referencia'):
+        referencias_seleccionadas = [r.strip() for r in request.args.get('referencia').split(',') if r.strip()]
     estado = request.args.get('estado', 'activos').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -69,8 +73,8 @@ def inventario():
             ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
         )
 
-    if referencia:
-        base_query = base_query.filter(Product.modelo_celular == referencia)
+    if referencias_seleccionadas:
+        base_query = base_query.filter(Product.modelo_celular.in_(referencias_seleccionadas))
 
     if q:
         base_query = base_query.filter(
@@ -91,7 +95,8 @@ def inventario():
                            celulares=paginacion.items,
                            paginacion=paginacion,
                            q=q,
-                           referencia=referencia,
+                           referencias_seleccionadas=referencias_seleccionadas,
+                           referencia=referencias_seleccionadas[0] if len(referencias_seleccionadas) == 1 else '',
                            referencias_disponibles=referencias_disponibles,
                            estado=estado,
                            stock_activo=stock_activo,

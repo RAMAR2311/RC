@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Maneo, StockAdjustment, Sale, SaleDetail, SalePayment, obtener_hora_bogota
+from models import db, Product, ProductVariant, Maneo, StockAdjustment, Sale, SaleDetail, SalePayment, SaleClient, obtener_hora_bogota
 from decorators import admin_required
 
 maneos_bp = Blueprint('maneos_bp', __name__)
@@ -117,13 +117,24 @@ def facturar(id):
     precio_unidad = float(request.form.get('precio_unidad', sugerido))
     metodo_pago = request.form.get('metodo_pago', 'efectivo')
     
+    # Datos del cliente
+    cliente_nombre = request.form.get('cliente_nombre', '').strip()
+    cliente_documento = request.form.get('cliente_documento', '').strip()
+    cliente_telefono = request.form.get('cliente_telefono', '').strip()
+
+    es_celular = (maneo.producto.tipo_inventario == 'celulares' or bool(maneo.producto.imei))
+    if es_celular and (not cliente_nombre or not cliente_documento):
+        flash("Para facturar un celular prestado en maneo, es obligatorio indicar el nombre y documento del cliente.", "warning")
+        return redirect(url_for('maneos_bp.index'))
+
     total_venta = precio_unidad * maneo.cantidad
 
     # Crear la Venta
     nueva_venta = Sale(
         vendedor_id=current_user.id,
         monto_total=total_venta,
-        metodo_pago=metodo_pago
+        metodo_pago=metodo_pago,
+        tipo_venta='celulares' if es_celular else 'general'
     )
     db.session.add(nueva_venta)
     db.session.flush()
@@ -146,13 +157,23 @@ def facturar(id):
     )
     db.session.add(pago)
 
+    # Añadir cliente si fue proporcionado
+    if cliente_nombre:
+        cliente = SaleClient(
+            sale_id=nueva_venta.id,
+            nombre=cliente_nombre,
+            documento=cliente_documento or '0',
+            telefono=cliente_telefono or ''
+        )
+        db.session.add(cliente)
+
     # Actualizar estado del Maneo
     maneo.estado = 'FACTURADO'
     maneo.fecha_resolucion = obtener_hora_bogota()
 
     try:
         db.session.commit()
-        flash(f"Maneo facturado correctamente. Venta registrada por ${total_venta:,.0f}.", "success")
+        flash(f"Maneo facturado correctamente. Venta #{nueva_venta.id} registrada por ${total_venta:,.0f}.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error al facturar el maneo: {e}", "danger")

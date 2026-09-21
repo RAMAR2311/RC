@@ -111,6 +111,28 @@
                                                             <option value="tarjeta_credito">💳 Tarjeta Crédito</option>
                                                         </select>
                                                     </div>
+
+                                                    <!-- Datos del Cliente -->
+                                                    <div class="border rounded-3 p-3 bg-light mb-3">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <i class="fa-solid fa-user-check text-primary me-2"></i>
+                                                            <span class="fw-bold small text-uppercase">Datos del Cliente {% if maneo.producto.tipo_inventario == 'celulares' or maneo.producto.imei %}<span class="text-danger">*</span>{% else %}<span class="text-muted fw-normal">(Opcional)</span>{% endif %}</span>
+                                                        </div>
+                                                        <div class="row g-2">
+                                                            <div class="col-12">
+                                                                <label class="form-label small fw-semibold mb-1">Nombre Completo</label>
+                                                                <input type="text" name="cliente_nombre" class="form-control form-control-sm" placeholder="Ej: Juan Pérez" {% if maneo.producto.tipo_inventario == 'celulares' or maneo.producto.imei %}required{% endif %}>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label class="form-label small fw-semibold mb-1">Cédula / Documento</label>
+                                                                <input type="text" name="cliente_documento" class="form-control form-control-sm" placeholder="Ej: 1020304050" {% if maneo.producto.tipo_inventario == 'celulares' or maneo.producto.imei %}required{% endif %}>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label class="form-label small fw-semibold mb-1">Teléfono</label>
+                                                                <input type="text" name="cliente_telefono" class="form-control form-control-sm" placeholder="Ej: 3001234567" {% if maneo.producto.tipo_inventario == 'celulares' or maneo.producto.imei %}required{% endif %}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="modal-footer border-top-0 pt-0">
                                                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
