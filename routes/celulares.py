@@ -689,18 +689,20 @@ def importar_excel():
 @login_required
 def trazabilidad():
     imei_query = request.args.get('imei', '').strip()
+    clean_imei = imei_query.replace('-EXT', '').strip()
     
     eventos = []
     producto_info = None
     
-    if imei_query:
+    if clean_imei:
         # 1. Buscar productos que contengan el IMEI (históricos o activos)
         productos = Product.query.filter(
             or_(
-                Product.imei == imei_query,
-                Product.imei2 == imei_query,
-                Product.imei.like(f"%{imei_query}%"),
-                Product.imei2.like(f"%{imei_query}%")
+                Product.imei == clean_imei,
+                Product.imei2 == clean_imei,
+                Product.imei == f"{clean_imei}-EXT",
+                Product.imei.like(f"%{clean_imei}%"),
+                Product.imei2.like(f"%{clean_imei}%")
             )
         ).all()
         
@@ -743,15 +745,33 @@ def trazabilidad():
             })
 
         # 2. Buscar Ventas (SaleDetail) vinculadas a los productos o al IMEI
+        from models import ProviderInvoice
         p_ids = [p.id for p in productos]
+        
+        # Buscar también productos hermanos (ej. si existió con -EXT o duplicado)
+        hermanos = Product.query.filter(
+            or_(
+                Product.imei == f"{clean_imei}-EXT",
+                Product.imei == clean_imei,
+                Product.imei2 == clean_imei
+            )
+        ).all()
+        for h in hermanos:
+            if h.id not in p_ids:
+                p_ids.append(h.id)
+
+        # Buscar ventas directas en SaleDetail
         detalles_venta = []
         if p_ids:
             detalles_venta = SaleDetail.query.filter(SaleDetail.product_id.in_(p_ids)).all()
         
+        ventas_procesadas = set()
         for d in detalles_venta:
             v = d.venta
-            if not v:
+            if not v or v.id in ventas_procesadas:
                 continue
+            ventas_procesadas.add(v.id)
+            
             cliente_nombre = 'Cliente General'
             if hasattr(v, 'cliente') and v.cliente:
                 cliente_nombre = f"{v.cliente.nombre} (Doc: {v.cliente.documento})"
@@ -775,14 +795,48 @@ def trazabilidad():
                 }
             })
 
+        # Si aún no encontró la venta en SaleDetail, buscar a través de ProviderInvoice generada para este IMEI
+        if clean_imei:
+            invoices_prov = ProviderInvoice.query.filter(
+                or_(
+                    ProviderInvoice.numero_factura.ilike(f"%{clean_imei}%"),
+                    ProviderInvoice.descripcion.ilike(f"%{clean_imei}%")
+                )
+            ).all()
+            for inv in invoices_prov:
+                if inv.sale and inv.sale.id not in ventas_procesadas:
+                    v = inv.sale
+                    ventas_procesadas.add(v.id)
+                    cliente_nombre = 'Cliente General'
+                    if hasattr(v, 'cliente') and v.cliente:
+                        cliente_nombre = f"{v.cliente.nombre} (Doc: {v.cliente.documento})"
+                    
+                    eventos.append({
+                        'tipo': 'VENTA',
+                        'titulo': f'Venta de Celular (Factura #{v.id})',
+                        'fecha': v.fecha_venta,
+                        'icono': 'fa-solid fa-cart-shopping text-success',
+                        'badge_color': 'bg-success text-white',
+                        'sale_id': v.id,
+                        'detalles': {
+                            'Factura': f"#{v.id}",
+                            'Cliente': cliente_nombre,
+                            'Vendedor': v.vendedor.nombre if v.vendedor else 'N/A',
+                            'Sucursal': v.sucursal or 'N/A',
+                            'Monto Venta': f"${float(v.monto_total or 0):,.0f}".replace(',', '.'),
+                            'Método de Pago': v.metodo_pago_display,
+                            'Proveedor Liquidado': inv.provider.nombre if inv.provider else 'N/A'
+                        }
+                    })
+
         # 3. Buscar Retomas (Retoma) vinculadas al IMEI
         from models import Retoma
         retomas = Retoma.query.filter(
             or_(
-                Retoma.imei1 == imei_query,
-                Retoma.imei2 == imei_query,
-                Retoma.imei1.like(f"%{imei_query}%"),
-                Retoma.imei2.like(f"%{imei_query}%")
+                Retoma.imei1 == clean_imei,
+                Retoma.imei2 == clean_imei,
+                Retoma.imei1.like(f"%{clean_imei}%"),
+                Retoma.imei2.like(f"%{clean_imei}%")
             )
         ).all()
 
@@ -805,11 +859,28 @@ def trazabilidad():
                 }
             })
 
+        # 4. Buscar Préstamos de Maneo vinculados
+        for p in productos:
+            for m in p.maneos:
+                eventos.append({
+                    'tipo': 'MANEO',
+                    'titulo': f'Préstamo a Local Vecino ({m.local_vecino})',
+                    'fecha': m.fecha_prestamo,
+                    'icono': 'fa-solid fa-handshake text-info',
+                    'badge_color': 'bg-info text-dark',
+                    'detalles': {
+                        'Local Receptor': m.local_vecino,
+                        'Estado': m.estado,
+                        'Fecha Préstamo': m.fecha_prestamo.strftime('%d/%m/%Y %H:%M') if m.fecha_prestamo else 'N/A',
+                        'Fecha Resolución': m.fecha_resolucion.strftime('%d/%m/%Y %H:%M') if m.fecha_resolucion else 'Pendiente'
+                    }
+                })
+
         # Ordenar eventos cronológicamente (de más antiguo a más reciente)
         eventos.sort(key=lambda x: x['fecha'] if x['fecha'] else datetime.min)
 
     return render_template('celulares/trazabilidad.html',
-                           imei=imei_query,
+                           imei=clean_imei,
                            producto_info=producto_info,
                            eventos=eventos)
 
