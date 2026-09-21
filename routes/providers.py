@@ -87,7 +87,7 @@ def detail(id):
     facturas = ProviderInvoice.query.filter_by(provider_id=id).order_by(ProviderInvoice.fecha_factura.desc()).all()
     pagos = ProviderPayment.query.filter_by(provider_id=id).order_by(ProviderPayment.fecha_pago.desc()).all()
     
-    from models import Product, SaleDetail, ProviderInvoice
+    from models import Product, SaleDetail
     from sqlalchemy.orm import selectinload, joinedload
     from sqlalchemy import or_
     
