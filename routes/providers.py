@@ -101,22 +101,34 @@ def detail(id):
         Product.estado_celular != 'Enviado'
     ).order_by(Product.fecha_creacion.desc()).all()
 
-    # Mapear ventas asociadas a cada celular (incluyendo si se vendió bajo el registro -EXT anterior)
+    # Mapear ventas asociadas a cada celular (por detalles de venta, ProviderInvoice o por IMEI base)
+    from models import ProviderInvoice
     celulares = []
     for c in celulares_raw:
         sale_id = None
         if c.detalles_venta and len(c.detalles_venta) > 0:
             sale_id = c.detalles_venta[0].sale_id
-        elif c.imei:
-            # Buscar si existe venta registrada con el imei base o con -EXT
-            ext_prod = Product.query.options(
+        
+        # Si no lo tiene directamente, buscar en las facturas de proveedor generadas para este IMEI
+        clean_imei = (c.imei or '').replace('-EXT', '').strip()
+        if not sale_id and clean_imei:
+            inv = ProviderInvoice.query.filter(
+                ProviderInvoice.provider_id == id,
+                (ProviderInvoice.numero_factura.ilike(f'%{clean_imei}%') | ProviderInvoice.descripcion.ilike(f'%{clean_imei}%'))
+            ).first()
+            if inv and inv.sale_id_detected:
+                sale_id = inv.sale_id_detected
+
+        # Si aún no, buscar si el IMEI estuvo en otro producto vendido (ej. histórico o retoma)
+        if not sale_id and clean_imei:
+            other_prod = Product.query.options(
                 selectinload(Product.detalles_venta)
             ).filter(
-                (Product.imei == f"{c.imei}-EXT") | (Product.imei == c.imei),
+                (Product.imei == clean_imei) | (Product.imei == f"{clean_imei}-EXT") | (Product.imei2 == clean_imei),
                 Product.id != c.id
             ).first()
-            if ext_prod and ext_prod.detalles_venta and len(ext_prod.detalles_venta) > 0:
-                sale_id = ext_prod.detalles_venta[0].sale_id
+            if other_prod and other_prod.detalles_venta and len(other_prod.detalles_venta) > 0:
+                sale_id = other_prod.detalles_venta[0].sale_id
         
         c.sale_id_display = sale_id
         celulares.append(c)
