@@ -89,13 +89,37 @@ def detail(id):
     
     from models import Product, SaleDetail
     from sqlalchemy.orm import selectinload, joinedload
+    from sqlalchemy import not_
     
-    celulares = Product.query.options(
+    # Filtrar productos del proveedor excluyendo copias residuales con -EXT o estado 'Enviado'
+    celulares_raw = Product.query.options(
         selectinload(Product.detalles_venta).joinedload(SaleDetail.venta)
     ).filter(
         Product.tipo_inventario.in_(['celulares', 'externos']),
-        Product.proveedor.ilike(proveedor.nombre.strip())
+        Product.proveedor.ilike(proveedor.nombre.strip()),
+        not_(Product.imei.like('%-EXT')),
+        Product.estado_celular != 'Enviado'
     ).order_by(Product.fecha_creacion.desc()).all()
+
+    # Mapear ventas asociadas a cada celular (incluyendo si se vendió bajo el registro -EXT anterior)
+    celulares = []
+    for c in celulares_raw:
+        sale_id = None
+        if c.detalles_venta and len(c.detalles_venta) > 0:
+            sale_id = c.detalles_venta[0].sale_id
+        elif c.imei:
+            # Buscar si existe venta registrada con el imei base o con -EXT
+            ext_prod = Product.query.options(
+                selectinload(Product.detalles_venta)
+            ).filter(
+                (Product.imei == f"{c.imei}-EXT") | (Product.imei == c.imei),
+                Product.id != c.id
+            ).first()
+            if ext_prod and ext_prod.detalles_venta and len(ext_prod.detalles_venta) > 0:
+                sale_id = ext_prod.detalles_venta[0].sale_id
+        
+        c.sale_id_display = sale_id
+        celulares.append(c)
 
     return render_template('providers/detail.html', 
                            proveedor=proveedor, 

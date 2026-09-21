@@ -356,8 +356,8 @@
                         {% endif %}
                     </td>
                     <td class="text-center pe-4">
-                        {% set sale_id_celular = None %}
-                        {% if c.detalles_venta and c.detalles_venta|length > 0 %}
+                        {% set sale_id_celular = c.sale_id_display %}
+                        {% if not sale_id_celular and c.detalles_venta and c.detalles_venta|length > 0 %}
                             {% set sale_id_celular = c.detalles_venta[0].sale_id %}
                         {% endif %}
 
@@ -365,6 +365,8 @@
                         <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=sale_id_celular) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-sm">
                             <i class="fa-solid fa-receipt me-1"></i> Ver Factura #{{ sale_id_celular }}
                         </a>
+                        {% elif c.cantidad_stock <= 0 %}
+                        <span class="text-secondary small fw-semibold"><i class="fa-solid fa-check-double me-1"></i> Vendido / Descontado</span>
                         {% else %}
                         <span class="text-muted small"><i class="fa-solid fa-box me-1"></i> Disponible en Inventario</span>
                         {% endif %}

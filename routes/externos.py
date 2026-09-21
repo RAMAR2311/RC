@@ -332,34 +332,16 @@ def enviar_inventario(id):
         return redirect(url_for('externos_bp.inventario'))
         
     try:
-        # Clone the product for the main inventory
-        nuevo_cel = Product(
-            nombre=celular.nombre,
-            sku=celular.sku + '-INV' if not celular.sku.endswith('-INV') else celular.sku,
-            tipo_inventario='celulares',
-            cantidad_stock=celular.cantidad_stock,
-            precio_costo=celular.precio_costo,
-            precio_minimo=celular.precio_minimo,
-            precio_sugerido=celular.precio_sugerido,
-            marca=celular.marca,
-            modelo_celular=celular.modelo_celular,
-            color=celular.color,
-            bateria=celular.bateria,
-            memoria=celular.memoria,
-            imei=celular.imei,
-            imei2=celular.imei2,
-            proveedor=celular.proveedor
-        )
-        
-        # Mark the original as sent and modify its IMEI to avoid unique constraint violations
-        if celular.imei:
-            celular.imei = celular.imei + '-EXT'
-        celular.estado_celular = 'Enviado'
-        celular.cantidad_stock = 0
-        
-        db.session.add(nuevo_cel)
+        # Transferencia directa al inventario de celulares sin duplicar el producto
+        celular.tipo_inventario = 'celulares'
+        if not celular.sku.endswith('-INV'):
+            celular.sku = celular.sku + '-INV'
+        celular.estado_celular = 'Activo'
+        if celular.cantidad_stock <= 0:
+            celular.cantidad_stock = 1
+            
         db.session.commit()
-        flash('El producto ha sido enviado al Inventario de Celulares exitosamente, y se ha guardado el registro.', 'success')
+        flash('El producto ha sido movido al Inventario de Celulares exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error al mover el producto: {str(e)}', 'danger')
@@ -386,30 +368,13 @@ def enviar_inventario_masivo():
                 if not celular or celular.tipo_inventario != 'externos' or celular.estado_celular == 'Enviado':
                     continue
                 
-                nuevo_cel = Product(
-                    nombre=celular.nombre,
-                    sku=celular.sku + '-INV' if not celular.sku.endswith('-INV') else celular.sku,
-                    tipo_inventario='celulares',
-                    cantidad_stock=celular.cantidad_stock if celular.cantidad_stock > 0 else 1,
-                    precio_costo=celular.precio_costo,
-                    precio_minimo=celular.precio_minimo,
-                    precio_sugerido=celular.precio_sugerido,
-                    marca=celular.marca,
-                    modelo_celular=celular.modelo_celular,
-                    color=celular.color,
-                    bateria=celular.bateria,
-                    memoria=celular.memoria,
-                    imei=celular.imei,
-                    imei2=celular.imei2,
-                    proveedor=celular.proveedor
-                )
+                celular.tipo_inventario = 'celulares'
+                if not celular.sku.endswith('-INV'):
+                    celular.sku = celular.sku + '-INV'
+                celular.estado_celular = 'Activo'
+                if celular.cantidad_stock <= 0:
+                    celular.cantidad_stock = 1
                 
-                if celular.imei:
-                    celular.imei = celular.imei + '-EXT'
-                celular.estado_celular = 'Enviado'
-                celular.cantidad_stock = 0
-                
-                db.session.add(nuevo_cel)
                 exitosos += 1
             except Exception:
                 errores += 1
