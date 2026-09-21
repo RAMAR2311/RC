@@ -16,7 +16,7 @@ def create_app():
     # Configuración mediante variables de entorno (con fallback inteligente a SQLite si Postgres no está activo)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
     
-    raw_db_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/RC')
+    raw_db_url = os.environ.get('DATABASE_URL') or os.environ.get('SQLALCHEMY_DATABASE_URI') or 'postgresql://postgres:admin123@localhost:5432/RC'
     
     # Verificar si PostgreSQL está disponible
     if raw_db_url and raw_db_url.startswith('postgresql'):
