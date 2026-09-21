@@ -18,6 +18,7 @@ def obtener_hora_bogota():
 @login_required
 def inventario():
     q = request.args.get('q', '').strip()
+    referencia = request.args.get('referencia', '').strip()
     estado = request.args.get('estado', 'activos').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -34,6 +35,14 @@ def inventario():
             stock_activo += c.cantidad_stock
             costo_total += float(c.precio_costo) * c.cantidad_stock
             ventas_estimadas += float(c.precio_sugerido) * c.cantidad_stock
+
+    # Obtener lista única y ordenada de referencias para el filtro desplegable
+    referencias_query = db.session.query(Product.modelo_celular).filter(
+        Product.tipo_inventario == 'celulares',
+        Product.modelo_celular != None,
+        Product.modelo_celular != ''
+    ).distinct().order_by(Product.modelo_celular.asc()).all()
+    referencias_disponibles = [r[0] for r in referencias_query if r[0]]
 
     # Celulares actualmente prestados a locales vecinos (Maneo pendiente)
     celulares_en_maneo = Product.query.filter(
@@ -60,6 +69,9 @@ def inventario():
             ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
         )
 
+    if referencia:
+        base_query = base_query.filter(Product.modelo_celular == referencia)
+
     if q:
         base_query = base_query.filter(
             or_(
@@ -79,6 +91,8 @@ def inventario():
                            celulares=paginacion.items,
                            paginacion=paginacion,
                            q=q,
+                           referencia=referencia,
+                           referencias_disponibles=referencias_disponibles,
                            estado=estado,
                            stock_activo=stock_activo,
                            costo_total=costo_total,
@@ -159,7 +173,12 @@ def nuevo_celular():
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')
         precio_minimo_str = request.form.get('precio_minimo', '0').replace(',', '')
         
-        nombre_completo = f"Celular {marca} {modelo_celular} {color} {memoria}".strip()
+        tipo_dispositivo = request.form.get('tipo_dispositivo', 'Celular').strip()
+        if tipo_dispositivo and tipo_dispositivo != 'Otro':
+            nombre_completo = f"{tipo_dispositivo} {marca} {modelo_celular} {color} {memoria}".strip()
+        else:
+            nombre_completo = f"{marca} {modelo_celular} {color} {memoria}".strip()
+            
         sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         imagen_filename = None
@@ -197,7 +216,7 @@ def nuevo_celular():
         try:
             db.session.add(nuevo)
             db.session.commit()
-            flash('Celular ingresado al inventario exitosamente.', 'success')
+            flash(f'{tipo_dispositivo} ingresado al inventario exitosamente.', 'success')
             return redirect(url_for('celulares_bp.inventario'))
             
         except IntegrityError:
@@ -205,7 +224,7 @@ def nuevo_celular():
             flash(f'El IMEI "{imei}" ya existe registrado en la base de datos.', 'danger')
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al registrar el celular: {str(e)}', 'danger')
+            flash(f'Error al registrar el dispositivo: {str(e)}', 'danger')
 
     return render_template('celulares/form_celular.html', celular=None)
 
@@ -215,7 +234,7 @@ def nuevo_celular():
 def editar_celular(id):
     celular = Product.query.get_or_404(id)
     if celular.tipo_inventario != 'celulares':
-        flash('El producto seleccionado no es un celular.', 'danger')
+        flash('El producto seleccionado no pertenece a este inventario.', 'danger')
         return redirect(url_for('celulares_bp.inventario'))
         
     if request.method == 'POST':
@@ -238,7 +257,11 @@ def editar_celular(id):
         celular.proveedor = request.form.get('proveedor', '').strip()
         celular.inventario = request.form.get('inventario', '').strip()
         
-        celular.nombre = f"Celular {celular.marca} {celular.modelo_celular} {celular.color} {celular.memoria}".strip()
+        tipo_dispositivo = request.form.get('tipo_dispositivo', 'Celular').strip()
+        if tipo_dispositivo and tipo_dispositivo != 'Otro':
+            celular.nombre = f"{tipo_dispositivo} {celular.marca} {celular.modelo_celular} {celular.color} {celular.memoria}".strip()
+        else:
+            celular.nombre = f"{celular.marca} {celular.modelo_celular} {celular.color} {celular.memoria}".strip()
             
         precio_costo_str = request.form.get('precio_costo', '0').replace(',', '')
         precio_sugerido_str = request.form.get('precio_sugerido', '0').replace(',', '')

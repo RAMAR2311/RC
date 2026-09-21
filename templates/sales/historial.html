@@ -225,7 +225,7 @@
                                 <i class="fa-solid fa-tags me-1 text-brand-pink"></i> Ver Costos
                             </button>
                             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#editPaymentModal{{ venta.id }}">
-                                <i class="fa-solid fa-pen me-1"></i> Editar Pago
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Editar Venta
                             </button>
                             <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de anular esta venta? Esta acción NO se puede deshacer y retornará el stock de los productos vendidos.');" class="m-0 p-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -348,13 +348,13 @@
                                 </div>
                             </div>
                             
-                            <!-- Modal Editar Pago -->
+                            <!-- Modal Editar Venta / Pago -->
                             <div class="modal fade text-start" id="editPaymentModal{{ venta.id }}" tabindex="-1" aria-labelledby="editPaymentModalLabel{{ venta.id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content">
                                         <div class="modal-header bg-light">
                                             <h5 class="modal-title text-brand-black fw-bold" id="editPaymentModalLabel{{ venta.id }}">
-                                                <i class="fa-solid fa-pen text-primary me-2"></i> Editar Pago - Ticket #{{ "%05d"|format(venta.id) }}
+                                                <i class="fa-solid fa-pen text-primary me-2"></i> Editar Venta / Pago - Ticket #{{ "%05d"|format(venta.id) }}
                                             </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
@@ -363,37 +363,55 @@
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 
                                                 {% if venta.pagos %}
+                                                    <p class="text-muted small mb-2"><i class="fa-solid fa-circle-info text-primary me-1"></i> Puedes modificar el método de pago y el valor de cada abono:</p>
                                                     {% for pago in venta.pagos %}
-                                                    <div class="mb-3 p-3 border rounded">
-                                                        <label class="form-label fw-bold small text-muted">Abono de ${{ (pago.monto)|cop }}</label>
-                                                        <select name="payment_method_{{ pago.id }}" class="form-select border-0 bg-light shadow-sm fw-semibold">
-                                                            <option value="efectivo" {% if pago.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
-                                                            <option value="nequi" {% if pago.metodo_pago == 'nequi' %}selected{% endif %}>Nequi</option>
-                                                            <option value="bancolombia" {% if pago.metodo_pago == 'bancolombia' %}selected{% endif %}>Bancolombia</option>
-                                                            <option value="daviplata" {% if pago.metodo_pago == 'daviplata' %}selected{% endif %}>Daviplata</option>
-                                                            <option value="tarjeta_credito" {% if pago.metodo_pago == 'tarjeta_credito' %}selected{% endif %}>T. Crédito</option>
-                                                            <option value="addi" {% if pago.metodo_pago == 'addi' %}selected{% endif %}>Addi</option>
-                                                            <option value="sitecredito" {% if pago.metodo_pago == 'sitecredito' %}selected{% endif %}>Sitecredito</option>
-                                                        </select>
+                                                    <div class="mb-3 p-3 border rounded bg-light bg-opacity-50">
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-bold small text-muted">Método Pago</label>
+                                                                <select name="payment_method_{{ pago.id }}" class="form-select border-0 bg-white shadow-sm fw-semibold">
+                                                                    <option value="efectivo" {% if pago.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                                                                    <option value="nequi" {% if pago.metodo_pago == 'nequi' %}selected{% endif %}>Nequi</option>
+                                                                    <option value="bancolombia" {% if pago.metodo_pago == 'bancolombia' %}selected{% endif %}>Bancolombia</option>
+                                                                    <option value="daviplata" {% if pago.metodo_pago == 'daviplata' %}selected{% endif %}>Daviplata</option>
+                                                                    <option value="tarjeta_credito" {% if pago.metodo_pago == 'tarjeta_credito' %}selected{% endif %}>T. Crédito</option>
+                                                                    <option value="addi" {% if pago.metodo_pago == 'addi' %}selected{% endif %}>Addi</option>
+                                                                    <option value="sitecredito" {% if pago.metodo_pago == 'sitecredito' %}selected{% endif %}>Sitecredito</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-bold small text-muted">Valor Abono ($)</label>
+                                                                <input type="number" step="100" min="0" name="payment_amount_{{ pago.id }}" class="form-control border-0 bg-white shadow-sm fw-bold text-success" value="{{ pago.monto|int }}" required>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     {% endfor %}
                                                 {% else %}
-                                                    <div class="mb-3 p-3 border rounded">
-                                                        <label class="form-label fw-bold small text-muted">Pago Único de ${{ (venta.monto_total)|cop }}</label>
-                                                        <select name="sale_metodo_pago" class="form-select border-0 bg-light shadow-sm fw-semibold">
-                                                            <option value="efectivo" {% if venta.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
-                                                            <option value="nequi" {% if venta.metodo_pago == 'nequi' %}selected{% endif %}>Nequi</option>
-                                                            <option value="bancolombia" {% if venta.metodo_pago == 'bancolombia' %}selected{% endif %}>Bancolombia</option>
-                                                            <option value="daviplata" {% if venta.metodo_pago == 'daviplata' %}selected{% endif %}>Daviplata</option>
-                                                            <option value="tarjeta_credito" {% if venta.metodo_pago == 'tarjeta_credito' %}selected{% endif %}>T. Crédito</option>
-                                                            <option value="addi" {% if venta.metodo_pago == 'addi' %}selected{% endif %}>Addi</option>
-                                                            <option value="sitecredito" {% if venta.metodo_pago == 'sitecredito' %}selected{% endif %}>Sitecredito</option>
-                                                        </select>
+                                                    <p class="text-muted small mb-2"><i class="fa-solid fa-circle-info text-primary me-1"></i> Modifica el método de pago o el valor total de la venta:</p>
+                                                    <div class="mb-3 p-3 border rounded bg-light bg-opacity-50">
+                                                        <div class="row g-2">
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-bold small text-muted">Método de Pago</label>
+                                                                <select name="sale_metodo_pago" class="form-select border-0 bg-white shadow-sm fw-semibold">
+                                                                    <option value="efectivo" {% if venta.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                                                                    <option value="nequi" {% if venta.metodo_pago == 'nequi' %}selected{% endif %}>Nequi</option>
+                                                                    <option value="bancolombia" {% if venta.metodo_pago == 'bancolombia' %}selected{% endif %}>Bancolombia</option>
+                                                                    <option value="daviplata" {% if venta.metodo_pago == 'daviplata' %}selected{% endif %}>Daviplata</option>
+                                                                    <option value="tarjeta_credito" {% if venta.metodo_pago == 'tarjeta_credito' %}selected{% endif %}>T. Crédito</option>
+                                                                    <option value="addi" {% if venta.metodo_pago == 'addi' %}selected{% endif %}>Addi</option>
+                                                                    <option value="sitecredito" {% if venta.metodo_pago == 'sitecredito' %}selected{% endif %}>Sitecredito</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <label class="form-label fw-bold small text-muted">Valor Total Venta ($)</label>
+                                                                <input type="number" step="100" min="0" name="sale_monto_total" class="form-control border-0 bg-white shadow-sm fw-bold text-success" value="{{ venta.monto_total|int }}" required>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 {% endif %}
                                                 
                                                 <div class="alert alert-warning mt-2 mb-0 border-0" style="font-size: 0.85rem;">
-                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Esta acción actualizará los reportes financieros del día asociado a esta venta.
+                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Esta acción actualizará el valor total de la venta, el recibo y los reportes financieros del día.
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-top-0 pt-0">

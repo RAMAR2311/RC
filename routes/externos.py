@@ -367,6 +367,65 @@ def enviar_inventario(id):
     return redirect(url_for('externos_bp.inventario'))
 
 
+@externos_bp.route('/enviar_inventario_masivo', methods=['POST'])
+@login_required
+@admin_required
+def enviar_inventario_masivo():
+    producto_ids = request.form.getlist('producto_ids')
+    if not producto_ids:
+        flash('No seleccionaste ningún producto para enviar al inventario.', 'warning')
+        return redirect(url_for('externos_bp.inventario'))
+        
+    exitosos = 0
+    errores = 0
+    try:
+        for p_id in producto_ids:
+            try:
+                c_id = int(p_id)
+                celular = Product.query.get(c_id)
+                if not celular or celular.tipo_inventario != 'externos' or celular.estado_celular == 'Enviado':
+                    continue
+                
+                nuevo_cel = Product(
+                    nombre=celular.nombre,
+                    sku=celular.sku + '-INV' if not celular.sku.endswith('-INV') else celular.sku,
+                    tipo_inventario='celulares',
+                    cantidad_stock=celular.cantidad_stock if celular.cantidad_stock > 0 else 1,
+                    precio_costo=celular.precio_costo,
+                    precio_minimo=celular.precio_minimo,
+                    precio_sugerido=celular.precio_sugerido,
+                    marca=celular.marca,
+                    modelo_celular=celular.modelo_celular,
+                    color=celular.color,
+                    bateria=celular.bateria,
+                    memoria=celular.memoria,
+                    imei=celular.imei,
+                    imei2=celular.imei2,
+                    proveedor=celular.proveedor
+                )
+                
+                if celular.imei:
+                    celular.imei = celular.imei + '-EXT'
+                celular.estado_celular = 'Enviado'
+                celular.cantidad_stock = 0
+                
+                db.session.add(nuevo_cel)
+                exitosos += 1
+            except Exception:
+                errores += 1
+                
+        db.session.commit()
+        if exitosos > 0:
+            flash(f'¡Éxito! Se enviaron {exitosos} productos al inventario principal de celulares.', 'success')
+        if errores > 0:
+            flash(f'No se pudieron procesar {errores} producto(s).', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al procesar el envío masivo: {str(e)}', 'danger')
+        
+    return redirect(url_for('externos_bp.inventario'))
+
+
 @externos_bp.route('/descargar_plantilla')
 @login_required
 @admin_required

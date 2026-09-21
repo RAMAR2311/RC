@@ -815,7 +815,7 @@ def caja_visual():
     return render_template('sales/caja_visual.html', productos=productos, asesores=asesores, providers=providers, hoy=hoy_bogota.strftime('%Y-%m-%d'))
 
 
-# Endpoint para Editar Métodos de Pago
+# Endpoint para Editar Métodos de Pago y Valor de Venta
 @sales_bp.route('/editar_pago/<int:sale_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -824,25 +824,57 @@ def editar_pago_venta(sale_id):
     
     try:
         if venta.pagos:
+            nuevo_total = Decimal('0')
             for pago in venta.pagos:
                 nuevo_metodo = request.form.get(f'payment_method_{pago.id}')
+                monto_str = request.form.get(f'payment_amount_{pago.id}')
+                
                 if nuevo_metodo:
                     pago.metodo_pago = nuevo_metodo
+                if monto_str is not None and monto_str.strip() != '':
+                    monto_limpio = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
+                    pago.monto = monto_limpio
+                nuevo_total += pago.monto
+            
+            # Actualizar el monto_total de la venta con la suma de los abonos
+            monto_anterior = Decimal(str(venta.monto_total)) if venta.monto_total else Decimal('0')
+            venta.monto_total = nuevo_total
             
             # Actualizamos también el método legacy en la venta si es 1 solo pago para mantener consistencia
             if len(venta.pagos) == 1:
                 venta.metodo_pago = venta.pagos[0].metodo_pago
+                
+            # Ajustar detalles de venta proporcionalmente para que el desglose de productos coincida con el total
+            if venta.detalles and nuevo_total != monto_anterior and monto_anterior > 0:
+                factor = nuevo_total / monto_anterior
+                for d in venta.detalles:
+                    d.precio_venta_final = (Decimal(str(d.precio_venta_final)) * factor).quantize(Decimal('1'))
+            elif venta.detalles and len(venta.detalles) == 1 and nuevo_total != monto_anterior:
+                venta.detalles[0].precio_venta_final = nuevo_total
         else:
-            # Venta legacy, actualizar el metodo_pago
+            # Venta legacy, actualizar el metodo_pago y el monto
             nuevo_metodo_legacy = request.form.get('sale_metodo_pago')
+            monto_str = request.form.get('sale_monto_total')
+            
             if nuevo_metodo_legacy:
                 venta.metodo_pago = nuevo_metodo_legacy
+            if monto_str is not None and monto_str.strip() != '':
+                nuevo_monto = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
+                monto_anterior = Decimal(str(venta.monto_total)) if venta.monto_total else Decimal('0')
+                venta.monto_total = nuevo_monto
+                
+                if venta.detalles and nuevo_monto != monto_anterior and monto_anterior > 0:
+                    factor = nuevo_monto / monto_anterior
+                    for d in venta.detalles:
+                        d.precio_venta_final = (Decimal(str(d.precio_venta_final)) * factor).quantize(Decimal('1'))
+                elif venta.detalles and len(venta.detalles) == 1:
+                    venta.detalles[0].precio_venta_final = nuevo_monto
                 
         db.session.commit()
-        flash('Métodos de pago actualizados correctamente.', 'success')
+        flash('Venta y métodos de pago actualizados correctamente.', 'success')
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Ocurrió un error al actualizar los pagos: {str(e)}', 'danger')
+        flash(f'Ocurrió un error al actualizar la venta: {str(e)}', 'danger')
         
     return redirect(url_for('sales_bp.historial'))

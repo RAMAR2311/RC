@@ -4,7 +4,7 @@
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-brand-black m-0">{% if celular %}Editar Celular{% else %}Ingresar Celular{% endif %}</h2>
+            <h2 class="fw-bold text-brand-black m-0">{% if celular %}Editar Dispositivo{% else %}Ingresar Equipo / Dispositivo{% endif %}</h2>
             <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-light rounded-pill px-4 shadow-sm border">
                 <i class="fa-solid fa-arrow-left me-1"></i> Volver al Inventario
             </a>
@@ -17,17 +17,39 @@
                 <h5 class="fw-bold mb-3 border-bottom pb-2">Datos del Dispositivo</h5>
                 
                 <div class="row mb-4">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tipo de Dispositivo</label>
+                        {% set current_tipo = 'Celular' %}
+                        {% if celular and celular.nombre %}
+                            {% if celular.nombre.startswith('Computador') or celular.nombre.startswith('Laptop') %}{% set current_tipo = 'Computador' %}
+                            {% elif celular.nombre.startswith('Tablet') or celular.nombre.startswith('iPad') %}{% set current_tipo = 'Tablet' %}
+                            {% elif celular.nombre.startswith('Gafas') %}{% set current_tipo = 'Gafas Inteligentes' %}
+                            {% elif celular.nombre.startswith('Reloj') or celular.nombre.startswith('Smartwatch') %}{% set current_tipo = 'Smartwatch' %}
+                            {% elif celular.nombre.startswith('Consola') %}{% set current_tipo = 'Consola' %}
+                            {% elif celular.nombre.startswith('Dispositivo') %}{% set current_tipo = 'Otro' %}
+                            {% endif %}
+                        {% endif %}
+                        <select name="tipo_dispositivo" class="form-select fw-semibold border bg-light shadow-sm" required>
+                            <option value="Celular" {% if current_tipo == 'Celular' %}selected{% endif %}>📱 Celular / Smartphone</option>
+                            <option value="Computador" {% if current_tipo == 'Computador' %}selected{% endif %}>💻 Computador / Laptop</option>
+                            <option value="Tablet" {% if current_tipo == 'Tablet' %}selected{% endif %}>📟 Tablet / iPad</option>
+                            <option value="Gafas Inteligentes" {% if current_tipo == 'Gafas Inteligentes' %}selected{% endif %}>👓 Gafas Inteligentes</option>
+                            <option value="Smartwatch" {% if current_tipo == 'Smartwatch' %}selected{% endif %}>⌚ Smartwatch / Reloj</option>
+                            <option value="Consola" {% if current_tipo == 'Consola' %}selected{% endif %}>🎮 Consola / Gadget</option>
+                            <option value="Otro" {% if current_tipo == 'Otro' %}selected{% endif %}>📦 Otro Dispositivo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Marca</label>
-                        <input type="text" name="marca" class="form-control" value="{{ celular.marca if celular else '' }}" placeholder="Ej: Apple, Samsung" required>
+                        <input type="text" name="marca" class="form-control" value="{{ celular.marca if celular else '' }}" placeholder="Ej: Apple, Samsung, Ray-Ban, Lenovo" required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Referencia (Modelo)</label>
-                        <input type="text" name="modelo_celular" class="form-control" value="{{ celular.modelo_celular if celular else '' }}" placeholder="Ej: iPhone 13 Pro" required>
+                        <input type="text" name="modelo_celular" class="form-control" value="{{ celular.modelo_celular if celular else '' }}" placeholder="Ej: iPhone 15 Pro, MacBook Air, Meta Wayfarer" required>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Capacidad (Memoria)</label>
-                        <input type="text" name="memoria" class="form-control" value="{{ celular.memoria if celular else '' }}" placeholder="Ej: 128GB" required>
+                        <label class="form-label fw-bold small text-muted text-uppercase">Capacidad / RAM</label>
+                        <input type="text" name="memoria" class="form-control" value="{{ celular.memoria if celular else '' }}" placeholder="Ej: 128GB, 512GB SSD">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Color</label>
@@ -35,7 +57,7 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Batería (%)</label>
-                        <input type="text" name="bateria" class="form-control" value="{{ celular.bateria if celular else '' }}" placeholder="Ej: 85%">
+                        <input type="text" name="bateria" class="form-control" value="{{ celular.bateria if celular else '' }}" placeholder="Ej: 85% o N/A">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label fw-bold small text-muted text-uppercase">Proveedor</label>
@@ -86,7 +108,7 @@
 
                 <div class="text-end mt-2">
                     <button type="submit" class="btn btn-blue rounded-pill px-5 py-2 fw-bold shadow-sm" onclick="cleanPrices(this.form)">
-                        <i class="fa-solid fa-save me-1"></i> {% if celular %}Actualizar Celular{% else %}Guardar Celular{% endif %}
+                        <i class="fa-solid fa-save me-1"></i> {% if celular %}Actualizar Dispositivo{% else %}Guardar Dispositivo{% endif %}
                     </button>
                 </div>
             </form>

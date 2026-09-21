@@ -73,15 +73,29 @@
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <!-- Barra de Búsqueda Server-Side -->
-    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex gap-2 w-100" style="max-width: 550px;">
-        <div class="input-group shadow-sm">
+    <!-- Barra de Búsqueda y Filtro por Referencia Server-Side -->
+    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex flex-wrap gap-2 w-100" style="max-width: 720px;">
+        <div class="input-group shadow-sm" style="flex: 1 1 280px;">
             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
             <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
                    placeholder="Buscar por Marca, Modelo, IMEI, Proveedor..."
                    value="{{ q }}">
             {% if q %}
-            <a href="{{ url_for('celulares_bp.inventario', estado=estado) }}" class="btn btn-outline-secondary border-start-0" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+            <a href="{{ url_for('celulares_bp.inventario', estado=estado, referencia=referencia) }}" class="btn btn-outline-secondary border-start-0" title="Limpiar texto"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+
+        <!-- Filtro desplegable intuitivo por Referencia -->
+        <div class="input-group shadow-sm" style="flex: 0 1 240px;">
+            <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-layer-group"></i></span>
+            <select name="referencia" id="referenciaSelect" class="form-select border-start-0 bg-white fw-semibold" onchange="document.getElementById('searchForm').submit();" style="cursor: pointer;">
+                <option value="">-- Todas las Referencias --</option>
+                {% for ref in referencias_disponibles %}
+                <option value="{{ ref }}" {% if referencia == ref %}selected{% endif %}>{{ ref }}</option>
+                {% endfor %}
+            </select>
+            {% if referencia %}
+            <a href="{{ url_for('celulares_bp.inventario', estado=estado, q=q) }}" class="btn btn-outline-secondary border-start-0" title="Quitar filtro de referencia"><i class="fa-solid fa-xmark"></i></a>
             {% endif %}
         </div>
         
@@ -89,13 +103,13 @@
     </form>
     
     <div class="btn-group shadow-sm">
-        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q, referencia=referencia) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
             <i class="fa-solid fa-boxes-stacked me-1"></i> Activos
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q, referencia=referencia) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
             <i class="fa-solid fa-handshake me-1"></i> En Maneo ({{ celulares_en_maneo }})
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
+        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencia=referencia) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
             <i class="fa-solid fa-check me-1"></i> Vendidos
         </a>
     </div>
@@ -236,14 +250,14 @@
     <ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
         <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
             <a class="page-link rounded-pill px-3 shadow-sm"
-               href="{% if paginacion.has_prev %}{{ url_for('celulares_bp.inventario', page=paginacion.prev_num, q=q, estado=estado) }}{% else %}#{% endif %}"
+               href="{% if paginacion.has_prev %}{{ url_for('celulares_bp.inventario', page=paginacion.prev_num, q=q, estado=estado, referencia=referencia) }}{% else %}#{% endif %}"
                aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></a>
         </li>
         {% for p_num in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
             {% if p_num %}
                 <li class="page-item {% if p_num == paginacion.page %}active{% endif %}">
                     <a class="page-link rounded-pill px-3 shadow-sm"
-                       href="{{ url_for('celulares_bp.inventario', page=p_num, q=q, estado=estado) }}">{{ p_num }}</a>
+                       href="{{ url_for('celulares_bp.inventario', page=p_num, q=q, estado=estado, referencia=referencia) }}">{{ p_num }}</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link rounded-pill px-3">…</span></li>
@@ -251,7 +265,7 @@
         {% endfor %}
         <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
             <a class="page-link rounded-pill px-3 shadow-sm"
-               href="{% if paginacion.has_next %}{{ url_for('celulares_bp.inventario', page=paginacion.next_num, q=q, estado=estado) }}{% else %}#{% endif %}"
+               href="{% if paginacion.has_next %}{{ url_for('celulares_bp.inventario', page=paginacion.next_num, q=q, estado=estado, referencia=referencia) }}{% else %}#{% endif %}"
                aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></a>
         </li>
     </ul>
