@@ -332,16 +332,15 @@ def enviar_inventario(id):
         return redirect(url_for('externos_bp.inventario'))
         
     try:
-        # Transferencia directa al inventario de celulares sin duplicar el producto
+        # Los productos externos ya fueron vendidos al pedirse; pasan al inventario general como Vendidos (stock 0)
         celular.tipo_inventario = 'celulares'
         if not celular.sku.endswith('-INV'):
             celular.sku = celular.sku + '-INV'
-        celular.estado_celular = 'Activo'
-        if celular.cantidad_stock <= 0:
-            celular.cantidad_stock = 1
+        celular.estado_celular = 'Vendido'
+        celular.cantidad_stock = 0
             
         db.session.commit()
-        flash('El producto ha sido movido al Inventario de Celulares exitosamente.', 'success')
+        flash('El producto externo ha sido pasado al Inventario de Celulares en la sección de Vendidos.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error al mover el producto: {str(e)}', 'danger')
@@ -368,12 +367,12 @@ def enviar_inventario_masivo():
                 if not celular or celular.tipo_inventario != 'externos' or celular.estado_celular == 'Enviado':
                     continue
                 
+                # Los productos externos ya fueron vendidos; pasan a celulares como Vendidos (stock 0)
                 celular.tipo_inventario = 'celulares'
                 if not celular.sku.endswith('-INV'):
                     celular.sku = celular.sku + '-INV'
-                celular.estado_celular = 'Activo'
-                if celular.cantidad_stock <= 0:
-                    celular.cantidad_stock = 1
+                celular.estado_celular = 'Vendido'
+                celular.cantidad_stock = 0
                 
                 exitosos += 1
             except Exception:
@@ -381,7 +380,7 @@ def enviar_inventario_masivo():
                 
         db.session.commit()
         if exitosos > 0:
-            flash(f'¡Éxito! Se enviaron {exitosos} productos al inventario principal de celulares.', 'success')
+            flash(f'¡Éxito! Se pasaron {exitosos} productos externos al inventario de celulares como Vendidos.', 'success')
         if errores > 0:
             flash(f'No se pudieron procesar {errores} producto(s).', 'warning')
     except Exception as e:
