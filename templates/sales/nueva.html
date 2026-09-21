@@ -318,7 +318,7 @@
                         <label class="form-label small fw-bold text-success">Valor Acordado (Descuento) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-0">$</span>
-                            <input type="number" id="retoma_valor" class="form-control bg-white fw-bold text-end" placeholder="Ej: 500000" required>
+                            <input type="text" inputmode="numeric" id="retoma_valor" class="form-control bg-white fw-bold text-end format-price-ext" placeholder="Ej: 500.000" required>
                         </div>
                     </div>
                 </div>
@@ -1079,7 +1079,8 @@
 
         if (index >= 0 && index < retomasLista.length) {
             const r = retomasLista[index];
-            document.getElementById('retoma_valor').value = r.valor_retoma;
+            const valNum = parseInt(r.valor_retoma, 10);
+            document.getElementById('retoma_valor').value = !isNaN(valNum) ? valNum.toLocaleString('es-CO') : (r.valor_retoma || '');
             document.getElementById('retoma_marca').value = r.marca || '';
             document.getElementById('retoma_modelo').value = r.modelo || '';
             document.getElementById('retoma_imei1').value = r.imei1 || '';
@@ -1117,7 +1118,8 @@
     }
 
     function confirmarRetoma() {
-        const valor = parseFloat(document.getElementById('retoma_valor').value);
+        const rawValor = (document.getElementById('retoma_valor').value || '').toString().replace(/\D/g, '');
+        const valor = parseFloat(rawValor);
         const modelo = document.getElementById('retoma_modelo').value.trim();
         const imei1 = document.getElementById('retoma_imei1').value.trim();
 
