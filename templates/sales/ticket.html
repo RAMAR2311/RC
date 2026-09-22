@@ -239,6 +239,9 @@
                     {% elif detalle.variante and detalle.variante.producto %}
                         {{ (detalle.variante.producto.nombre or 'Producto')[:45] }}
                         <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
+                    {% elif venta.provider_invoices and venta.provider_invoices|length > 0 %}
+                        {% set prov_inv = venta.provider_invoices[0] %}
+                        {{ (prov_inv.numero_factura or prov_inv.descripcion or 'Equipo Externo')[:45] }}
                     {% else %}
                         Artículo (ID: {{ detalle.product_id or 'S/N' }})
                     {% endif %}
