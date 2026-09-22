@@ -518,6 +518,18 @@ class ProviderInvoice(db.Model):
                     pass
         return None
 
+    @property
+    def producto_detectado(self):
+        import re
+        texto = f"{self.numero_factura or ''} {self.descripcion or ''}"
+        match = re.search(r'\b(35\d{13,15}|\d{15})\b', texto)
+        if match:
+            imei_buscado = match.group(1)
+            p = Product.query.filter((Product.imei == imei_buscado) | (Product.imei2 == imei_buscado)).first()
+            if p:
+                return p
+        return None
+
 class ProviderPayment(db.Model):
     __tablename__ = 'provider_payments'
 

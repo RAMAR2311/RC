@@ -206,11 +206,19 @@
                 <td class="col-qty">{{ detalle.cantidad_vendida }}</td>
                 <!-- Cortar la longitud del título si es gigantesco para no descuadrar la ticketera -->
                 <td class="col-prod">
-                    {% if detalle.nombre_manual %}
-                        {{ detalle.nombre_manual[:40] }}{% if detalle.nombre_manual|length > 40 %}...{% endif %}
-                    {% elif detalle.producto %}
+                    {# 1. Determinar el producto asociado (directo o resuelto por IMEI en factura de proveedor o manual) #}
+                    {% set prod = detalle.producto %}
+                    {% if not prod and detalle.variante and detalle.variante.producto %}
+                        {% set prod = detalle.variante.producto %}
+                    {% endif %}
+                    {% set prov_inv = (venta.provider_invoices[0] if venta.provider_invoices and venta.provider_invoices|length > 0 else None) %}
+                    {% if not prod and prov_inv %}
+                        {% set prod = prov_inv.producto_detectado %}
+                    {% endif %}
+
+                    {% if prod %}
                         {# Limpiar prefijo 'Celular' si se trata de computadores, laptops, tablets, iPads, gafas, etc. #}
-                        {% set prod_nombre = detalle.producto.nombre or 'Producto' %}
+                        {% set prod_nombre = prod.nombre or 'Producto' %}
                         {% if prod_nombre.startswith('Celular ') %}
                             {% set lower_name = prod_nombre|lower %}
                             {% if 'macbook' in lower_name or 'laptop' in lower_name or 'computador' in lower_name or 'pc' in lower_name or 'ipad' in lower_name or 'tablet' in lower_name or 'gafas' in lower_name or 'smartwatch' in lower_name or 'reloj' in lower_name or 'playstation' in lower_name or 'nintendo' in lower_name or 'xbox' in lower_name %}
@@ -221,27 +229,37 @@
                         {% if detalle.variante %}
                             <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
                         {% endif %}
-                        {% if detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
+                        
+                        <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
+                            {% if prod.inventario %}
+                                <div style="font-weight: bold; text-transform: uppercase;">Inventario: {{ prod.inventario }}</div>
+                            {% elif prod.proveedor %}
+                                <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo ({{ prod.proveedor }})</div>
+                            {% elif prod.tipo_inventario == 'externos' %}
+                                <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo</div>
+                            {% endif %}
+                            {% if prod.memoria %}Cap: {{ prod.memoria }} {% endif %}
+                            {% if prod.bateria %}Bat: {{ prod.bateria }}% {% endif %}
+                            {% if prod.color %}Col: {{ prod.color }}{% endif %}
+                            {% if prod.imei or prod.imei2 %}<br>{% endif %}
+                            {% if prod.imei %}IMEI 1: {{ prod.imei }}{% endif %}
+                            {% if prod.imei2 %}| IMEI 2: {{ prod.imei2 }}{% endif %}
+                        </div>
+                    {% elif detalle.nombre_manual %}
+                        {{ detalle.nombre_manual[:50] }}{% if detalle.nombre_manual|length > 50 %}...{% endif %}
+                        {% if prov_inv %}
                             <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
-                                {% if detalle.producto.inventario %}
-                                    <div style="font-weight: bold; text-transform: uppercase;">Inventario: {{ detalle.producto.inventario }}</div>
-                                {% elif detalle.producto.proveedor and detalle.producto.tipo_inventario == 'externos' %}
-                                    <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo ({{ detalle.producto.proveedor }})</div>
+                                <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo {% if prov_inv.provider %}({{ prov_inv.provider.nombre }}){% endif %}</div>
+                                {% if prov_inv.numero_factura and 'IMEI' in prov_inv.numero_factura %}
+                                    <div>{{ prov_inv.numero_factura }}</div>
                                 {% endif %}
-                                {% if detalle.producto.memoria %}Cap: {{ detalle.producto.memoria }} {% endif %}
-                                {% if detalle.producto.bateria %}Bat: {{ detalle.producto.bateria }}% {% endif %}
-                                {% if detalle.producto.color %}Col: {{ detalle.producto.color }}{% endif %}
-                                {% if detalle.producto.imei or detalle.producto.imei2 %}<br>{% endif %}
-                                {% if detalle.producto.imei %}IMEI 1: {{ detalle.producto.imei }}{% endif %}
-                                {% if detalle.producto.imei2 %}| IMEI 2: {{ detalle.producto.imei2 }}{% endif %}
                             </div>
                         {% endif %}
-                    {% elif detalle.variante and detalle.variante.producto %}
-                        {{ (detalle.variante.producto.nombre or 'Producto')[:45] }}
-                        <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
-                    {% elif venta.provider_invoices and venta.provider_invoices|length > 0 %}
-                        {% set prov_inv = venta.provider_invoices[0] %}
+                    {% elif prov_inv %}
                         {{ (prov_inv.numero_factura or prov_inv.descripcion or 'Equipo Externo')[:45] }}
+                        <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
+                            <div style="font-weight: bold; text-transform: uppercase;">Inventario: Externo {% if prov_inv.provider %}({{ prov_inv.provider.nombre }}){% endif %}</div>
+                        </div>
                     {% else %}
                         Artículo (ID: {{ detalle.product_id or 'S/N' }})
                     {% endif %}
