@@ -208,9 +208,9 @@
                 <td class="col-prod">
                     {% if detalle.nombre_manual %}
                         {{ detalle.nombre_manual[:40] }}{% if detalle.nombre_manual|length > 40 %}...{% endif %}
-                    {% else %}
+                    {% elif detalle.producto %}
                         {# Limpiar prefijo 'Celular' si se trata de computadores, laptops, tablets, iPads, gafas, etc. #}
-                        {% set prod_nombre = detalle.producto.nombre %}
+                        {% set prod_nombre = detalle.producto.nombre or 'Producto' %}
                         {% if prod_nombre.startswith('Celular ') %}
                             {% set lower_name = prod_nombre|lower %}
                             {% if 'macbook' in lower_name or 'laptop' in lower_name or 'computador' in lower_name or 'pc' in lower_name or 'ipad' in lower_name or 'tablet' in lower_name or 'gafas' in lower_name or 'smartwatch' in lower_name or 'reloj' in lower_name or 'playstation' in lower_name or 'nintendo' in lower_name or 'xbox' in lower_name %}
@@ -221,7 +221,7 @@
                         {% if detalle.variante %}
                             <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
                         {% endif %}
-                        {% if detalle.producto and detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
+                        {% if detalle.producto.tipo_inventario in ['celulares', 'externos'] %}
                             <div style="font-size: 0.7rem; color: #444; margin-top: 3px; line-height: 1.2;">
                                 {% if detalle.producto.inventario %}
                                     <div style="font-weight: bold; text-transform: uppercase;">Inventario: {{ detalle.producto.inventario }}</div>
@@ -236,6 +236,11 @@
                                 {% if detalle.producto.imei2 %}| IMEI 2: {{ detalle.producto.imei2 }}{% endif %}
                             </div>
                         {% endif %}
+                    {% elif detalle.variante and detalle.variante.producto %}
+                        {{ (detalle.variante.producto.nombre or 'Producto')[:45] }}
+                        <br><small style="font-size: 0.75rem;">{{ detalle.variante.nombre_variante }}</small>
+                    {% else %}
+                        Artículo (ID: {{ detalle.product_id or 'S/N' }})
                     {% endif %}
                 </td>
                 <td class="col-sub">

@@ -168,11 +168,17 @@
                                     {% for detalle in v.detalles %}
                                     <li>
                                         <strong>{{ detalle.cantidad_vendida }}x</strong> 
-                                        {{ detalle.producto.nombre }} 
-                                        {% if detalle.producto.imei %}
-                                            <span class="text-muted">(IMEI: {{ detalle.producto.imei }})</span>
+                                        {% if detalle.producto %}
+                                            {{ detalle.producto.nombre }} 
+                                            {% if detalle.producto.imei %}
+                                                <span class="text-muted">(IMEI: {{ detalle.producto.imei }})</span>
+                                            {% endif %}
+                                        {% elif detalle.nombre_manual %}
+                                            {{ detalle.nombre_manual }}
+                                        {% else %}
+                                            Artículo (ID: {{ detalle.product_id or 'S/N' }})
                                         {% endif %}
-                                        {% if detalle.variant_id %}
+                                        {% if detalle.variant_id and detalle.variante %}
                                             <span class="text-muted">(Var: {{ detalle.variante.nombre_variante }})</span>
                                         {% endif %}
                                     </li>
