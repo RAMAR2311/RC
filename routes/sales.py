@@ -823,53 +823,74 @@ def editar_pago_venta(sale_id):
     venta = Sale.query.get_or_404(sale_id)
     
     try:
-        if venta.pagos:
-            nuevo_total = Decimal('0')
-            for pago in venta.pagos:
-                nuevo_metodo = request.form.get(f'payment_method_{pago.id}')
-                monto_str = request.form.get(f'payment_amount_{pago.id}')
-                
-                if nuevo_metodo:
-                    pago.metodo_pago = nuevo_metodo
+        # Extraer listas dinámicas de métodos y montos si se enviaron
+        metodos_lista = request.form.getlist('payment_method[]')
+        montos_lista = request.form.getlist('payment_amount[]')
+        
+        pagos_procesados = []
+        if metodos_lista and montos_lista:
+            for met, mon in zip(metodos_lista, montos_lista):
+                met = met.strip() if met else ''
+                mon_str = str(mon).replace('$', '').replace(',', '').replace('.', '').strip() if mon else ''
+                if met and mon_str:
+                    try:
+                        mon_val = Decimal(mon_str)
+                        if mon_val > 0:
+                            pagos_procesados.append((met, mon_val))
+                    except:
+                        pass
+        
+        # Si no vino como lista (caso fallback o llamada legacy directa con IDs)
+        if not pagos_procesados:
+            if venta.pagos:
+                for pago in venta.pagos:
+                    nuevo_metodo = request.form.get(f'payment_method_{pago.id}') or pago.metodo_pago
+                    monto_str = request.form.get(f'payment_amount_{pago.id}')
+                    if monto_str is not None and monto_str.strip() != '':
+                        monto_limpio = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
+                    else:
+                        monto_limpio = pago.monto
+                    if nuevo_metodo and monto_limpio > 0:
+                        pagos_procesados.append((nuevo_metodo, monto_limpio))
+            else:
+                nuevo_metodo_legacy = request.form.get('sale_metodo_pago') or venta.metodo_pago
+                monto_str = request.form.get('sale_monto_total')
                 if monto_str is not None and monto_str.strip() != '':
-                    monto_limpio = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
-                    pago.monto = monto_limpio
-                nuevo_total += pago.monto
-            
-            # Actualizar el monto_total de la venta con la suma de los abonos
-            monto_anterior = Decimal(str(venta.monto_total)) if venta.monto_total else Decimal('0')
-            venta.monto_total = nuevo_total
-            
-            # Actualizamos también el método legacy en la venta si es 1 solo pago para mantener consistencia
-            if len(venta.pagos) == 1:
-                venta.metodo_pago = venta.pagos[0].metodo_pago
-                
-            # Ajustar detalles de venta proporcionalmente para que el desglose de productos coincida con el total
-            if venta.detalles and nuevo_total != monto_anterior and monto_anterior > 0:
-                factor = nuevo_total / monto_anterior
-                for d in venta.detalles:
-                    d.precio_venta_final = (Decimal(str(d.precio_venta_final)) * factor).quantize(Decimal('1'))
-            elif venta.detalles and len(venta.detalles) == 1 and nuevo_total != monto_anterior:
-                venta.detalles[0].precio_venta_final = nuevo_total
-        else:
-            # Venta legacy, actualizar el metodo_pago y el monto
-            nuevo_metodo_legacy = request.form.get('sale_metodo_pago')
-            monto_str = request.form.get('sale_monto_total')
-            
-            if nuevo_metodo_legacy:
-                venta.metodo_pago = nuevo_metodo_legacy
-            if monto_str is not None and monto_str.strip() != '':
-                nuevo_monto = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
-                monto_anterior = Decimal(str(venta.monto_total)) if venta.monto_total else Decimal('0')
-                venta.monto_total = nuevo_monto
-                
-                if venta.detalles and nuevo_monto != monto_anterior and monto_anterior > 0:
-                    factor = nuevo_monto / monto_anterior
-                    for d in venta.detalles:
-                        d.precio_venta_final = (Decimal(str(d.precio_venta_final)) * factor).quantize(Decimal('1'))
-                elif venta.detalles and len(venta.detalles) == 1:
-                    venta.detalles[0].precio_venta_final = nuevo_monto
-                
+                    nuevo_monto = Decimal(str(monto_str).replace('$', '').replace(',', '').replace('.', '').strip())
+                else:
+                    nuevo_monto = Decimal(str(venta.monto_total))
+                if nuevo_metodo_legacy and nuevo_monto > 0:
+                    pagos_procesados.append((nuevo_metodo_legacy, nuevo_monto))
+
+        if not pagos_procesados:
+            flash('Debes ingresar al menos un método de pago con monto mayor a 0.', 'warning')
+            return redirect(url_for('sales_bp.historial'))
+
+        # Limpiar pagos antiguos de la venta y recrearlos con los nuevos datos
+        SalePayment.query.filter_by(sale_id=venta.id).delete()
+        
+        nuevo_total = Decimal('0')
+        for met, mon_val in pagos_procesados:
+            nuevo_pago = SalePayment(
+                sale_id=venta.id,
+                metodo_pago=met,
+                monto=mon_val
+            )
+            db.session.add(nuevo_pago)
+            nuevo_total += mon_val
+
+        monto_anterior = Decimal(str(venta.monto_total)) if venta.monto_total else Decimal('0')
+        venta.monto_total = nuevo_total
+        venta.metodo_pago = pagos_procesados[0][0] if len(pagos_procesados) == 1 else 'mixto'
+
+        # Ajustar detalles de venta si cambió el total
+        if venta.detalles and nuevo_total != monto_anterior and monto_anterior > 0:
+            factor = nuevo_total / monto_anterior
+            for d in venta.detalles:
+                d.precio_venta_final = (Decimal(str(d.precio_venta_final)) * factor).quantize(Decimal('1'))
+        elif venta.detalles and len(venta.detalles) == 1 and nuevo_total != monto_anterior:
+            venta.detalles[0].precio_venta_final = nuevo_total
+
         db.session.commit()
         flash('Venta y métodos de pago actualizados correctamente.', 'success')
         

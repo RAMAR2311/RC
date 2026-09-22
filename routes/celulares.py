@@ -546,8 +546,8 @@ import io
 @login_required
 @admin_required
 def descargar_plantilla():
-    # Definir las cabeceras exactas
-    columnas = ['MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'INVENTARIO', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
+    # Definir las cabeceras exactas incluyendo TIPO DISPOSITIVO
+    columnas = ['TIPO DISPOSITIVO', 'MARCA', 'REFERENCIA', 'CAPACIDAD', 'BATERIA', 'COLOR', 'IMEI 1', 'IMEI 2', 'PROVEEDOR', 'INVENTARIO', 'COSTO', 'P. MINIMO', 'P. SUGERIDO']
     df = pd.DataFrame(columns=columnas)
     
     # Crear un buffer en memoria
@@ -609,6 +609,14 @@ def importar_excel():
                 omitidos += 1
                 continue
                 
+            tipo_disp_raw = str(row.get('TIPO DISPOSITIVO', '')).strip()
+            if not tipo_disp_raw:
+                tipo_disp = 'Celular'
+            elif tipo_disp_raw.lower() in ['otro', 'ninguno', 'n/a']:
+                tipo_disp = ''
+            else:
+                tipo_disp = tipo_disp_raw
+
             marca = str(row['MARCA']).strip()
             referencia = str(row['REFERENCIA']).strip()
             memoria = str(row['CAPACIDAD']).strip()
@@ -645,7 +653,10 @@ def importar_excel():
             minimo = clean_price(row['P. MINIMO'])
             sugerido = clean_price(row['P. SUGERIDO'])
             
-            nombre_completo = f"Celular {marca} {referencia} {color} {memoria}".strip()
+            if tipo_disp:
+                nombre_completo = f"{tipo_disp} {marca} {referencia} {color} {memoria}".strip()
+            else:
+                nombre_completo = f"{marca} {referencia} {color} {memoria}".strip()
             sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S%f')}" # %f para evitar skus duplicados en el mismo segundo
             
             nuevo = Product(
