@@ -14,6 +14,24 @@
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 
+                {% if celular and celular.total_stock <= 0 %}
+                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-triangle-exclamation fs-4 me-3 text-warning"></i>
+                        <div>
+                            <span class="badge bg-dark rounded-pill me-2">EQUIPO VENDIDO</span>
+                            <span class="fw-bold">Este celular ya fue vendido.</span>
+                            <span class="d-block small text-muted">Puedes corregir su costo, proveedor, precio sugerido o información técnica.</span>
+                        </div>
+                    </div>
+                    {% if celular.detalles_venta %}
+                    <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=celular.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                        <i class="fa-solid fa-receipt me-1"></i> Ver Ticket Venta #{{ celular.detalles_venta[0].sale_id }}
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <h5 class="fw-bold mb-3 border-bottom pb-2">Datos del Dispositivo</h5>
                 
                 <div class="row mb-4">

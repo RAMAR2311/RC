@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, obtener_hora_bogota, Asesor, Vale
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -857,8 +857,20 @@ def ventas_vendedores():
                     })
 
                 total_comision_mes = Decimal(str(total_celulares_mes)) * val_comision_num
+                
+                # Vales del mes para el asesor consultado
+                total_vales_mes = db.session.query(func.coalesce(func.sum(Vale.monto), 0)).filter(
+                    Vale.asesor_id == asesor_id,
+                    Vale.estado == 'aprobado',
+                    Vale.fecha_solicitud >= start_date,
+                    Vale.fecha_solicitud <= end_date
+                ).scalar() or Decimal('0.0')
+                total_vales_mes = Decimal(str(total_vales_mes))
             except Exception as e:
                 flash(f"Error al procesar las fechas del mes seleccionado: {str(e)}", 'danger')
+                total_vales_mes = Decimal('0.0')
+    else:
+        total_vales_mes = Decimal('0.0')
                 
     return render_template(
         'admin/ventas_vendedores.html',
@@ -872,7 +884,8 @@ def ventas_vendedores():
         total_ventas_mes=total_ventas_mes,
         total_celulares_mes=total_celulares_mes,
         total_monto_celulares=total_monto_celulares,
-        total_comision_mes=total_comision_mes
+        total_comision_mes=total_comision_mes,
+        total_vales_mes=total_vales_mes
     )
 
 @admin_bp.route('/asesores', methods=['GET', 'POST'])
@@ -932,3 +945,88 @@ def toggle_asesor(id):
         db.session.rollback()
         flash('Error al cambiar el estado del asesor.', 'danger')
     return redirect(url_for('admin_bp.asesores'))
+
+# ==========================================
+# MÓDULO PERSONAL: VALES (ADMINISTRACIÓN)
+# ==========================================
+@admin_bp.route('/vales', methods=['GET'])
+@login_required
+@admin_required
+def vales():
+    asesor_id = request.args.get('asesor_id', type=int)
+    estado = request.args.get('estado', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = Vale.query
+
+    if asesor_id:
+        query = query.filter(Vale.asesor_id == asesor_id)
+    if estado:
+        query = query.filter(Vale.estado == estado)
+
+    query = query.order_by(Vale.fecha_solicitud.desc())
+    paginated_vales = query.paginate(page=page, per_page=20, error_out=False)
+
+    asesores = Asesor.query.order_by(Asesor.nombre).all()
+
+    # Contadores y totales estadísticos
+    total_pendientes = Vale.query.filter_by(estado='pendiente').count()
+    total_aprobados_monto = db.session.query(func.coalesce(func.sum(Vale.monto), 0)).filter(Vale.estado == 'aprobado')
+    if asesor_id:
+        total_aprobados_monto = total_aprobados_monto.filter(Vale.asesor_id == asesor_id)
+    total_aprobados_monto = total_aprobados_monto.scalar()
+
+    return render_template('admin/vales.html',
+                           vales=paginated_vales,
+                           asesores=asesores,
+                           asesor_id=asesor_id,
+                           estado_filtro=estado,
+                           total_pendientes=total_pendientes,
+                           total_aprobados_monto=total_aprobados_monto)
+
+@admin_bp.route('/vales/<int:id>/aprobar', methods=['POST'])
+@login_required
+@admin_required
+def aprobar_vale(id):
+    vale = Vale.query.get_or_404(id)
+    if vale.estado != 'pendiente':
+        flash('Esta solicitud ya ha sido procesada previamente.', 'warning')
+        return redirect(url_for('admin_bp.vales'))
+
+    observacion = request.form.get('observacion', '').strip() or None
+    try:
+        vale.estado = 'aprobado'
+        vale.admin_id = current_user.id
+        vale.observacion_admin = observacion
+        vale.fecha_resolucion = obtener_hora_bogota()
+        db.session.commit()
+        flash(f"Vale de ${float(vale.monto):,.0f} para '{vale.asesor.nombre}' APROBADO exitosamente.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error al aprobar el vale: {str(e)}", "danger")
+
+    return redirect(url_for('admin_bp.vales'))
+
+@admin_bp.route('/vales/<int:id>/rechazar', methods=['POST'])
+@login_required
+@admin_required
+def rechazar_vale(id):
+    vale = Vale.query.get_or_404(id)
+    if vale.estado != 'pendiente':
+        flash('Esta solicitud ya ha sido procesada previamente.', 'warning')
+        return redirect(url_for('admin_bp.vales'))
+
+    observacion = request.form.get('observacion', '').strip() or 'Rechazado por el Administrador.'
+    try:
+        vale.estado = 'rechazado'
+        vale.admin_id = current_user.id
+        vale.observacion_admin = observacion
+        vale.fecha_resolucion = obtener_hora_bogota()
+        db.session.commit()
+        flash(f"Vale de ${float(vale.monto):,.0f} para '{vale.asesor.nombre}' RECHAZADO.", "info")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error al rechazar el vale: {str(e)}", "danger")
+
+    return redirect(url_for('admin_bp.vales'))
+

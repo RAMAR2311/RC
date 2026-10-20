@@ -52,32 +52,40 @@
         {% if asesor_filtro %}
             <!-- Tarjetas de Resumen del Asesor enfocadas en Celulares y Comisión -->
             <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Asesor Consultado</div>
-                        <h4 class="fw-bold text-brand-black mb-0">{{ asesor_filtro.nombre }}</h4>
-                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Asesor de Ventas</span>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                        <div class="text-uppercase fw-bold text-muted small mb-1">Asesor</div>
+                        <h5 class="fw-bold text-brand-black mb-0 text-truncate" title="{{ asesor_filtro.nombre }}">{{ asesor_filtro.nombre }}</h5>
+                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Ventas</span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-primary h-100">
+                        <div class="text-uppercase fw-bold text-primary small mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> Celulares</div>
+                        <h3 class="fw-bold text-primary mb-0">{{ total_celulares_mes }} <span class="fs-6 font-normal">uds</span></h3>
+                        <span class="text-muted extra-small mt-1 d-block">${{ total_monto_celulares|cop }}</span>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-5 border-primary">
-                        <div class="text-uppercase fw-bold text-primary small mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> Celulares Vendidos</div>
-                        <h2 class="fw-bold text-primary mb-0">{{ total_celulares_mes }} <span class="fs-6 font-normal">uds</span></h2>
-                        <span class="text-muted extra-small mt-1 d-block">Monto: ${{ total_monto_celulares|cop }}</span>
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-success h-100">
+                        <div class="text-uppercase fw-bold text-success small mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Comisión Bruta</div>
+                        <h3 class="fw-bold text-success mb-0">${{ total_comision_mes|cop }}</h3>
+                        <span class="text-muted extra-small mt-1 d-block">${{ valor_comision|cop }} / celular</span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-warning h-100">
+                        <div class="text-uppercase fw-bold text-warning small mb-1"><i class="fa-solid fa-receipt me-1"></i> Vales Mes</div>
+                        <h3 class="fw-bold text-warning mb-0">${{ total_vales_mes|cop }}</h3>
+                        <a href="{{ url_for('admin_bp.vales', asesor_id=asesor_filtro.id, estado='aprobado') }}" class="extra-small text-decoration-none mt-1 d-block fw-bold text-muted">Ver vales <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-5 border-success">
-                        <div class="text-uppercase fw-bold text-success small mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Comisión por Celulares</div>
-                        <h2 class="fw-bold text-success mb-0">${{ total_comision_mes|cop }}</h2>
-                        <span class="text-muted extra-small mt-1 d-block">${{ valor_comision|cop }} por cada celular</span>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Total Facturación Mes</div>
-                        <h3 class="fw-bold text-dark mb-0">${{ total_ventas_mes|cop }}</h3>
-                        <span class="text-muted extra-small mt-1 d-block">En {{ ventas|length }} facturas totales</span>
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-dark h-100">
+                        <div class="text-uppercase fw-bold text-dark small mb-1"><i class="fa-solid fa-calculator me-1"></i> Neto a Pagar</div>
+                        {% set neto_comision = total_comision_mes - total_vales_mes %}
+                        <h3 class="fw-bold {% if neto_comision >= 0 %}text-brand-black{% else %}text-danger{% endif %} mb-0">${{ neto_comision|cop }}</h3>
+                        <span class="text-muted extra-small mt-1 d-block">Comisión - Vales</span>
                     </div>
                 </div>
             </div>

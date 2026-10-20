@@ -159,6 +159,37 @@
         .offcanvas-body .border-bottom { border-bottom-color: #dee2e6 !important; }
         .offcanvas-body .bg-light { background-color: #FFFFFF !important; border-color: #dee2e6 !important; }
         .offcanvas-body .text-muted { color: #6c757d !important; }
+
+        /* OPTIMIZACIONES PWA Y MÓVIL (PANTALLAS TÁCTILES) */
+        button, a, input, select, textarea, .btn, .nav-link, .modal {
+            touch-action: manipulation; /* Elimina retraso de 300ms en el tap en navegadores móviles */
+        }
+
+        /* Asegurar que modales y botones tengan prioridad visual y de toque */
+        .modal {
+            z-index: 1060 !important;
+        }
+        .modal-backdrop {
+            z-index: 1050 !important;
+        }
+
+        /* Área táctil mínima para botones en móvil para evitar pulsaciones fallidas */
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .btn-sm {
+                min-height: 32px;
+                padding-left: 0.65rem !important;
+                padding-right: 0.65rem !important;
+            }
+            .table-responsive {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
     </style>
 </head>
 <body>
@@ -293,6 +324,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink me-2" style="width:20px; text-align:center;"></i> Ventas Asesores</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.vales') }}"><i class="fa-solid fa-receipt text-warning me-2" style="width:20px; text-align:center;"></i> Vales</a>
+                                </li>
                             </ul>
                         </div>
                     </li>
@@ -345,6 +379,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-brand-black me-2" style="width:20px; text-align:center;"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('sales_bp.vales_solicitar') }}"><i class="fa-solid fa-receipt text-warning me-2" style="width:20px; text-align:center;"></i> Solicitud de Vales</a>
                     </li>
                     <li class="nav-item mt-2">
                         <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-pink me-2" style="width:20px; text-align:center;"></i> Arqueo</a>

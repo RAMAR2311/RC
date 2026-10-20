@@ -154,29 +154,29 @@
 
 <div class="card card-custom p-0 shadow-sm border-0">
     <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
+        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.84rem; min-width: 1320px;">
             <thead class="bg-dark text-white text-nowrap" style="font-size: 0.8rem;">
                 <tr>
-                    <th class="ps-3 py-2 text-start fw-bold">MARCA</th>
-                    <th class="py-2 text-start fw-bold">REFERENCIA</th>
-                    <th class="py-2 fw-bold">CAP.</th>
-                    <th class="py-2 fw-bold">BAT.</th>
-                    <th class="py-2 fw-bold">COLOR</th>
-                    <th class="py-2 fw-bold">IMEI 1</th>
-                    <th class="py-2 fw-bold">IMEI 2</th>
-                    <th class="py-2 fw-bold">PROVEEDOR</th>
-                    <th class="py-2 fw-bold">INVENTARIO</th>
+                    <th class="ps-3 py-2 text-start fw-bold" style="width: 100px;">MARCA</th>
+                    <th class="py-2 text-start fw-bold" style="min-width: 160px;">REFERENCIA</th>
+                    <th class="py-2 fw-bold" style="width: 65px;">CAP.</th>
+                    <th class="py-2 fw-bold" style="width: 60px;">BAT.</th>
+                    <th class="py-2 fw-bold" style="width: 90px;">COLOR</th>
+                    <th class="py-2 fw-bold" style="width: 140px;">IMEI 1</th>
+                    <th class="py-2 fw-bold" style="width: 140px;">IMEI 2</th>
+                    <th class="py-2 fw-bold" style="width: 120px;">PROVEEDOR</th>
+                    <th class="py-2 fw-bold" style="width: 110px;">INVENTARIO</th>
                     {% if estado == 'vendidos' %}
-                        <th class="py-2 fw-bold text-primary">FECHA VENTA</th>
+                        <th class="py-2 fw-bold text-info" style="width: 130px;">FECHA VENTA</th>
                     {% elif estado == 'maneo' %}
-                        <th class="py-2 fw-bold text-warning">LOCAL RECEPTOR</th>
+                        <th class="py-2 fw-bold text-warning" style="width: 130px;">LOCAL RECEPTOR</th>
                     {% else %}
-                        <th class="py-2 fw-bold">FECHA INGRESO</th>
+                        <th class="py-2 fw-bold" style="width: 120px;">FECHA INGRESO</th>
                     {% endif %}
-                    <th class="py-2 fw-bold">COSTO</th>
-                    <th class="py-2 fw-bold">MINIMO</th>
-                    <th class="py-2 fw-bold">SUGERIDO</th>
-                    <th class="pe-3 py-2 text-center fw-bold">ACCIONES</th>
+                    <th class="py-2 fw-bold" style="width: 100px;">COSTO</th>
+                    <th class="py-2 fw-bold" style="width: 100px;">MINIMO</th>
+                    <th class="py-2 fw-bold" style="width: 100px;">SUGERIDO</th>
+                    <th class="pe-3 py-2 text-center fw-bold" style="width: 125px;">ACCIONES</th>
                 </tr>
             </thead>
             <tbody class="text-nowrap">
@@ -218,7 +218,17 @@
                                 </a>
                             </div>
                         {% elif c.total_stock <= 0 %}
-                            <span class="badge bg-dark fw-bold shadow-sm rounded-pill px-3 py-1">VENDIDO</span>
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                <span class="badge bg-dark fw-bold shadow-sm rounded-pill px-2 py-1" style="font-size: 0.72rem;">VENDIDO</span>
+                                <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar información / Precios / Costo">
+                                    <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
+                                </a>
+                                {% if c.detalles_venta %}
+                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Ticket de Venta (#{{ c.detalles_venta[0].sale_id }})">
+                                    <i class="fa-solid fa-receipt" style="font-size: 0.75rem;"></i>
+                                </a>
+                                {% endif %}
+                            </div>
                         {% else %}
                             <div class="d-flex justify-content-center gap-1">
                                 <!-- Botón Rápido: Prestar a Local Vecino (Maneo) -->
@@ -235,36 +245,6 @@
                                     </button>
                                 </form>
                             </div>
-
-                            <!-- Modal Prestar Celular Directo -->
-                            <div class="modal fade text-start" id="modalPrestarCelular{{ c.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-sm">
-                                    <div class="modal-content border-0 shadow-lg rounded-4">
-                                        <div class="modal-header border-bottom-0 pb-0">
-                                            <h6 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-handshake text-warning me-2"></i>Prestar Celular (Maneo)</h6>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form method="POST" action="{{ url_for('celulares_bp.prestar_celular', id=c.id) }}">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <div class="modal-body py-3">
-                                                <p class="small text-muted mb-2">
-                                                    Vas a prestar este celular a un local vecino. Su stock pasará a 0 y quedará registrado en Maneos.
-                                                </p>
-                                                <div class="p-2 rounded-3 bg-light border mb-3 small">
-                                                    <strong>{{ c.marca }} {{ c.modelo_celular }}</strong><br>
-                                                    <span class="font-monospace text-muted">IMEI: {{ c.imei }}</span>
-                                                </div>
-                                                <label class="form-label fw-bold small text-muted">Local Vecino / Persona *</label>
-                                                <input type="text" name="local_vecino" class="form-control" placeholder="Ej: Fundas Alex / Local 102" required autofocus>
-                                            </div>
-                                            <div class="modal-footer border-top-0 pt-0">
-                                                <button type="button" class="btn btn-light rounded-pill btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-warning text-dark rounded-pill btn-sm px-3 fw-bold shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> Prestar</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         {% endif %}
                     </td>
                 </tr>
@@ -280,6 +260,40 @@
         </table>
     </div>
 </div>
+
+<!-- Modales Prestar Celular (fuera de la tabla para compatibilidad PWA y móvil) -->
+{% for c in celulares %}
+{% if not c.maneo_activo and c.total_stock > 0 %}
+<div class="modal fade text-start" id="modalPrestarCelular{{ c.id }}" tabindex="-1" aria-labelledby="modalPrestarCelularLabel{{ c.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h6 class="fw-bold text-brand-black mb-0" id="modalPrestarCelularLabel{{ c.id }}"><i class="fa-solid fa-handshake text-warning me-2"></i>Prestar Celular (Maneo)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('celulares_bp.prestar_celular', id=c.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body py-3">
+                    <p class="small text-muted mb-2">
+                        Vas a prestar este celular a un local vecino. Su stock pasará a 0 y quedará registrado en Maneos.
+                    </p>
+                    <div class="p-2 rounded-3 bg-light border mb-3 small">
+                        <strong>{{ c.marca }} {{ c.modelo_celular }}</strong><br>
+                        <span class="font-monospace text-muted">IMEI: {{ c.imei }}</span>
+                    </div>
+                    <label class="form-label fw-bold small text-muted">Local Vecino / Persona *</label>
+                    <input type="text" name="local_vecino" class="form-control" placeholder="Ej: Fundas Alex / Local 102" required autofocus>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill btn-sm px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark rounded-pill btn-sm px-3 fw-bold shadow-sm"><i class="fa-solid fa-paper-plane me-1"></i> Prestar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 
 <!-- Paginación -->
 {% if paginacion.pages > 1 %}

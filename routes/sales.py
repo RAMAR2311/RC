@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for, send_file
+from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for, send_file, current_app
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor, Provider
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, SaleClient, Expense, Retoma, obtener_hora_bogota, PriceApproval, Asesor, Provider, Vale
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -899,3 +899,59 @@ def editar_pago_venta(sale_id):
         flash(f'Ocurrió un error al actualizar la venta: {str(e)}', 'danger')
         
     return redirect(url_for('sales_bp.historial'))
+
+# ==========================================
+# SOLICITUD DE VALES (VENDEDORES / CAJEROS)
+# ==========================================
+@sales_bp.route('/vales', methods=['GET', 'POST'])
+@login_required
+def vales_solicitar():
+    if request.method == 'POST':
+        asesor_id = request.form.get('asesor_id', type=int)
+        monto_raw = request.form.get('monto', '').replace('$', '').replace('.', '').replace(',', '').strip()
+        motivo = request.form.get('motivo', '').strip() or None
+
+        if not asesor_id:
+            flash('Debes seleccionar un asesor para solicitar el vale.', 'danger')
+            return redirect(url_for('sales_bp.vales_solicitar'))
+
+        try:
+            monto_val = Decimal(monto_raw)
+            if monto_val <= 0:
+                raise ValueError()
+        except:
+            flash('Por favor ingresa un monto válido mayor a 0.', 'danger')
+            return redirect(url_for('sales_bp.vales_solicitar'))
+
+        asesor = Asesor.query.get(asesor_id)
+        if not asesor:
+            flash('El asesor seleccionado no existe.', 'danger')
+            return redirect(url_for('sales_bp.vales_solicitar'))
+
+        try:
+            nuevo_vale = Vale(
+                asesor_id=asesor.id,
+                solicitante_id=current_user.id,
+                monto=monto_val,
+                motivo=motivo,
+                estado='pendiente'
+            )
+            db.session.add(nuevo_vale)
+            db.session.commit()
+            flash(f"Solicitud de vale por ${float(monto_val):,.0f} para '{asesor.nombre}' enviada al administrador exitosamente.", 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al registrar la solicitud de vale: {str(e)}', 'danger')
+
+        return redirect(url_for('sales_bp.vales_solicitar'))
+
+    # Listar asesores activos y las solicitudes hechas por este usuario (y recientes)
+    asesores = Asesor.query.filter_by(activo=True).order_by(Asesor.nombre).all()
+    # Si es admin o vendedor, mostramos sus solicitudes o del día
+    if current_user.rol == 'admin':
+        mis_solicitudes = Vale.query.order_by(Vale.fecha_solicitud.desc()).limit(30).all()
+    else:
+        mis_solicitudes = Vale.query.filter_by(solicitante_id=current_user.id).order_by(Vale.fecha_solicitud.desc()).limit(30).all()
+
+    return render_template('sales/vales_solicitar.html', asesores=asesores, solicitudes=mis_solicitudes)
+

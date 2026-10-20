@@ -617,3 +617,26 @@ class Asesor(db.Model):
 
     def __init__(self, **kwargs):
         super(Asesor, self).__init__(**kwargs)
+
+class Vale(db.Model):
+    __tablename__ = 'vales'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    asesor_id = db.Column(db.Integer, db.ForeignKey('asesores.id'), nullable=False)
+    solicitante_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    monto = db.Column(db.Numeric(12, 2), nullable=False)
+    motivo = db.Column(db.String(255), nullable=True)
+    estado = db.Column(db.String(20), default='pendiente', index=True) # 'pendiente', 'aprobado', 'rechazado'
+    observacion_admin = db.Column(db.String(255), nullable=True)
+    fecha_solicitud = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_resolucion = db.Column(db.DateTime, nullable=True)
+    
+    # Relaciones
+    asesor = db.relationship('Asesor', backref=db.backref('vales', lazy=True, order_by='Vale.fecha_solicitud.desc()'))
+    solicitante = db.relationship('User', foreign_keys=[solicitante_id], backref=db.backref('vales_solicitados', lazy=True))
+    admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('vales_gestionados', lazy=True))
+
+    def __init__(self, **kwargs):
+        super(Vale, self).__init__(**kwargs)
+
