@@ -277,9 +277,12 @@
     </table>
 
     <div class="totals">
-        {% set ns = namespace(subtotal=venta.monto_total) %}
+        {% set ns = namespace(subtotal=0, total_retomas=0) %}
+        {% for detalle in venta.detalles %}
+            {% set ns.subtotal = ns.subtotal + (detalle.precio_venta_final * detalle.cantidad_vendida) %}
+        {% endfor %}
         {% for retoma in venta.retomas_asociadas %}
-            {% set ns.subtotal = ns.subtotal + retoma.valor_retoma %}
+            {% set ns.total_retomas = ns.total_retomas + retoma.valor_retoma %}
         {% endfor %}
         
         {% if venta.retomas_asociadas %}
@@ -303,7 +306,11 @@
 
         <div class="total-row">
             <span>TOTAL:</span>
-            <span>${{ (venta.monto_total)|cop }}</span>
+            {% if venta.retomas_asociadas %}
+                <span>${{ [0, (ns.subtotal - ns.total_retomas)]|max|cop }}</span>
+            {% else %}
+                <span>${{ (venta.monto_total)|cop }}</span>
+            {% endif %}
         </div>
         
         {% if venta.pagos|length > 1 %}
