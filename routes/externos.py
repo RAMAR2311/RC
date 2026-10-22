@@ -436,19 +436,29 @@ def importar_excel():
         
         exitosos = 0
         omitidos = 0
+        imeis_omitidos = []
+        
+        # Pre-cargar todos los IMEIs existentes en la base de datos para máxima velocidad y evitar autoflush
+        imeis_existentes_db = set(
+            row[0] for row in db.session.query(Product.imei).filter(Product.imei.isnot(None)).all()
+        )
+        imeis_procesados_lote = set()
         
         for index, row in df.iterrows():
             imei1 = str(row['IMEI']).strip()
-            if not imei1:
+            if not imei1 or imei1.lower() in ['nan', 'none']:
                 continue
                 
             if imei1.endswith('.0'):
                 imei1 = imei1[:-2]
                 
-            existente = Product.query.filter(Product.imei == imei1, Product.cantidad_stock > 0).first()
-            if existente:
+            if imei1 in imeis_existentes_db or imei1 in imeis_procesados_lote:
                 omitidos += 1
+                if len(imeis_omitidos) < 5:
+                    imeis_omitidos.append(imei1)
                 continue
+                
+            imeis_procesados_lote.add(imei1)
                 
             marca = str(row['MARCA']).strip()
             referencia = str(row['REFERENCIA']).strip()
@@ -511,7 +521,10 @@ def importar_excel():
         db.session.commit()
         
         if omitidos > 0:
-            flash(f'Carga completada: {exitosos} externos subidos. Se omitieron {omitidos} porque el IMEI ya existía en el sistema.', 'warning')
+            ejemplos = ', '.join(imeis_omitidos)
+            if omitidos > len(imeis_omitidos):
+                ejemplos += ', etc.'
+            flash(f'Carga completada: {exitosos} externos subidos. Se omitieron {omitidos} porque su IMEI ya existía en el sistema o estaba duplicado en el archivo ({ejemplos}).', 'warning')
         else:
             flash(f'Carga Masiva completada: {exitosos} externos subidos exitosamente.', 'success')
             

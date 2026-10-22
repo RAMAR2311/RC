@@ -592,22 +592,32 @@ def importar_excel():
         
         exitosos = 0
         omitidos = 0
+        imeis_omitidos = []
+        
+        # Pre-cargar todos los IMEIs existentes en la base de datos para máxima velocidad y evitar autoflush
+        imeis_existentes_db = set(
+            row[0] for row in db.session.query(Product.imei).filter(Product.imei.isnot(None)).all()
+        )
+        imeis_procesados_lote = set()
         
         for index, row in df.iterrows():
             imei1 = str(row['IMEI 1']).strip()
             # Si el IMEI está vacío, omitimos la fila
-            if not imei1:
+            if not imei1 or imei1.lower() in ['nan', 'none']:
                 continue
                 
             # Limpiamos decimales en caso de que pandas haya leido el IMEI como float e.g. 123456.0
             if imei1.endswith('.0'):
                 imei1 = imei1[:-2]
                 
-            # Verificar si existe el IMEI actualmente activo en stock
-            existente = Product.query.filter(Product.imei == imei1, Product.tipo_inventario == 'celulares', Product.cantidad_stock > 0).first()
-            if existente:
+            # Verificar si existe en la base de datos o si viene duplicado en el mismo archivo
+            if imei1 in imeis_existentes_db or imei1 in imeis_procesados_lote:
                 omitidos += 1
+                if len(imeis_omitidos) < 5:
+                    imeis_omitidos.append(imei1)
                 continue
+                
+            imeis_procesados_lote.add(imei1)
                 
             tipo_disp_raw = str(row.get('TIPO DISPOSITIVO', '')).strip()
             if not tipo_disp_raw:
@@ -637,6 +647,8 @@ def importar_excel():
             imei2 = str(row['IMEI 2']).strip()
             if imei2.endswith('.0'):
                 imei2 = imei2[:-2]
+            if not imei2 or imei2.lower() in ['nan', 'none']:
+                imei2 = None
                 
             proveedor = str(row['PROVEEDOR']).strip()
             inventario = str(row.get('INVENTARIO', '')).strip()
@@ -657,7 +669,7 @@ def importar_excel():
                 nombre_completo = f"{tipo_disp} {marca} {referencia} {color} {memoria}".strip()
             else:
                 nombre_completo = f"{marca} {referencia} {color} {memoria}".strip()
-            sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S%f')}" # %f para evitar skus duplicados en el mismo segundo
+            sku_base = f"CEL-{datetime.now().strftime('%Y%m%d%H%M%S%f')}-{index}"
             
             nuevo = Product(
                 nombre=nombre_completo,
@@ -685,7 +697,10 @@ def importar_excel():
         
         mensaje = f'Carga Masiva completada: {exitosos} equipos subidos exitosamente.'
         if omitidos > 0:
-            mensaje += f' Se omitieron {omitidos} equipos porque el IMEI 1 ya existía en el sistema.'
+            ejemplos = ', '.join(imeis_omitidos)
+            if omitidos > len(imeis_omitidos):
+                ejemplos += ', etc.'
+            mensaje += f' Se omitieron {omitidos} equipos porque su IMEI ya existía en el sistema o estaba duplicado en el Excel ({ejemplos}).'
             
         flash(mensaje, 'success' if exitosos > 0 else 'warning')
         
