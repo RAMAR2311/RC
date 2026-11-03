@@ -14,7 +14,9 @@ def run_migrations():
             ("sale_details.ok_inventario", "ALTER TABLE sale_details ADD COLUMN ok_inventario BOOLEAN DEFAULT FALSE;"),
             ("arqueo_caja.efectivo_fisico", "ALTER TABLE arqueo_caja ADD COLUMN efectivo_fisico NUMERIC(14, 2) DEFAULT 0.0;"),
             ("arqueo_caja.diferencia", "ALTER TABLE arqueo_caja ADD COLUMN diferencia NUMERIC(14, 2) DEFAULT 0.0;"),
-            ("arqueo_caja.observacion_diferencia", "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;")
+            ("arqueo_caja.observacion_diferencia", "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;"),
+            ("retomas.drop_unique_imei1", "ALTER TABLE retomas DROP CONSTRAINT IF EXISTS retomas_imei1_key;"),
+            ("retomas.ix_retomas_imei1", "CREATE INDEX IF NOT EXISTS ix_retomas_imei1 ON retomas (imei1);")
         ]
         
         print("=== ACTUALIZANDO ESQUEMA DE BASE DE DATOS ===")

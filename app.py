@@ -145,12 +145,37 @@ def create_app():
             "ALTER TABLE sale_details ADD COLUMN ok_inventario BOOLEAN DEFAULT FALSE;",
             "ALTER TABLE arqueo_caja ADD COLUMN efectivo_fisico NUMERIC(14, 2) DEFAULT 0.0;",
             "ALTER TABLE arqueo_caja ADD COLUMN diferencia NUMERIC(14, 2) DEFAULT 0.0;",
-            "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;"
+            "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;",
+            "ALTER TABLE retomas DROP CONSTRAINT IF EXISTS retomas_imei1_key;",
+            "CREATE INDEX IF NOT EXISTS ix_retomas_imei1 ON retomas (imei1);"
         ]
         for q in queries:
             try:
                 db.session.execute(db.text(q))
                 db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+        # En SQLite, eliminar restricción UNIQUE de retomas.imei1 si aún existe en la tabla física
+        if db.engine.dialect.name == 'sqlite':
+            try:
+                inspector = db.inspect(db.engine)
+                if 'retomas' in inspector.get_table_names():
+                    uniques = inspector.get_unique_constraints('retomas')
+                    unique_indexes = [idx for idx in inspector.get_indexes('retomas') if idx.get('unique')]
+                    has_unique_imei1 = any('imei1' in u.get('column_names', []) for u in uniques) or \
+                                       any('imei1' in idx.get('column_names', []) for idx in unique_indexes)
+                    if has_unique_imei1:
+                        db.session.execute(db.text("PRAGMA foreign_keys=OFF;"))
+                        db.session.execute(db.text("ALTER TABLE retomas RENAME TO _retomas_old;"))
+                        from models import Retoma
+                        Retoma.__table__.create(db.engine)
+                        cols = [c['name'] for c in inspector.get_columns('_retomas_old')]
+                        cols_csv = ", ".join(cols)
+                        db.session.execute(db.text(f"INSERT INTO retomas ({cols_csv}) SELECT {cols_csv} FROM _retomas_old;"))
+                        db.session.execute(db.text("DROP TABLE _retomas_old;"))
+                        db.session.execute(db.text("PRAGMA foreign_keys=ON;"))
+                        db.session.commit()
             except Exception:
                 db.session.rollback()
 

@@ -246,7 +246,7 @@ class Retoma(db.Model):
     proveedor = db.Column(db.String(150), nullable=True, default='Cliente')
     valor_retoma = db.Column(db.Numeric(10, 2), nullable=False)
     arreglos = db.Column(db.Numeric(10, 2), nullable=True, default=0.0)
-    imei1 = db.Column(db.String(50), nullable=False, unique=True)
+    imei1 = db.Column(db.String(50), nullable=False, index=True)
     imei2 = db.Column(db.String(50), nullable=True)
     color = db.Column(db.String(50), nullable=True)
     bateria = db.Column(db.String(50), nullable=True)

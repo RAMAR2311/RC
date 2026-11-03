@@ -41,11 +41,17 @@ def cuarentena():
     for r_item in paginacion.items:
         r_item.es_reingreso = False
         if r_item.imei1:
-            prod_previo = Product.query.filter(
-                ((Product.imei == r_item.imei1) | (Product.imei2 == r_item.imei1)),
+            query_previo = Product.query.filter(
+                (
+                    (Product.imei == r_item.imei1) |
+                    (Product.imei2 == r_item.imei1) |
+                    (Product.imei.like(f"{r_item.imei1}-OLD-%"))
+                ),
                 Product.cantidad_stock == 0
-            ).first()
-            if prod_previo:
+            )
+            if r_item.producto_generado_id:
+                query_previo = query_previo.filter(Product.id != r_item.producto_generado_id)
+            if query_previo.first():
                 r_item.es_reingreso = True
 
     return render_template('retomas/cuarentena.html',
@@ -94,6 +100,7 @@ def aprobar_retoma(id):
             if prod_existente.cantidad_stock == 0:
                 # Reingreso de celular vendido previamente: actualizar su IMEI histórico para liberar el IMEI único
                 prod_existente.imei = f"{imei1_val}-OLD-{prod_existente.id}"
+                db.session.flush()
             else:
                 flash(f'El IMEI "{imei1_val}" ya está registrado y activo en el inventario ({prod_existente.nombre}).', 'danger')
                 return redirect(url_for('retomas_bp.cuarentena'))
@@ -171,10 +178,26 @@ def editar_retoma(id):
         flash('El modelo y el IMEI 1 son obligatorios.', 'danger')
         return redirect(url_for('retomas_bp.cuarentena'))
 
-    # Verificar IMEI 1 duplicado en retomas (excluyendo la actual)
-    existente = Retoma.query.filter(Retoma.imei1 == imei1, Retoma.id != id).first()
-    if existente:
-        flash(f'El IMEI 1 "{imei1}" ya está registrado en otra retoma.', 'danger')
+    # Verificar IMEI 1 duplicado en otra retoma pendiente de evaluación (excluyendo la actual)
+    existente_pendiente = Retoma.query.filter(
+        Retoma.imei1 == imei1,
+        Retoma.id != id,
+        Retoma.estado == 'en_evaluacion'
+    ).first()
+    if existente_pendiente:
+        flash(f'El IMEI 1 "{imei1}" ya está registrado en otra retoma pendiente en cuarentena (#{existente_pendiente.id}).', 'danger')
+        return redirect(url_for('retomas_bp.cuarentena'))
+
+    # Verificar si el IMEI pertenece a otro celular actualmente disponible en stock
+    query_activo = Product.query.filter(
+        ((Product.imei == imei1) | (Product.imei2 == imei1)),
+        Product.cantidad_stock > 0
+    )
+    if retoma.producto_generado_id:
+        query_activo = query_activo.filter(Product.id != retoma.producto_generado_id)
+    prod_activo = query_activo.first()
+    if prod_activo:
+        flash(f'El IMEI 1 "{imei1}" pertenece a un equipo activo en el inventario ({prod_activo.nombre}).', 'danger')
         return redirect(url_for('retomas_bp.cuarentena'))
 
     try:
@@ -196,6 +219,14 @@ def editar_retoma(id):
     # Si la retoma ya había generado un producto en el inventario, mantener el producto sincronizado
     if retoma.producto_generado:
         prod = retoma.producto_generado
+        prod_vendido_previo = Product.query.filter(
+            Product.imei == imei1,
+            Product.id != prod.id,
+            Product.cantidad_stock == 0
+        ).first()
+        if prod_vendido_previo:
+            prod_vendido_previo.imei = f"{imei1}-OLD-{prod_vendido_previo.id}"
+            db.session.flush()
         prod.marca = marca
         prod.modelo_celular = modelo
         prod.memoria = memoria
