@@ -1071,7 +1071,7 @@
                         </div>
 
                         <!-- 3. Casillas Clickwrap Desmarcadas por Defecto -->
-                        <h6 class="fw-bold text-dark mb-2 text-uppercase small" style="letter-spacing: 0.5px;">3. Declaración de Consentimiento Expreso (Clickwrap)</h6>
+                        <h6 class="fw-bold text-dark mb-2 text-uppercase small" style="letter-spacing: 0.5px;">3. Declaración de Consentimiento Expreso (Clickwrap Obligatorio)</h6>
                         <div class="space-y-3 mb-4">
                             <div class="form-check p-3 rounded-3 border mb-2" style="background-color: #fdfdfd;">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" name="accepted_terms" id="gk_chk_terms" value="1" onchange="validarFirmaGatekeeper()">
@@ -1080,10 +1080,17 @@
                                 </label>
                             </div>
 
-                            <div class="form-check p-3 rounded-3 border mb-3" style="background-color: #fdfdfd;">
+                            <div class="form-check p-3 rounded-3 border mb-2" style="background-color: #fdfdfd;">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" name="accepted_dpa" id="gk_chk_dpa" value="1" onchange="validarFirmaGatekeeper()">
                                 <label class="form-check-label text-dark fw-medium" for="gk_chk_dpa" style="cursor: pointer;">
                                     En calidad de <strong>Representante Legal</strong>, autorizo y suscribo electrónicamente el <a href="{{ url_for('legal_bp.ver_acuerdo') }}" target="_blank" class="text-primary fw-bold text-decoration-underline">Acuerdo de Transmisión DPA</a> dejando constancia de que los datos de mis clientes fueron recolectados con previa autorización legal.
+                                </label>
+                            </div>
+
+                            <div class="form-check p-3 rounded-3 border mb-3" style="background-color: #fdfdfd;">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="accepted_media_release" id="gk_chk_media" value="1" onchange="validarFirmaGatekeeper()">
+                                <label class="form-check-label text-dark fw-medium" for="gk_chk_media" style="cursor: pointer;">
+                                    <i class="fa-solid fa-camera text-primary me-1"></i> <strong>Autorización Audiovisual:</strong> Autorizo a Zenic S.A.S. a captar, grabar y publicar en redes sociales y canales digitales piezas audiovisuales, fotos y testimonios conjuntos con fines de difusión y visibilidad de marca (Cláusula Sexta).
                                 </label>
                             </div>
                         </div>
@@ -1230,12 +1237,13 @@
         function validarFirmaGatekeeper() {
             const chkTerms = document.getElementById('gk_chk_terms');
             const chkDpa = document.getElementById('gk_chk_dpa');
+            const chkMedia = document.getElementById('gk_chk_media');
             const btn = document.getElementById('btnSubmitGatekeeper');
             const estadoText = document.getElementById('gk_estado_text');
             const repId = document.getElementById('gk_legal_rep_id');
             const inputSig = document.getElementById('inputModalSignatureData');
 
-            const casillasOk = chkTerms && chkTerms.checked && chkDpa && chkDpa.checked;
+            const casillasOk = chkTerms && chkTerms.checked && chkDpa && chkDpa.checked && chkMedia && chkMedia.checked;
             const cedulaOk = repId && repId.value.trim().length > 3;
             const firmaOk = modalHasDrawn && inputSig && inputSig.value.length > 50;
 
@@ -1248,7 +1256,7 @@
                 btn.className = 'btn btn-secondary rounded-pill px-4 fw-bold shadow-sm';
                 let faltante = [];
                 if (!cedulaOk) faltante.push("cédula");
-                if (!casillasOk) faltante.push("marcar casillas");
+                if (!casillasOk) faltante.push("marcar las 3 casillas de aceptación obligatorias");
                 if (!firmaOk) faltante.push("trazar firma");
                 estadoText.innerHTML = '<i class="fa-solid fa-lock text-danger me-1"></i> Falta: ' + faltante.join(", ");
             }

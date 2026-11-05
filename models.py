@@ -654,6 +654,7 @@ class ZenicDataAgreementAudit(db.Model):
     business_email = db.Column(db.String(150), nullable=True) # Correo de notificaciones
     accepted_terms = db.Column(db.SmallInteger, nullable=False, default=1)
     accepted_dpa = db.Column(db.SmallInteger, nullable=False, default=1)
+    accepted_media_release = db.Column(db.SmallInteger, nullable=False, default=1) # Autorización de Imagen y Redes Sociales
     terms_version = db.Column(db.String(20), nullable=False, default='v2026.1')
     document_sha256 = db.Column(db.String(64), nullable=False) # Hash criptográfico SHA-256
     ip_address = db.Column(db.String(45), nullable=False) # IP remota real

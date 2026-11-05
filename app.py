@@ -112,9 +112,9 @@ def create_app():
 
     @app.context_processor
     def inject_legal_agreement():
-        # Toggle para pausar el bloqueo mientras realizas cambios en desarrollo
-        # Pon en True cuando vayas a desplegar a producción
-        BLOQUEO_SIC_ACTIVO = False
+        # Toggle para activar o pausar el bloqueo por falta de firma
+        # En True: bloquea el sistema si aún no se ha firmado formalmente
+        BLOQUEO_SIC_ACTIVO = True
 
         acuerdo = None
         try:
@@ -123,7 +123,7 @@ def create_app():
         except Exception:
             pass
         return {
-            'acuerdo_sic_firmado': acuerdo is not None or not BLOQUEO_SIC_ACTIVO,
+            'acuerdo_sic_firmado': acuerdo is not None,
             'acuerdo_sic_data': acuerdo
         }
 

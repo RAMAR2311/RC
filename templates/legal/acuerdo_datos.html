@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .page-sheet {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+    }
+    .font-brand {
+        font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    }
+    .gradient-zenic {
+        background: linear-gradient(135deg, #7b38d8 0%, #3b82f6 50%, #06b6d4 100%);
+    }
+    .text-gradient-zenic {
+        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #06b6d4 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .badge-zenic {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.35);
+    }
+    @media print {
+        body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .no-print, nav, footer, .navbar, .offcanvas {
+            display: none !important;
+        }
+        main.container {
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .page-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 10mm 15mm !important;
+        }
+    }
+</style>
+
+<!-- Barra Superior con Botón Imprimir / PDF -->
+<div class="no-print d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h3 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+            <span class="p-2 rounded-3 bg-dark text-white d-inline-flex"><i class="fa-solid fa-scale-balanced text-warning"></i></span>
+            Acuerdo de Transmisión de Datos (SIC / Ley 1581)
+        </h3>
+        <p class="text-muted small m-0">Custodia Digital, Responsabilidad Demostrada y Seguridad de Bases de Datos</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if acuerdo %}
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold d-flex align-items-center">
+            <i class="fa-solid fa-circle-check me-1"></i> Acuerdo v2026.1 Firmado & Certificado
+        </span>
+        {% else %}
+        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill fw-bold d-flex align-items-center">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> Pendiente de Firma por Administrador
+        </span>
+        {% endif %}
+        <button type="button" onclick="window.print()" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fa-solid fa-file-pdf text-danger me-1"></i> Imprimir / Guardar PDF
+        </button>
+    </div>
+</div>
+
+{% if not acuerdo and current_user.rol == 'admin' %}
+<div class="no-print alert alert-warning border-0 rounded-4 shadow-sm p-4 mb-4 d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+        <i class="fa-solid fa-circle-exclamation fs-2 text-warning"></i>
+        <div>
+            <h6 class="fw-bold mb-1 text-dark">Tu comercio aún no ha suscrito formalmente el Acuerdo DPA ante la SIC</h6>
+            <p class="small text-muted mb-0">Revisa los términos estipulados a continuación y completa la firma electrónica en el recuadro interactivo al final de esta página.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- HOJA FORMAL DEL CONTRATO / PDF -->
+<div class="page-sheet p-4 p-md-5 mb-5 mx-auto" style="max-width: 950px; font-size: 0.88rem; color: #334155;">
+
+    <!-- ENCABEZADO INSTITUCIONAL CON BRANDING ZENIC -->
+    <header class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-bottom pb-4 mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-1 bg-white shadow-sm border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                <!-- ISOTIPO OFICIAL CEREBRO TECNOLÓGICO ZENIC (SIN LETRAS) -->
+                <img src="{{ url_for('static', filename='img/zenic_brain.png') }}" alt="Zenic S.A.S." style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div>
+                <h4 class="fw-black font-brand m-0 text-gradient-zenic" style="letter-spacing: -0.5px; font-weight: 800;">ZENIC S.A.S.</h4>
+                <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.8px;">Custodia Digital • Arquitectura Cloud & Local</div>
+            </div>
+        </div>
+        <div class="text-sm-end">
+            <span class="badge badge-zenic text-dark fw-bold px-3 py-1 rounded-pill">
+                ACUERDO DE TRANSMISIÓN DE DATOS (DPA)
+            </span>
+            <div class="text-muted small mt-1" style="font-size: 0.75rem;">Conforme al Art. 25 del Decreto 1377/2013 y Ley 1581 de 2012</div>
+        </div>
+    </header>
+
+    <!-- TÍTULO PRINCIPAL -->
+    <div class="text-center my-4">
+        <h4 class="fw-bold text-dark text-uppercase font-brand mb-1">
+            Acuerdo de Transmisión y Custodia Técnica de Bases de Datos
+        </h4>
+        <p class="text-primary small fw-semibold">
+            Modelo de Seguridad de Datos, Sin Permanencia Mínima, Portabilidad y Supresión Certificada
+        </p>
+    </div>
+
+    <!-- COMPARECIENTES -->
+    <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important; line-height: 1.6;">
+        <p class="fw-semibold text-dark mb-2">Entre los suscritos, a saber:</p>
+        
+        <p class="mb-2">
+            <strong>1. <span class="text-dark fw-bold text-decoration-underline">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}REDCOVER / EL COMERCIO SUSCRIPTOR{% endif %}</span></strong>, 
+            identificada con NIT/C.C. <strong>{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[NIT / Cédula del Comercio]{% endif %}</strong>, 
+            con domicilio principal en <strong>{% if acuerdo %}{{ acuerdo.business_city }}{% else %}Bucaramanga, Santander{% endif %}</strong>, 
+            representada legalmente en este acto por <strong>{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Nombre del Representante Legal]{% endif %}</strong>, 
+            identificado con C.C. No. <strong>{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Cédula Representante Legal]{% endif %}</strong>, 
+            quien en adelante se denominará <strong>EL RESPONSABLE DEL TRATAMIENTO</strong>; y
+        </p>
+        
+        <p class="mb-2">
+            <strong>2. ZENIC S.A.S.</strong>, sociedad comercial legalmente constituida bajo las leyes de la República de Colombia, identificada con NIT <strong>{{ zenic.nit }}</strong>, con domicilio principal en <strong>{{ zenic.domicilio }}</strong>, representada legalmente por <strong>{{ zenic.representante_legal }}</strong>, identificado con Cédula de Ciudadanía No. <strong>{{ zenic.representante_id }}</strong>, quien en adelante se denominará <strong>EL ENCARGADO DEL TRATAMIENTO</strong>;
+        </p>
+
+        <p class="text-muted small mb-0 pt-2 border-top">
+            Ambas partes convienen en formalizar el presente acuerdo accesorio de transmisión y custodia de datos personales, bajo las siguientes estipulaciones obligatorias ante la Superintendencia de Industria y Comercio (SIC):
+        </p>
+    </div>
+
+    <!-- CLÁUSULAS -->
+    <div class="mb-4" style="line-height: 1.65; text-align: justify;">
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA PRIMERA: DISTRIBUCIÓN DE ROLES Y ALCANCE DEL TRATAMIENTO</h6>
+        <p class="text-muted mb-3">
+            En estricto cumplimiento de la Ley 1581 de 2012 y el Artículo 25 del Decreto 1377 de 2013:
+            <br>• <strong>EL RESPONSABLE:</strong> Conserva el dominio, la propiedad intelectual y el control absoluto de todas las bases de datos ingresadas en el software provisto por Zenic (incluyendo datos de consumidores finales, clientes, ventas, facturación electrónica, inventario, seriales e IMEI de equipos y proveedores).
+            <br>• <strong>EL ENCARGADO (ZENIC S.A.S.):</strong> Actúa única y exclusivamente como mandatario técnico y custodio digital. Tratará la información personal únicamente por cuenta e instrucciones de EL RESPONSABLE, para fines de procesamiento transaccional, soporte técnico, alojamiento, copias de seguridad y mantenimiento del software.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA SEGUNDA: OBLIGACIONES Y SALVAGUARDAS TÉCNICAS DE ZENIC S.A.S.</h6>
+        <p class="text-muted mb-3">
+            ZENIC S.A.S. asume las siguientes salvaguardas vinculantes:
+            <br>• <strong>Prohibición Total de Explotación Comercial:</strong> ZENIC S.A.S. se abstendrá categóricamente de monetizar, transferir, cruzar, divulgar o utilizar las bases de datos de clientes de EL RESPONSABLE para fines publicitarios o explotación de terceras partes.
+            <br>• <strong>Arquitectura Híbrida de Seguridad (Hostinger & Local Físico):</strong> Las bases de datos operativas de producción residirán en servidores provistos por Hostinger bajo certificados SSL/TLS y aislamiento de entornos. Adicionalmente, Zenic ejecutará copias de seguridad encriptadas en servidores dedicados bajo custodia física y técnica directa de Zenic S.A.S., garantizando redundancia y alta disponibilidad.
+            <br>• <strong>Deber de Confidencialidad y Gestión de Incidentes:</strong> Todo el personal directivo, operativo o de ingeniería de Zenic con acceso a bases de datos está sujeto a acuerdos de confidencialidad indefinidos. En caso de brechas de seguridad, notificará a EL RESPONSABLE dentro de las 48 horas siguientes para coordinar los reportes a la SIC.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA TERCERA: AUSENCIA DE PERMANENCIA MÍNIMA Y RETENCIÓN CERO</h6>
+        <p class="text-muted mb-3">
+            Las partes declaran que el servicio se presta en modalidad SaaS por suscripción periódica <strong>SIN CLÁUSULA DE PERMANENCIA MÍNIMA NI PENALIDADES CONTRACTUALES</strong>. La finalización de la relación comercial se regirá por:
+            <br>1. <strong>Portabilidad Inmediata:</strong> En caso de cancelación, Zenic facilitará a EL RESPONSABLE la descarga completa de sus bases de datos operativas en formatos abiertos (CSV, Excel o volcado SQL) dentro de los cinco (5) días hábiles siguientes.
+            <br>2. <strong>Periodo de Gracia Preventivo:</strong> Zenic conservará una copia de respaldo en estado congelado (Read-Only) durante un plazo de treinta (30) días calendario para contingencias o requerimientos tributarios del comercio.
+            <br>3. <strong>Destrucción y Borrado Seguro:</strong> Vencido dicho periodo, Zenic ejecutará la <strong>supresión y destrucción definitiva e irreversible</strong> de los registros tanto en Hostinger como en discos locales físicos, emitiendo constancia de eliminación.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA CUARTA: RESPONSABILIDAD DE LICITUD Y AUTORIZACIONES PREVIAS</h6>
+        <p class="text-muted mb-3">
+            EL RESPONSABLE declara bajo la gravedad de juramento que todos los datos de titulares capturados en su establecimiento y cargados al software de Zenic cuentan con la debida <strong>autorización previa, expresa e informada</strong> exigida por la Ley 1581 de 2012, manteniendo indemne a Zenic S.A.S. por reclamos derivados de la omisión de dicho deber.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA QUINTA: VALIDEZ DE FIRMA ELECTRÓNICA Y REGISTRO AUDITABLE</h6>
+        <p class="text-muted mb-3">
+            Conforme a la <strong>Ley 527 de 1999</strong> y el <strong>Decreto 2364 de 2012</strong>, las partes acuerdan otorgar plena eficacia jurídica y valor probatorio al consentimiento expresado mediante rúbrica digital y clickwrap. Dicho acto genera una bitácora técnica con registro de fecha, hora legal colombiana (UTC-5), IP de origen, Hash SHA-256 del texto y agente de usuario que constituye plena prueba ante la SIC y autoridades judiciales.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA SEXTA: AUTORIZACIÓN PARA USO DE IMAGEN Y REGISTRO AUDIOVISUAL EN MEDIOS DIGITALES</h6>
+        <p class="text-muted mb-0">
+            EL RESPONSABLE, en su calidad de titular de la marca y/o establecimiento, así como en representación de sus dependientes, dependencias o asesores comerciales que de manera voluntaria participen en dinámicas, demostraciones o grabaciones con el equipo de Zenic, otorga <strong>autorización previa, expresa e informada a ZENIC S.A.S.</strong> para captar, fotografiar, grabar, reproducir, editar y difundir en redes sociales institucionales (tales como Instagram, TikTok, Facebook, YouTube, LinkedIn u otras), sitio web y canales digitales, el contenido audiovisual, testimonios, imágenes o tomas conjuntas en las que intervengan. Esta autorización se concede a título gratuito con fines educativos, de difusión de casos de éxito y posicionamiento comercial colaborativo, garantizando siempre el respeto al buen nombre, decoro y dignidad de las personas involucradas.
+        </p>
+    </div>
+
+    <!-- SECCIÓN DE FIRMAS BILATERALES -->
+    <div class="row g-4 mt-4 pt-3 border-top">
+        
+        <!-- FIRMA CLIENTE / RESPONSABLE -->
+        <div class="col-md-6">
+            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded text-uppercase mb-2" style="font-size: 0.68rem;">
+                        EL RESPONSABLE DEL TRATAMIENTO
+                    </span>
+                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; align-items: center; justify-content: center;">
+                        {% if acuerdo and acuerdo.signature_data %}
+                            <img src="{{ acuerdo.signature_data }}" alt="Firma Representante Legal" style="max-height: 85px; max-width: 100%;">
+                        {% else %}
+                            <span class="text-muted small fst-italic">[Firma pendiente de captura]</span>
+                        {% endif %}
+                    </div>
+                    <div class="fw-bold text-dark">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Representante Legal del Comercio]{% endif %}</div>
+                    <div class="text-muted small">Representante Legal / Titular</div>
+                    <div class="fw-semibold text-primary small">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}[Razón Social del Comercio]{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[NIT]{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Cédula]{% endif %}</div>
+                </div>
+                {% if acuerdo %}
+                <div class="mt-2 pt-2 border-top text-success small fw-semibold" style="font-size: 0.72rem;">
+                    <i class="fa-solid fa-check-circle me-1"></i> Firmado electrónicamente el {{ acuerdo.timestamp_utc5.strftime('%d/%m/%Y a las %H:%M:%S') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- FIRMA ZENIC S.A.S. / ENCARGADO -->
+        <div class="col-md-6">
+            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-primary text-white fw-bold px-2 py-1 rounded text-uppercase mb-2" style="font-size: 0.68rem;">
+                        EL ENCARGADO DEL TRATAMIENTO
+                    </span>
+                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; align-items: center; justify-content: center;">
+                        <span class="text-muted small fst-italic">[Firma certificada por emisión electrónica digital]</span>
+                    </div>
+                    <div class="fw-bold text-dark">{{ zenic.representante_legal }}</div>
+                    <div class="text-muted small">Representante Legal</div>
+                    <div class="fw-semibold text-primary small">{{ zenic.razon_social }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {{ zenic.nit }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {{ zenic.representante_id }}</div>
+                </div>
+                <div class="mt-2 pt-2 border-top text-primary small fw-semibold" style="font-size: 0.72rem;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Certificado y emitido por Zenic S.A.S. (v2026.1)
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ESTAMPA CRIPTOGRÁFICA PROBATORIA LEY 527 -->
+    <div class="mt-4 pt-3 border-top border-dashed d-flex flex-wrap justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+        <div>
+            <strong>Registro Electrónico Legal:</strong> Emitido conforme a Ley 527 de 1999 y Decreto 2364 de 2012 (SIC).
+        </div>
+        <div>
+            {% if acuerdo %}
+            <span>Hash SHA-256: <code class="text-primary font-monospace fw-bold">{{ acuerdo.document_sha256[:20] }}...</code></span> • 
+            <span>IP: <code class="font-monospace">{{ acuerdo.ip_address }}</code></span>
+            {% else %}
+            <span>Estado: <span class="text-danger fw-bold">Pendiente de firma</span></span>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
