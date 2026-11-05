@@ -41,6 +41,10 @@ def ver_acuerdo():
 def ver_contrato_anualidad():
     """Vista completa e imprimible del Contrato de Licenciamiento y Custodia de Servidor en Modalidad Anualidad."""
     acuerdo = ZenicDataAgreementAudit.query.order_by(ZenicDataAgreementAudit.id.desc()).first()
+    if not acuerdo:
+        flash('Para generar y visualizar el Contrato de Anualidad y Licenciamiento, el Administrador debe diligenciar y firmar previamente el Protocolo de Tratamiento de Datos (DPA) con los datos legales de la empresa.', 'warning')
+        return redirect(url_for('legal_bp.ver_acuerdo'))
+
     return render_template('legal/contrato_anualidad.html', acuerdo=acuerdo, zenic=ZENIC_CORP_DATA)
 
 @legal_bp.route('/confirmar-pago-servidor/<token>', methods=['GET'])

@@ -108,7 +108,7 @@
     <!-- COMPARECIENTES -->
     <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important; line-height: 1.65; text-align: justify;">
         <p class="mb-0">
-            Entre los suscritos a saber: Por una parte, <strong>ZENIC S.A.S.</strong>, sociedad comercial legalmente constituida bajo las leyes de la República de Colombia, identificada con NIT <strong>{{ zenic.nit }}</strong>, domiciliada en {{ zenic.domicilio }}, representada legalmente por <strong>{{ zenic.representante_legal }}</strong>, identificado con C.C. <strong>{{ zenic.representante_id }}</strong>, quien en adelante se denominará <strong>EL PROVEEDOR (ZENIC S.A.S.)</strong>; y por la otra parte, <strong>{% if acuerdo %}{{ acuerdo.business_name }}{% else %}RED COVER COMUNICACIONES S.A.S.{% endif %}</strong>, identificada con NIT/C.C. <strong>{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}901.888.777-1{% endif %}</strong>, con domicilio en <strong>{% if acuerdo %}{{ acuerdo.business_city }}{% else %}Bucaramanga, Santander{% endif %}</strong>, representada legalmente por <strong>{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}{{ current_user.nombre }}{% endif %}</strong>, identificado(a) con C.C. <strong>{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Por certificar en DPA]{% endif %}</strong>, quien en adelante se denominará <strong>EL CLIENTE</strong>, hemos celebrado el presente Contrato de Licenciamiento y Custodia de Servidor en Modalidad Anual, regido por las siguientes cláusulas:
+            Entre los suscritos a saber: Por una parte, <strong>ZENIC S.A.S.</strong>, sociedad comercial legalmente constituida bajo las leyes de la República de Colombia, identificada con NIT <strong>{{ zenic.nit }}</strong>, domiciliada en {{ zenic.domicilio }}, representada legalmente por <strong>{{ zenic.representante_legal }}</strong>, identificado con C.C. <strong>{{ zenic.representante_id }}</strong>, quien en adelante se denominará <strong>EL PROVEEDOR (ZENIC S.A.S.)</strong>; y por la otra parte, <strong>{{ acuerdo.business_name }}</strong>, identificada con NIT/C.C. <strong>{{ acuerdo.business_nit }}</strong>, con domicilio en <strong>{{ acuerdo.business_city }}</strong> y correo de notificaciones <strong>{{ acuerdo.business_email }}</strong>, representada legalmente en este acto por <strong>{{ acuerdo.legal_representative }}</strong>, identificado(a) con C.C. <strong>{{ acuerdo.legal_rep_id }}</strong>, quien en adelante se denominará <strong>EL CLIENTE</strong>, hemos celebrado el presente Contrato de Licenciamiento y Custodia de Servidor en Modalidad Anual, regido por las siguientes cláusulas:
         </p>
     </div>
 
@@ -159,24 +159,18 @@
                         EL CLIENTE / SUSCRIPTOR
                     </span>
                     <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; align-items: center; justify-content: center;">
-                        {% if acuerdo and acuerdo.signature_data %}
-                            <img src="{{ acuerdo.signature_data }}" alt="Firma Representante Legal" style="max-height: 85px; max-width: 100%;">
-                        {% else %}
-                            <span class="text-muted small fst-italic">[Firma vinculada mediante suscripción de acuerdo DPA]</span>
-                        {% endif %}
+                        <img src="{{ acuerdo.signature_data }}" alt="Firma Representante Legal" style="max-height: 85px; max-width: 100%;">
                     </div>
-                    <div class="fw-bold text-dark">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}{{ current_user.nombre }}{% endif %}</div>
+                    <div class="fw-bold text-dark">{{ acuerdo.legal_representative }}</div>
                     <div class="text-muted small">Representante Legal / Titular</div>
-                    <div class="fw-semibold text-primary small">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}RED COVER COMUNICACIONES S.A.S.{% endif %}</div>
-                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {% if acuerdo %}{{ acuerdo.business_nit }}{% else %}901.888.777-1{% endif %}</div>
-                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Por certificar en DPA]{% endif %}</div>
-                    <div class="text-muted small" style="font-size: 0.72rem;">Correo: {% if acuerdo %}{{ acuerdo.business_email }}{% else %}{{ current_user.email }}{% endif %}</div>
+                    <div class="fw-semibold text-primary small">{{ acuerdo.business_name }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {{ acuerdo.business_nit }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {{ acuerdo.legal_rep_id }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Correo: {{ acuerdo.business_email }}</div>
                 </div>
-                {% if acuerdo %}
                 <div class="mt-2 pt-2 border-top text-success small fw-semibold" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-check-circle me-1"></i> Certificado y firmado electrónicamente
+                    <i class="fa-solid fa-check-circle me-1"></i> Certificado y firmado electrónicamente el {{ acuerdo.timestamp_utc5.strftime('%d/%m/%Y a las %H:%M:%S') }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -220,12 +214,12 @@
         </div>
         <div class="row g-2 text-muted">
             <div class="col-md-6">
-                <div><strong>Hash SHA-256 Inmutable:</strong> <code class="text-primary font-monospace fw-bold">{% if acuerdo %}{{ acuerdo.document_sha256 }}{% else %}e4d9b238f5a109c7162b78d30e5f...{% endif %}</code></div>
+                <div><strong>Hash SHA-256 Inmutable:</strong> <code class="text-primary font-monospace fw-bold">{{ acuerdo.document_sha256 }}</code></div>
                 <div><strong>Vigencia de Contrato:</strong> <span class="fw-bold text-dark">2026-07-30 al 2027-07-30 (12 Meses)</span></div>
-                <div><strong>Dirección IP de Registro:</strong> <code class="font-monospace">{% if acuerdo %}{{ acuerdo.ip_address }}{% else %}127.0.0.1 (Local Verified){% endif %}</code></div>
+                <div><strong>Dirección IP de Registro:</strong> <code class="font-monospace">{{ acuerdo.ip_address }}</code></div>
             </div>
             <div class="col-md-6">
-                <div><strong>Correo Notificaciones Vinculado:</strong> <span class="fw-semibold text-dark">{% if acuerdo %}{{ acuerdo.business_email }}{% else %}{{ current_user.email }}{% endif %}</span></div>
+                <div><strong>Correo Notificaciones Vinculado:</strong> <span class="fw-semibold text-dark">{{ acuerdo.business_email }}</span></div>
                 <div><strong>Emisión Tecnológica:</strong> <span class="small font-monospace">ZENIC CLOUD HOSTING &bull; SSL/TLS CERTIFIED</span></div>
                 <div><strong>Estado de Anualidad:</strong> 
                     <span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Paz y Salvo Total (Sin cobros recurrentes hasta 30/07/2027)</span>
@@ -237,3 +231,4 @@
 </div>
 
 {% endblock %}
+
