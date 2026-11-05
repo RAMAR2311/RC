@@ -1054,11 +1054,11 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted mb-1">Ciudad y Departamento *</label>
-                                <input type="text" name="business_city" class="form-control form-control-sm" value="Bucaramanga, Santander" required>
+                                <input type="text" name="business_city" id="gk_business_city" class="form-control form-control-sm" value="Bucaramanga, Santander" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted mb-1">Correo de Notificaciones *</label>
-                                <input type="email" name="business_email" class="form-control form-control-sm" value="{{ current_user.email }}" required>
+                                <input type="email" name="business_email" id="gk_business_email" class="form-control form-control-sm" value="{{ current_user.email }}" required>
                             </div>
                         </div>
 
@@ -1234,20 +1234,75 @@
             validarFirmaGatekeeper();
         }
 
+        function syncCamposConDocumento() {
+            const bName = document.getElementById('gk_business_name');
+            const bNit = document.getElementById('gk_business_nit');
+            const bRep = document.getElementById('gk_legal_rep');
+            const bRepId = document.getElementById('gk_legal_rep_id');
+            const bCity = document.getElementById('gk_business_city');
+            const bEmail = document.getElementById('gk_business_email');
+
+            const valName = (bName && bName.value.trim()) || '[Por diligenciar en formulario]';
+            const valNit = (bNit && bNit.value.trim()) || '[Por diligenciar en formulario]';
+            const valRep = (bRep && bRep.value.trim()) || '[Por diligenciar en formulario]';
+            const valRepId = (bRepId && bRepId.value.trim()) || '[Por diligenciar en formulario]';
+            const valCity = (bCity && bCity.value.trim()) || '[Por diligenciar en formulario]';
+            const valEmail = (bEmail && bEmail.value.trim()) || '[Por diligenciar en formulario]';
+
+            const elRazon = document.getElementById('doc_view_razon_social');
+            if (elRazon) elRazon.textContent = valName;
+            const elNit = document.getElementById('doc_view_nit');
+            if (elNit) elNit.textContent = valNit;
+            const elRep = document.getElementById('doc_view_rep');
+            if (elRep) elRep.textContent = valRep;
+            const elRepId = document.getElementById('doc_view_rep_id');
+            if (elRepId) elRepId.textContent = valRepId;
+            const elCity = document.getElementById('doc_view_ciudad');
+            if (elCity) elCity.textContent = valCity;
+            const elEmail = document.getElementById('doc_view_email');
+            if (elEmail) elEmail.textContent = valEmail;
+
+            // Bloque de firma
+            const fRep = document.getElementById('doc_view_rep_firmante');
+            if (fRep) fRep.textContent = valRep;
+            const fRazon = document.getElementById('doc_view_razon_firmante');
+            if (fRazon) fRazon.textContent = valName;
+            const fNit = document.getElementById('doc_view_nit_firmante');
+            if (fNit) fNit.textContent = valNit;
+            const fRepId = document.getElementById('doc_view_rep_id_firmante');
+            if (fRepId) fRepId.textContent = valRepId;
+            const fEmail = document.getElementById('doc_view_email_firmante');
+            if (fEmail) fEmail.textContent = valEmail;
+        }
+
         function validarFirmaGatekeeper() {
+            syncCamposConDocumento();
+
+            const bName = document.getElementById('gk_business_name');
+            const bNit = document.getElementById('gk_business_nit');
+            const bRep = document.getElementById('gk_legal_rep');
+            const repId = document.getElementById('gk_legal_rep_id');
+            const bCity = document.getElementById('gk_business_city');
+            const bEmail = document.getElementById('gk_business_email');
+
             const chkTerms = document.getElementById('gk_chk_terms');
             const chkDpa = document.getElementById('gk_chk_dpa');
             const chkMedia = document.getElementById('gk_chk_media');
             const btn = document.getElementById('btnSubmitGatekeeper');
             const estadoText = document.getElementById('gk_estado_text');
-            const repId = document.getElementById('gk_legal_rep_id');
             const inputSig = document.getElementById('inputModalSignatureData');
 
+            const camposTextoOk = bName && bName.value.trim().length > 2 &&
+                                  bNit && bNit.value.trim().length > 3 &&
+                                  bRep && bRep.value.trim().length > 2 &&
+                                  repId && repId.value.trim().length > 3 &&
+                                  bCity && bCity.value.trim().length > 2 &&
+                                  bEmail && bEmail.value.trim().includes('@');
+
             const casillasOk = chkTerms && chkTerms.checked && chkDpa && chkDpa.checked && chkMedia && chkMedia.checked;
-            const cedulaOk = repId && repId.value.trim().length > 3;
             const firmaOk = modalHasDrawn && inputSig && inputSig.value.length > 50;
 
-            if (casillasOk && cedulaOk && firmaOk) {
+            if (camposTextoOk && casillasOk && firmaOk) {
                 btn.disabled = false;
                 btn.className = 'btn btn-primary rounded-pill px-4 fw-bold shadow-sm';
                 estadoText.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> Requisitos completos para firma formal';
@@ -1255,18 +1310,20 @@
                 btn.disabled = true;
                 btn.className = 'btn btn-secondary rounded-pill px-4 fw-bold shadow-sm';
                 let faltante = [];
-                if (!cedulaOk) faltante.push("cédula");
-                if (!casillasOk) faltante.push("marcar las 3 casillas de aceptación obligatorias");
-                if (!firmaOk) faltante.push("trazar firma");
+                if (!camposTextoOk) faltante.push("completar los 6 campos legales");
+                if (!casillasOk) faltante.push("marcar las 3 casillas obligatorias");
+                if (!firmaOk) faltante.push("trazar firma manuscrita");
                 estadoText.innerHTML = '<i class="fa-solid fa-lock text-danger me-1"></i> Falta: ' + faltante.join(", ");
             }
         }
 
-        // Detectar cambios en cédula
-        const inputRepId = document.getElementById('gk_legal_rep_id');
-        if (inputRepId) {
-            inputRepId.addEventListener('input', validarFirmaGatekeeper);
-        }
+        // Detectar cambios en tiempo real en todos los inputs
+        ['gk_business_name', 'gk_business_nit', 'gk_legal_rep', 'gk_legal_rep_id', 'gk_business_city', 'gk_business_email'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', validarFirmaGatekeeper);
+            }
+        });
     </script>
     {% endif %}
 

@@ -121,11 +121,12 @@
         <p class="fw-semibold text-dark mb-2">Entre los suscritos, a saber:</p>
         
         <p class="mb-2">
-            <strong>1. <span class="text-dark fw-bold text-decoration-underline">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}REDCOVER / EL COMERCIO SUSCRIPTOR{% endif %}</span></strong>, 
-            identificada con NIT/C.C. <strong>{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[NIT / Cédula del Comercio]{% endif %}</strong>, 
-            con domicilio principal en <strong>{% if acuerdo %}{{ acuerdo.business_city }}{% else %}Bucaramanga, Santander{% endif %}</strong>, 
-            representada legalmente en este acto por <strong>{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Nombre del Representante Legal]{% endif %}</strong>, 
-            identificado con C.C. No. <strong>{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Cédula Representante Legal]{% endif %}</strong>, 
+            <strong>1. <span class="text-dark fw-bold text-decoration-underline" id="doc_view_razon_social">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}[Por diligenciar en formulario]{% endif %}</span> (EL COMERCIO SUSCRIPTOR)</strong>, 
+            identificada con NIT/C.C. <strong id="doc_view_nit">{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[Por diligenciar en formulario]{% endif %}</strong>, 
+            con domicilio principal en <span id="doc_view_ciudad">{% if acuerdo %}{{ acuerdo.business_city }}{% else %}[Por diligenciar en formulario]{% endif %}</span> 
+            y correo electrónico de notificaciones <span id="doc_view_email" class="fw-semibold text-primary">{% if acuerdo %}{{ acuerdo.business_email }}{% else %}[Por diligenciar en formulario]{% endif %}</span>, 
+            representada legalmente en este acto por <strong id="doc_view_rep">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Por diligenciar en formulario]{% endif %}</strong>, 
+            identificado(a) con C.C. No. <strong id="doc_view_rep_id">{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Por diligenciar en formulario]{% endif %}</strong>, 
             quien en adelante se denominará <strong>EL RESPONSABLE DEL TRATAMIENTO</strong>; y
         </p>
         
@@ -175,7 +176,7 @@
 
         <h6 class="fw-bold text-dark mb-1">CLÁUSULA SEXTA: AUTORIZACIÓN PARA USO DE IMAGEN Y REGISTRO AUDIOVISUAL EN MEDIOS DIGITALES</h6>
         <p class="text-muted mb-0">
-            EL RESPONSABLE, en su calidad de titular de la marca y/o establecimiento, así como en representación de sus dependientes, dependencias o asesores comerciales que de manera voluntaria participen en dinámicas, demostraciones o grabaciones con el equipo de Zenic, otorga <strong>autorización previa, expresa e informada a ZENIC S.A.S.</strong> para captar, fotografiar, grabar, reproducir, editar y difundir en redes sociales institucionales (tales como Instagram, TikTok, Facebook, YouTube, LinkedIn u otras), sitio web y canales digitales, el contenido audiovisual, testimonios, imágenes o tomas conjuntas en las que intervengan. Esta autorización se concede a título gratuito con fines educativos, de difusión de casos de éxito y posicionamiento comercial colaborativo, garantizando siempre el respeto al buen nombre, decoro y dignidad de las personas involucradas.
+            EL RESPONSABLE, en su calidad de titular de la marca y/o establecimiento, otorga autorización previa, expresa e informada a ZENIC S.A.S. para captar, fotografiar, grabar, reproducir, editar y difundir en redes sociales institucionales (Instagram, TikTok, Facebook, YouTube, LinkedIn u otras), sitio web y canales digitales, el contenido audiovisual, logotipo, testimonios, imágenes o tomas conjuntas relativas a la implementación y uso del software en las que intervenga el establecimiento o sus dependientes que voluntariamente participen. Esta autorización es de carácter no exclusivo, opera como condición comercial de alianza tecnológica, visibilidad recíproca y difusión de casos de éxito pactada dentro de la modalidad del servicio provisto sin contraprestación pecuniaria adicional, garantizando siempre el respeto al buen nombre, decoro, dignidad y la reserva absoluta de datos financieros sensibles o contraseñas del cliente.
         </p>
     </div>
 
@@ -193,14 +194,15 @@
                         {% if acuerdo and acuerdo.signature_data %}
                             <img src="{{ acuerdo.signature_data }}" alt="Firma Representante Legal" style="max-height: 85px; max-width: 100%;">
                         {% else %}
-                            <span class="text-muted small fst-italic">[Firma pendiente de captura]</span>
+                            <span class="text-muted small fst-italic" id="doc_view_sig_holder">[Firma pendiente de captura en formulario]</span>
                         {% endif %}
                     </div>
-                    <div class="fw-bold text-dark">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Representante Legal del Comercio]{% endif %}</div>
+                    <div class="fw-bold text-dark" id="doc_view_rep_firmante">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}[Representante Legal]{% endif %}</div>
                     <div class="text-muted small">Representante Legal / Titular</div>
-                    <div class="fw-semibold text-primary small">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}[Razón Social del Comercio]{% endif %}</div>
-                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[NIT]{% endif %}</div>
-                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Cédula]{% endif %}</div>
+                    <div class="fw-semibold text-primary small" id="doc_view_razon_firmante">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}[Razón Social del Comercio]{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: <span id="doc_view_nit_firmante">{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}[NIT]{% endif %}</span></div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. <span id="doc_view_rep_id_firmante">{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Cédula]{% endif %}</span></div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Correo: <span id="doc_view_email_firmante">{% if acuerdo %}{{ acuerdo.business_email }}{% else %}[Correo]{% endif %}</span></div>
                 </div>
                 {% if acuerdo %}
                 <div class="mt-2 pt-2 border-top text-success small fw-semibold" style="font-size: 0.72rem;">
@@ -217,35 +219,54 @@
                     <span class="badge bg-primary text-white fw-bold px-2 py-1 rounded text-uppercase mb-2" style="font-size: 0.68rem;">
                         EL ENCARGADO DEL TRATAMIENTO
                     </span>
-                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; align-items: center; justify-content: center;">
-                        <span class="text-muted small fst-italic">[Firma certificada por emisión electrónica digital]</span>
+                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span class="badge bg-dark text-warning border border-warning px-3 py-1 rounded-pill fw-bold font-monospace" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-shield-halved me-1 text-warning"></i> ZEN-902067639-6-AUTH
+                        </span>
+                        <span class="text-muted small fst-italic mt-1" style="font-size: 0.7rem;">Sello Digital Certificado de Emisión Electrónica</span>
                     </div>
                     <div class="fw-bold text-dark">{{ zenic.representante_legal }}</div>
                     <div class="text-muted small">Representante Legal</div>
                     <div class="fw-semibold text-primary small">{{ zenic.razon_social }}</div>
                     <div class="text-muted small" style="font-size: 0.72rem;">NIT: {{ zenic.nit }}</div>
                     <div class="text-muted small" style="font-size: 0.72rem;">C.C. {{ zenic.representante_id }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Domicilio: {{ zenic.domicilio }}</div>
                 </div>
                 <div class="mt-2 pt-2 border-top text-primary small fw-semibold" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-shield-halved me-1"></i> Certificado y emitido por Zenic S.A.S. (v2026.1)
+                    <i class="fa-solid fa-certificate me-1"></i> Certificado y emitido por Zenic S.A.S. (v2026.1)
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- ESTAMPA CRIPTOGRÁFICA PROBATORIA LEY 527 -->
-    <div class="mt-4 pt-3 border-top border-dashed d-flex flex-wrap justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
-        <div>
-            <strong>Registro Electrónico Legal:</strong> Emitido conforme a Ley 527 de 1999 y Decreto 2364 de 2012 (SIC).
+    <!-- CERTIFICADO DE AUDITORÍA Y EQUIVALENCIA FUNCIONAL LEY 527 / DECRETO 2364 -->
+    <div class="mt-4 pt-3 border-top border-2 border-dashed rounded-4 p-3 bg-light" style="font-size: 0.75rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <span class="fw-bold text-dark text-uppercase d-flex align-items-center gap-1">
+                <i class="fa-solid fa-award text-primary"></i> CERTIFICADO DE AUDITORÍA Y EQUIVALENCIA FUNCIONAL (LEY 527 DE 1999 / DECRETO 2364 DE 2012)
+            </span>
+            <span class="badge {% if acuerdo %}bg-success{% else %}bg-warning text-dark{% endif %} px-2 py-1 rounded">
+                {% if acuerdo %}ESTAMPA VIGENTE ANTE LA SIC{% else %}PENDIENTE DE SUSCRIPCIÓN{% endif %}
+            </span>
         </div>
-        <div>
-            {% if acuerdo %}
-            <span>Hash SHA-256: <code class="text-primary font-monospace fw-bold">{{ acuerdo.document_sha256[:20] }}...</code></span> • 
-            <span>IP: <code class="font-monospace">{{ acuerdo.ip_address }}</code></span>
-            {% else %}
-            <span>Estado: <span class="text-danger fw-bold">Pendiente de firma</span></span>
-            {% endif %}
+        <div class="row g-2 text-muted">
+            <div class="col-md-6">
+                <div><strong>Hash SHA-256 Inmutable:</strong> <code class="text-primary font-monospace fw-bold">{% if acuerdo %}{{ acuerdo.document_sha256 }}{% else %}[Se genera al firmar electrónicamente]{% endif %}</code></div>
+                <div><strong>Fecha y Hora Legal (UTC-5):</strong> <span>{% if acuerdo %}{{ acuerdo.timestamp_utc5.strftime('%Y-%m-%d %H:%M:%S (America/Bogota)') }}{% else %}[Pendiente]{% endif %}</span></div>
+                <div><strong>Dirección IP de Origen:</strong> <code class="font-monospace">{% if acuerdo %}{{ acuerdo.ip_address }}{% else %}[Registrada al enviar]{% endif %}</code></div>
+            </div>
+            <div class="col-md-6">
+                <div><strong>Correo Notificaciones Vinculado:</strong> <span class="fw-semibold text-dark">{% if acuerdo %}{{ acuerdo.business_email }}{% else %}[Por diligenciar]{% endif %}</span></div>
+                <div><strong>Agente de Usuario (User-Agent):</strong> <span class="small font-monospace text-truncate d-block" style="max-width: 100%;">{% if acuerdo %}{{ acuerdo.user_agent }}{% else %}[Registrado en cabeceras]{% endif %}</span></div>
+                <div><strong>Estado de Aceptación:</strong> 
+                    {% if acuerdo %}
+                        <span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> 3 Casillas Clickwrap Verificadas + Rúbrica Manuscrita Digital</span>
+                    {% else %}
+                        <span class="text-danger fw-bold"><i class="fa-solid fa-clock"></i> Pendiente de verificación y firma</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 
