@@ -9,13 +9,66 @@
         </div>
         <p class="text-muted small mb-0">Control integral de stock, costos, márgenes e IMEIs en tiempo real</p>
     </div>
-    <div class="d-flex gap-2 align-items-center">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <button type="button" class="btn btn-inv-excel" data-bs-toggle="modal" data-bs-target="#modalExportarExcel">
+            <i class="fa-solid fa-file-arrow-down text-success me-2"></i> Descargar Excel
+        </button>
         <button type="button" class="btn btn-inv-excel" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
             <i class="fa-solid fa-file-excel text-success me-2"></i> Importar Excel
         </button>
         <a href="{{ url_for('celulares_bp.nuevo_celular') }}" class="btn btn-inv-primary">
             <i class="fa-solid fa-plus me-1.5"></i> Ingresar Celular
         </a>
+    </div>
+</div>
+
+<!-- Modal Descargar Excel -->
+<div class="modal fade" id="modalExportarExcel" tabindex="-1" aria-labelledby="modalExportarExcelLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-3 p-2 bg-black border border-secondary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-file-excel text-success"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold m-0" id="modalExportarExcelLabel">Descargar Reporte en Excel</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('celulares_bp.exportar_excel') }}" method="GET" target="_blank">
+                <div class="modal-body p-4 text-start">
+                    <p class="mb-3 text-muted small">Genera un reporte detallado con toda la información técnica, financiera, clientes y seriales de los dispositivos.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Estado del Dispositivo</label>
+                        <select name="estado" class="form-select rounded-3 border">
+                            <option value="todos" {% if estado == 'todos' %}selected{% endif %}>📦 Todos (Activos, Vendidos y Maneos)</option>
+                            <option value="activos" {% if estado == 'activos' %}selected{% endif %}>🟢 Solo Activos en Stock</option>
+                            <option value="vendidos" {% if estado == 'vendidos' %}selected{% endif %}>🔴 Solo Vendidos</option>
+                            <option value="maneo" {% if estado == 'maneo' %}selected{% endif %}>🔄 Solo en Préstamo / Maneo</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Desde Fecha</label>
+                            <input type="date" name="fecha_inicio" class="form-control rounded-3 border">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Hasta Fecha</label>
+                            <input type="date" name="fecha_fin" class="form-control rounded-3 border">
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="fa-solid fa-circle-info me-1 text-primary"></i> Deja las fechas vacías para descargar todo el histórico sin límite temporal.</small>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                        <i class="fa-solid fa-download me-1.5"></i> Generar y Descargar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

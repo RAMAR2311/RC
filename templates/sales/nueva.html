@@ -279,22 +279,51 @@
                 <div class="row mb-3">
                     <div class="col-md-4 mb-2">
                         <label class="form-label small fw-bold">Marca</label>
-                        <input type="text" id="retoma_marca" class="form-control bg-light" placeholder="Ej: Samsung">
+                        <div class="btn-group w-100 mb-1" role="group">
+                            <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-retoma-brand" data-brand="APPLE" style="font-size: 0.75rem; padding: 2px 6px;">APPLE</button>
+                            <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-retoma-brand" data-brand="SAMSUNG" style="font-size: 0.75rem; padding: 2px 6px;">SAMSUNG</button>
+                            <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-retoma-brand" data-brand="RAYBAN" style="font-size: 0.75rem; padding: 2px 6px;">RAYBAN</button>
+                        </div>
+                        <select id="retoma_marca_select" class="form-select form-select-sm bg-light fw-bold">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="APPLE">APPLE</option>
+                            <option value="SAMSUNG">SAMSUNG</option>
+                            <option value="RAYBAN">RAYBAN</option>
+                            <option value="__OTRA__">-- Otra Marca --</option>
+                        </select>
+                        <input type="text" id="retoma_marca" class="form-control form-control-sm bg-light mt-1 d-none" placeholder="Marca manual">
                     </div>
                     <div class="col-md-4 mb-2">
                         <label class="form-label small fw-bold">Referencia / Modelo *</label>
-                        <input type="text" id="retoma_modelo" class="form-control bg-light" placeholder="Ej: Galaxy S23" required>
+                        <select id="retoma_modelo_select" class="form-select form-select-sm bg-light fw-bold" required>
+                            <option value="">-- Elige Marca --</option>
+                        </select>
+                        <input type="text" id="retoma_modelo" class="form-control form-control-sm bg-light mt-1 d-none" placeholder="Referencia manual" required>
                     </div>
                     <div class="col-md-4 mb-2">
                         <label class="form-label small fw-bold">Capacidad (Memoria)</label>
-                        <input type="text" id="retoma_memoria" class="form-control bg-light" placeholder="Ej: 128GB">
+                        <select id="retoma_memoria_select" class="form-select form-select-sm bg-light fw-bold">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="64GB">64GB</option>
+                            <option value="128GB">128GB</option>
+                            <option value="256GB">256GB</option>
+                            <option value="512GB">512GB</option>
+                            <option value="1TB">1TB</option>
+                            <option value="2TB">2TB</option>
+                            <option value="N/A">N/A</option>
+                            <option value="__OTRA__">-- Otra --</option>
+                        </select>
+                        <input type="text" id="retoma_memoria" class="form-control form-control-sm bg-light mt-1 d-none" placeholder="Capacidad manual">
                     </div>
                 </div>
                 <!-- Fila 2: Color, Batería -->
                 <div class="row mb-3">
                     <div class="col-md-6 mb-2">
                         <label class="form-label small fw-bold">Color</label>
-                        <input type="text" id="retoma_color" class="form-control bg-light" placeholder="Ej: Negro">
+                        <select id="retoma_color_select" class="form-select form-select-sm bg-light fw-bold">
+                            <option value="">-- Elige Modelo --</option>
+                        </select>
+                        <input type="text" id="retoma_color" class="form-control form-control-sm bg-light mt-1 d-none" placeholder="Color manual">
                     </div>
                     <div class="col-md-6 mb-2">
                         <label class="form-label small fw-bold">Batería (%)</label>
@@ -355,23 +384,52 @@
                     <div class="row mb-3">
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Marca</label>
-                            <input type="text" name="marca" class="form-control" required>
+                            <div class="btn-group w-100 mb-1" role="group">
+                                <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-ext-brand" data-brand="APPLE" style="font-size: 0.75rem; padding: 2px 6px;">APPLE</button>
+                                <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-ext-brand" data-brand="SAMSUNG" style="font-size: 0.75rem; padding: 2px 6px;">SAMSUNG</button>
+                                <button type="button" class="btn btn-xs btn-outline-dark fw-bold btn-ext-brand" data-brand="RAYBAN" style="font-size: 0.75rem; padding: 2px 6px;">RAYBAN</button>
+                            </div>
+                            <select id="ext_marca_select" class="form-select form-select-sm fw-bold">
+                                <option value="">-- Seleccionar --</option>
+                                <option value="APPLE">APPLE</option>
+                                <option value="SAMSUNG">SAMSUNG</option>
+                                <option value="RAYBAN">RAYBAN</option>
+                                <option value="__OTRA__">-- Otra Marca --</option>
+                            </select>
+                            <input type="text" name="marca" id="ext_marca" class="form-control form-control-sm mt-1 d-none" placeholder="Marca manual" required>
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Referencia</label>
-                            <input type="text" name="modelo_celular" class="form-control" required>
+                            <select id="ext_modelo_select" class="form-select form-select-sm fw-bold">
+                                <option value="">-- Elige Marca --</option>
+                            </select>
+                            <input type="text" name="modelo_celular" id="ext_modelo" class="form-control form-control-sm mt-1 d-none" placeholder="Referencia manual" required>
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Capacidad</label>
-                            <input type="text" name="memoria" class="form-control" required>
+                            <select id="ext_memoria_select" class="form-select form-select-sm fw-bold">
+                                <option value="">-- Seleccionar --</option>
+                                <option value="64GB">64GB</option>
+                                <option value="128GB">128GB</option>
+                                <option value="256GB">256GB</option>
+                                <option value="512GB">512GB</option>
+                                <option value="1TB">1TB</option>
+                                <option value="2TB">2TB</option>
+                                <option value="N/A">N/A</option>
+                                <option value="__OTRA__">-- Otra --</option>
+                            </select>
+                            <input type="text" name="memoria" id="ext_memoria" class="form-control form-control-sm mt-1 d-none" placeholder="Capacidad manual" required>
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Color</label>
-                            <input type="text" name="color" class="form-control">
+                            <select id="ext_color_select" class="form-select form-select-sm fw-bold">
+                                <option value="">-- Elige Modelo --</option>
+                            </select>
+                            <input type="text" name="color" id="ext_color" class="form-control form-control-sm mt-1 d-none" placeholder="Color manual">
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label small fw-bold">Batería (%)</label>
-                            <input type="text" name="bateria" class="form-control">
+                            <input type="text" name="bateria" id="ext_bateria" class="form-control form-control-sm" placeholder="Ej: 88% o N/A">
                         </div>
                         <div class="col-md-4 mb-2">
                             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -380,7 +438,7 @@
                                     <i class="fa-solid fa-plus-circle me-1"></i>Agregar
                                 </button>
                             </div>
-                            <select name="proveedor" class="form-select select-proveedor-ext" required>
+                            <select name="proveedor" class="form-select form-select-sm select-proveedor-ext" required>
                                 <option value="" disabled selected>Seleccione...</option>
                                 {% for p in providers %}
                                     <option value="{{ p.nombre }}">{{ p.nombre }}</option>
@@ -1072,6 +1130,486 @@
         checkApprovalsAndProceed();
     });
 
+    // Catálogo Maestro compartido para Retoma y Producto Externo
+    const CATALOGO_DISPOSITIVOS_POS = {
+        "APPLE": {
+            "iPhone 11": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Blanco (White)", "Verde (Green - tono menta pastel)", "Amarillo (Yellow)", "Morado / Malva (Purple)", "Rojo ((PRODUCT)RED)"]
+            },
+            "iPhone 11 Pro": {
+                tipo: "Celular",
+                colores: ["Gris espacial (Space Gray)", "Plata (Silver)", "Oro (Gold)", "Verde noche (Midnight Green)"]
+            },
+            "iPhone 11 Pro Max": {
+                tipo: "Celular",
+                colores: ["Gris espacial (Space Gray)", "Plata (Silver)", "Oro (Gold)", "Verde noche (Midnight Green)"]
+            },
+            "iPhone 12": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Blanco (White)", "Azul (Blue)", "Verde (Green)", "Morado (Purple - lanzado a mitad de ciclo)", "Rojo ((PRODUCT)RED)"]
+            },
+            "iPhone 12 Pro": {
+                tipo: "Celular",
+                colores: ["Grafito (Graphite)", "Plata (Silver)", "Oro (Gold)", "Azul pacífico (Pacific Blue)"]
+            },
+            "iPhone 12 Pro Max": {
+                tipo: "Celular",
+                colores: ["Grafito (Graphite)", "Plata (Silver)", "Oro (Gold)", "Azul pacífico (Pacific Blue)"]
+            },
+            "iPhone 13": {
+                tipo: "Celular",
+                colores: ["Medianoche (Midnight)", "Blanco estelar (Starlight)", "Azul (Blue)", "Rosa (Pink)", "Verde (Green - lanzado a mitad de ciclo)", "Rojo ((PRODUCT)RED)"]
+            },
+            "iPhone 13 Pro": {
+                tipo: "Celular",
+                colores: ["Grafito (Graphite)", "Plata (Silver)", "Oro (Gold)", "Azul Sierra (Sierra Blue)", "Verde alpino (Alpine Green - lanzado a mitad de ciclo)"]
+            },
+            "iPhone 13 Pro Max": {
+                tipo: "Celular",
+                colores: ["Grafito (Graphite)", "Plata (Silver)", "Oro (Gold)", "Azul Sierra (Sierra Blue)", "Verde alpino (Alpine Green - lanzado a mitad de ciclo)"]
+            },
+            "iPhone 14": {
+                tipo: "Celular",
+                colores: ["Medianoche (Midnight)", "Blanco estelar (Starlight)", "Azul (Blue)", "Morado (Purple)", "Amarillo (Yellow)", "Rojo ((PRODUCT)RED)"]
+            },
+            "iPhone 14 Pro": {
+                tipo: "Celular",
+                colores: ["Negro espacial (Space Black)", "Plata (Silver)", "Oro (Gold)", "Morado oscuro (Deep Purple)"]
+            },
+            "iPhone 14 Pro Max": {
+                tipo: "Celular",
+                colores: ["Negro espacial (Space Black)", "Plata (Silver)", "Oro (Gold)", "Morado oscuro (Deep Purple)"]
+            },
+            "iPhone 15": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Azul (Blue)", "Verde (Green)", "Amarillo (Yellow)", "Rosa (Pink)"]
+            },
+            "iPhone 15 Pro": {
+                tipo: "Celular",
+                colores: ["Titanio negro (Black Titanium)", "Titanio blanco (White Titanium)", "Titanio azul (Blue Titanium)", "Titanio natural (Natural Titanium)"]
+            },
+            "iPhone 15 Pro Max": {
+                tipo: "Celular",
+                colores: ["Titanio negro (Black Titanium)", "Titanio blanco (White Titanium)", "Titanio azul (Blue Titanium)", "Titanio natural (Natural Titanium)"]
+            },
+            "iPhone 16": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Blanco (White)", "Rosa (Pink)", "Verde azulado (Teal)", "Ultramarino (Ultramarine)"]
+            },
+            "iPhone 16 Plus": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Blanco (White)", "Rosa (Pink)", "Verde azulado (Teal)", "Ultramarino (Ultramarine)"]
+            },
+            "iPhone 16 Pro": {
+                tipo: "Celular",
+                colores: ["Titanio negro (Black Titanium)", "Titanio blanco (White Titanium)", "Titanio natural (Natural Titanium)", "Titanio desierto (Desert Titanium)"]
+            },
+            "iPhone 16 Pro Max": {
+                tipo: "Celular",
+                colores: ["Titanio negro (Black Titanium)", "Titanio blanco (White Titanium)", "Titanio natural (Natural Titanium)", "Titanio desierto (Desert Titanium)"]
+            },
+            "iPhone 17": {
+                tipo: "Celular",
+                colores: ["Lavanda (Lavender)", "Verde salvia (Sage)", "Azul neblina (Mist Blue)", "Blanco (White)", "Negro (Black)"]
+            },
+            "iPhone 17 Air": {
+                tipo: "Celular",
+                colores: ["Azul cielo (Sky Blue)", "Dorado claro (Light Gold)", "Blanco nube (Cloud White)", "Negro espacial (Space Black)"]
+            },
+            "iPhone 17 Pro": {
+                tipo: "Celular",
+                colores: ["Naranja cósmico (Cosmic Orange)", "Azul oscuro (Dark Blue)", "Plata (Silver)"]
+            },
+            "iPhone 17 Pro Max": {
+                tipo: "Celular",
+                colores: ["Naranja cósmico (Cosmic Orange)", "Azul oscuro (Dark Blue)", "Plata (Silver)"]
+            },
+            "iPhone 18 Pro": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Plata (Silver)", "Glaciar (Glacier)", "Borgoña (Burgundy)"]
+            },
+            "iPhone 18 Pro Max": {
+                tipo: "Celular",
+                colores: ["Negro (Black)", "Plata (Silver)", "Glaciar (Glacier)", "Borgoña (Burgundy)"]
+            },
+            "iPhone 18 Duo": {
+                tipo: "Celular",
+                colores: ["Blanco estelar (Starlight)", "Cielo nocturno (Night Sky - azul oscuro)"]
+            },
+            "MacBook Air M5": {
+                tipo: "Computador",
+                colores: ["Azul cielo (Sky Blue)", "Medianoche (Midnight)", "Blanco estelar (Starlight)", "Plata (Silver)"]
+            },
+            "MacBook Neo": {
+                tipo: "Computador",
+                colores: ["Plata (Silver)", "Rosa nube (Cloud Pink)", "Cítrico (Citrus)", "Índigo (Indigo)"]
+            },
+            "MacBook Pro M5": {
+                tipo: "Computador",
+                colores: ["Negro espacial (Space Black)", "Plata (Silver)"]
+            },
+            "AirPods Pro 3": {
+                tipo: "Audífonos",
+                colores: ["Blanco (White)"]
+            },
+            "AirPods Serie 4": {
+                tipo: "Audífonos",
+                colores: ["Blanco (White)"]
+            },
+            "AirPods Serie 5": {
+                tipo: "Audífonos",
+                colores: ["Blanco (White)"]
+            },
+            "Apple Watch Serie 11 42mm": {
+                tipo: "Smartwatch",
+                colores: ["Aluminio Negro azabache (Jet Black)", "Aluminio Oro rosa (Rose Gold)", "Aluminio Plata (Silver)", "Aluminio Gris espacial (Space Grey)", "Titanio Natural (Natural)", "Titanio Oro (Gold)", "Titanio Pizarra (Slate)"]
+            },
+            "Apple Watch Serie 11 46mm": {
+                tipo: "Smartwatch",
+                colores: ["Aluminio Negro azabache (Jet Black)", "Aluminio Oro rosa (Rose Gold)", "Aluminio Plata (Silver)", "Aluminio Gris espacial (Space Grey)", "Titanio Natural (Natural)", "Titanio Oro (Gold)", "Titanio Pizarra (Slate)"]
+            },
+            "Apple Watch Ultra 3 49mm": {
+                tipo: "Smartwatch",
+                colores: ["Titanio natural (Natural Titanium)", "Titanio negro (Black Titanium)"]
+            }
+        },
+        "SAMSUNG": {
+            "Galaxy S25 Ultra": {
+                tipo: "Celular",
+                colores: ["Titanio Negro (Titanium Black)", "Titanio Gris (Titanium Gray)", "Titanio Plata Azul (Titanium Silverblue)", "Titanio Blanco Plata (Titanium Whitesilver)", "Titanio Negro Intenso (Titanium Jetblack)", "Titanio Verde Jade (Titanium Jadegreen)", "Titanio Oro Rosa (Titanium Pinkgold)"]
+            },
+            "Galaxy S26 Ultra": {
+                tipo: "Celular",
+                colores: ["Violeta Cobalto (Cobalt Violet)", "Azul Cielo (Sky Blue)", "Negro (Black)", "Blanco (White)", "Gris (Gray)", "Oro Rosa (Pink Gold)"]
+            }
+        },
+        "RAYBAN": {
+            "Skyler gen 2 shiny black clear": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Clear Lenses)"]
+            },
+            "Wayfarer shiny black trs grey gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Transitions Grey)"]
+            },
+            "Wayfarer transp black trs aquamarine gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Transparent Black (Transitions Aquamarine)"]
+            },
+            "Wayfarer mette black trs g green gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Matte Black (Transitions G-15 Green)"]
+            },
+            "Aviator transp umber trs jade transition gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Transparent Umber (Transitions Jade)"]
+            },
+            "HSTN clear transition grey": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Clear Frame (Transitions Grey)"]
+            },
+            "HSTN brown smoke prizm deep water polarized": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Brown Smoke (Prizm Deep Water Polarized)"]
+            },
+            "Skyler shiny black green gen 2": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Classic Green G-15)"]
+            },
+            "Headliner shiny black green gen 2": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Classic Green G-15)"]
+            },
+            "Wayfarer shiny black green gen 2": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Classic Green G-15)"]
+            },
+            "Wayfarer mette black grey gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Matte Black (Classic Grey)"]
+            },
+            "HSTN warm grey prizm ruby": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Warm Grey (Prizm Ruby)"]
+            },
+            "HSTN black transition amethyst": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Black Frame (Transitions Amethyst)"]
+            },
+            "Aviator shiny black trs green transition gen 3": {
+                tipo: "Gafas Inteligentes",
+                colores: ["Shiny Black (Transitions Green)"]
+            }
+        }
+    };
+
+    function setupModalDeviceSelectors(prefix) {
+        const brandBtns = document.querySelectorAll(`.btn-${prefix}-brand`);
+        const marcaSelect = document.getElementById(`${prefix}_marca_select`);
+        const marcaInput = document.getElementById(`${prefix}_marca`);
+        const modeloSelect = document.getElementById(`${prefix}_modelo_select`);
+        const modeloInput = document.getElementById(`${prefix}_modelo`);
+        const colorSelect = document.getElementById(`${prefix}_color_select`);
+        const colorInput = document.getElementById(`${prefix}_color`);
+        const memoriaSelect = document.getElementById(`${prefix}_memoria_select`);
+        const memoriaInput = document.getElementById(`${prefix}_memoria`);
+
+        function updateBrandButtons(activeBrand) {
+            brandBtns.forEach(b => {
+                if (b.getAttribute('data-brand') === activeBrand) {
+                    b.classList.remove('btn-outline-dark');
+                    b.classList.add('btn-danger', 'text-white');
+                } else {
+                    b.classList.remove('btn-danger', 'text-white');
+                    b.classList.add('btn-outline-dark');
+                }
+            });
+        }
+
+        function populateModelos(brand, preModel = '') {
+            modeloSelect.innerHTML = '<option value="">-- Seleccionar Referencia --</option>';
+            colorSelect.innerHTML = '<option value="">-- Elige Modelo --</option>';
+
+            if (CATALOGO_DISPOSITIVOS_POS[brand]) {
+                const modelos = CATALOGO_DISPOSITIVOS_POS[brand];
+                let found = false;
+                Object.keys(modelos).forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (preModel && m.toLowerCase() === preModel.toLowerCase()) {
+                        opt.selected = true;
+                        found = true;
+                    }
+                    modeloSelect.appendChild(opt);
+                });
+                const optOtra = document.createElement('option');
+                optOtra.value = '__OTRA__';
+                optOtra.textContent = '-- Otra Referencia (Manual) --';
+                modeloSelect.appendChild(optOtra);
+
+                if (preModel && !found) {
+                    optOtra.selected = true;
+                    modeloInput.value = preModel;
+                    modeloInput.classList.remove('d-none');
+                } else {
+                    modeloInput.classList.add('d-none');
+                    if (found) modeloInput.value = modeloSelect.value;
+                }
+
+                if (modeloSelect.value && modeloSelect.value !== '__OTRA__') {
+                    populateColores(brand, modeloSelect.value);
+                }
+            } else {
+                const optOtra = document.createElement('option');
+                optOtra.value = '__OTRA__';
+                optOtra.textContent = '-- Manual --';
+                optOtra.selected = true;
+                modeloSelect.appendChild(optOtra);
+                modeloInput.classList.remove('d-none');
+                if (preModel) modeloInput.value = preModel;
+                populateColoresGenericos();
+            }
+        }
+
+        function populateColores(brand, model, preColor = '') {
+            colorSelect.innerHTML = '<option value="">-- Seleccionar Color --</option>';
+            const info = CATALOGO_DISPOSITIVOS_POS[brand] && CATALOGO_DISPOSITIVOS_POS[brand][model];
+
+            if (info && info.colores) {
+                let found = false;
+                info.colores.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    if (preColor && c.toLowerCase() === preColor.toLowerCase()) {
+                        opt.selected = true;
+                        found = true;
+                    }
+                    colorSelect.appendChild(opt);
+                });
+                const optOtro = document.createElement('option');
+                optOtro.value = '__OTRO__';
+                optOtro.textContent = '-- Otro Color (Manual) --';
+                colorSelect.appendChild(optOtro);
+
+                if (preColor && !found) {
+                    optOtro.selected = true;
+                    colorInput.value = preColor;
+                    colorInput.classList.remove('d-none');
+                } else {
+                    colorInput.classList.add('d-none');
+                    if (found) colorInput.value = colorSelect.value;
+                }
+            } else {
+                populateColoresGenericos(preColor);
+            }
+        }
+
+        function populateColoresGenericos(preColor = '') {
+            colorSelect.innerHTML = '<option value="">-- Seleccionar Color --</option>';
+            const cols = ["Negro", "Blanco", "Plata", "Gris", "Azul", "Dorado", "Verde", "Titanio"];
+            let found = false;
+            cols.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                if (preColor && c.toLowerCase() === preColor.toLowerCase()) {
+                    opt.selected = true;
+                    found = true;
+                }
+                colorSelect.appendChild(opt);
+            });
+            const optOtro = document.createElement('option');
+            optOtro.value = '__OTRO__';
+            optOtro.textContent = '-- Otro Color (Manual) --';
+            colorSelect.appendChild(optOtro);
+
+            if (preColor && !found) {
+                optOtro.selected = true;
+                colorInput.value = preColor;
+                colorInput.classList.remove('d-none');
+            } else {
+                colorInput.classList.add('d-none');
+                if (found) colorInput.value = colorSelect.value;
+            }
+        }
+
+        brandBtns.forEach(b => {
+            b.addEventListener('click', function() {
+                const brand = this.getAttribute('data-brand');
+                marcaSelect.value = brand;
+                marcaInput.value = brand;
+                marcaInput.classList.add('d-none');
+                updateBrandButtons(brand);
+                populateModelos(brand);
+            });
+        });
+
+        marcaSelect.addEventListener('change', function() {
+            if (this.value === '__OTRA__') {
+                marcaInput.value = '';
+                marcaInput.classList.remove('d-none');
+                marcaInput.focus();
+                updateBrandButtons('');
+                populateModelos('__OTRA__');
+            } else {
+                marcaInput.value = this.value;
+                marcaInput.classList.add('d-none');
+                updateBrandButtons(this.value);
+                populateModelos(this.value);
+            }
+        });
+
+        modeloSelect.addEventListener('change', function() {
+            if (this.value === '__OTRA__') {
+                modeloInput.value = '';
+                modeloInput.classList.remove('d-none');
+                modeloInput.focus();
+                populateColoresGenericos();
+            } else {
+                modeloInput.value = this.value;
+                modeloInput.classList.add('d-none');
+                populateColores(marcaSelect.value, this.value);
+            }
+        });
+
+        colorSelect.addEventListener('change', function() {
+            if (this.value === '__OTRO__') {
+                colorInput.value = '';
+                colorInput.classList.remove('d-none');
+                colorInput.focus();
+            } else {
+                colorInput.value = this.value;
+                colorInput.classList.add('d-none');
+            }
+        });
+
+        memoriaSelect.addEventListener('change', function() {
+            if (this.value === '__OTRA__') {
+                memoriaInput.value = '';
+                memoriaInput.classList.remove('d-none');
+                memoriaInput.focus();
+            } else {
+                memoriaInput.value = this.value;
+                memoriaInput.classList.add('d-none');
+            }
+        });
+
+        return {
+            setValues: function(brand, model, memory, color) {
+                if (brand) {
+                    let upBrand = brand.toUpperCase();
+                    if (upBrand === 'RAY-BAN' || upBrand === 'RAY BAN') upBrand = 'RAYBAN';
+                    if (CATALOGO_DISPOSITIVOS_POS[upBrand]) {
+                        marcaSelect.value = upBrand;
+                        marcaInput.value = upBrand;
+                        marcaInput.classList.add('d-none');
+                        updateBrandButtons(upBrand);
+                        populateModelos(upBrand, model);
+                    } else {
+                        marcaSelect.value = '__OTRA__';
+                        marcaInput.value = brand;
+                        marcaInput.classList.remove('d-none');
+                        updateBrandButtons('');
+                        populateModelos('__OTRA__', model);
+                    }
+                } else {
+                    marcaSelect.value = '';
+                    marcaInput.value = '';
+                    marcaInput.classList.add('d-none');
+                    updateBrandButtons('');
+                    modeloSelect.innerHTML = '<option value="">-- Elige Marca --</option>';
+                    modeloInput.value = '';
+                    modeloInput.classList.add('d-none');
+                    colorSelect.innerHTML = '<option value="">-- Elige Modelo --</option>';
+                    colorInput.value = '';
+                    colorInput.classList.add('d-none');
+                }
+
+                if (color) {
+                    if (marcaSelect.value && modeloSelect.value && modeloSelect.value !== '__OTRA__') {
+                        populateColores(marcaSelect.value, modeloSelect.value, color);
+                    } else {
+                        populateColoresGenericos(color);
+                    }
+                }
+
+                if (memory) {
+                    let memMatch = false;
+                    for (let opt of memoriaSelect.options) {
+                        if (opt.value.toUpperCase() === memory.toUpperCase()) {
+                            opt.selected = true;
+                            memoriaInput.value = opt.value;
+                            memoriaInput.classList.add('d-none');
+                            memMatch = true;
+                            break;
+                        }
+                    }
+                    if (!memMatch) {
+                        memoriaSelect.value = '__OTRA__';
+                        memoriaInput.value = memory;
+                        memoriaInput.classList.remove('d-none');
+                    }
+                } else {
+                    memoriaSelect.value = '';
+                    memoriaInput.value = '';
+                    memoriaInput.classList.add('d-none');
+                }
+            },
+            reset: function() {
+                this.setValues('', '', '', '');
+            }
+        };
+    }
+
+    let retomaControls, extControls;
+    document.addEventListener('DOMContentLoaded', function() {
+        retomaControls = setupModalDeviceSelectors('retoma');
+        extControls = setupModalDeviceSelectors('ext');
+    });
+
     function abrirModalRetoma(index = -1) {
         editRetomaIndex = index;
         const btnEliminar = document.getElementById('btnEliminarRetoma');
@@ -1081,14 +1619,13 @@
             const r = retomasLista[index];
             const valNum = parseInt(r.valor_retoma, 10);
             document.getElementById('retoma_valor').value = !isNaN(valNum) ? valNum.toLocaleString('es-CO') : (r.valor_retoma || '');
-            document.getElementById('retoma_marca').value = r.marca || '';
-            document.getElementById('retoma_modelo').value = r.modelo || '';
             document.getElementById('retoma_imei1').value = r.imei1 || '';
             document.getElementById('retoma_imei2').value = r.imei2 || '';
-            document.getElementById('retoma_color').value = r.color || '';
             document.getElementById('retoma_bateria').value = r.bateria || '';
-            document.getElementById('retoma_memoria').value = r.memoria || '';
             document.getElementById('retoma_observaciones').value = r.observaciones || '';
+            if (retomaControls) {
+                retomaControls.setValues(r.marca || '', r.modelo || '', r.memoria || '', r.color || '');
+            }
             if (btnEliminar) btnEliminar.style.display = 'block';
             if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Editar Equipo en Retoma';
         } else {
@@ -1107,14 +1644,18 @@
 
     function limpiarFormularioRetoma() {
         document.getElementById('retoma_valor').value = '';
-        document.getElementById('retoma_marca').value = '';
-        document.getElementById('retoma_modelo').value = '';
         document.getElementById('retoma_imei1').value = '';
         document.getElementById('retoma_imei2').value = '';
-        document.getElementById('retoma_color').value = '';
         document.getElementById('retoma_bateria').value = '';
-        document.getElementById('retoma_memoria').value = '';
         document.getElementById('retoma_observaciones').value = '';
+        if (retomaControls) {
+            retomaControls.reset();
+        } else {
+            document.getElementById('retoma_marca').value = '';
+            document.getElementById('retoma_modelo').value = '';
+            document.getElementById('retoma_color').value = '';
+            document.getElementById('retoma_memoria').value = '';
+        }
     }
 
     function confirmarRetoma() {
@@ -1471,6 +2012,7 @@
                 // Cerrar modal y limpiar
                 bootstrap.Modal.getInstance(document.getElementById('modalProductoExterno')).hide();
                 document.getElementById('formProductoExterno').reset();
+                if (extControls) extControls.reset();
             } else {
                 alert("Error: " + data.message);
             }

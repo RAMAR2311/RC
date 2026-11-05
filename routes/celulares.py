@@ -611,6 +611,116 @@ def toggle_ok_inventario(detail_id):
 import pandas as pd
 import io
 
+@celulares_bp.route('/exportar_excel')
+@login_required
+@admin_required
+def exportar_excel():
+    estado = request.args.get('estado', 'todos').strip()
+    fecha_inicio_str = request.args.get('fecha_inicio', '').strip()
+    fecha_fin_str = request.args.get('fecha_fin', '').strip()
+
+    from sqlalchemy.orm import selectinload, joinedload
+    query = Product.query.options(
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta).joinedload(Sale.vendedor),
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta).joinedload(Sale.cliente),
+        selectinload(Product.detalles_venta).joinedload(SaleDetail.venta).joinedload(Sale.asesor),
+        selectinload(Product.maneos)
+    ).filter_by(tipo_inventario='celulares')
+
+    # Filtrar por estado si aplica
+    if estado == 'activos':
+        query = query.filter(Product.cantidad_stock > 0)
+    elif estado == 'maneo':
+        query = query.filter(Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+    elif estado == 'vendidos':
+        query = query.filter(
+            Product.cantidad_stock == 0,
+            ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
+        )
+
+    # Filtrar por rango de fechas (Fecha de Creación o Fecha de Venta si está vendido)
+    if fecha_inicio_str:
+        try:
+            dt_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
+            query = query.filter(Product.fecha_creacion >= dt_inicio)
+        except ValueError:
+            pass
+
+    if fecha_fin_str:
+        try:
+            dt_fin = datetime.strptime(fecha_fin_str + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+            query = query.filter(Product.fecha_creacion <= dt_fin)
+        except ValueError:
+            pass
+
+    productos = query.order_by(Product.fecha_creacion.desc()).all()
+
+    filas = []
+    for p in productos:
+        # Determinar estado
+        maneo_pendiente = next((m for m in p.maneos if m.estado == 'PENDIENTE'), None)
+        if manejo_pendiente:
+            estado_desc = f"EN MANEO (Prestado a {maneo_pendiente.local_vecino})"
+        elif p.cantidad_stock > 0:
+            estado_desc = "ACTIVO / EN STOCK"
+        else:
+            estado_desc = "VENDIDO"
+
+        # Datos de venta si existe
+        ultima_venta = None
+        if p.detalles_venta:
+            ultima_venta = p.detalles_venta[0].venta
+
+        fecha_venta_str = ultima_venta.fecha.strftime('%d/%m/%Y %H:%M') if (ultima_venta and ultima_venta.fecha) else 'N/A'
+        ticket_id = f"#{ultima_venta.id}" if ultima_venta else 'N/A'
+        vendedor_nombre = ultima_venta.vendedor.nombre if (ultima_venta and ultima_venta.vendedor) else 'N/A'
+        asesor_nombre = ultima_venta.asesor.nombre if (ultima_venta and ultima_venta.asesor) else 'N/A'
+        cliente_nombre = ultima_venta.cliente.nombre if (ultima_venta and ultima_venta.cliente) else 'N/A'
+        cliente_doc = ultima_venta.cliente.documento if (ultima_venta and ultima_venta.cliente) else 'N/A'
+        cliente_tel = ultima_venta.cliente.telefono if (ultima_venta and ultima_venta.cliente) else 'N/A'
+
+        filas.append({
+            'ID Dispositivo': p.id,
+            'Estado': estado_desc,
+            'Stock Actual': p.cantidad_stock,
+            'Marca': p.marca or 'N/A',
+            'Referencia (Modelo)': p.modelo_celular or 'N/A',
+            'Capacidad': p.memoria or 'N/A',
+            'Color': p.color or 'N/A',
+            'Batería': p.bateria or 'N/A',
+            'IMEI 1': p.imei or 'N/A',
+            'IMEI 2': p.imei2 or 'N/A',
+            'Tipo / Clasificación': p.inventario or 'N/A',
+            'Proveedor': p.proveedor or 'N/A',
+            'Precio Costo': float(p.precio_costo or 0),
+            'Precio Mínimo': float(p.precio_minimo or 0),
+            'Precio Sugerido': float(p.precio_sugerido or 0),
+            'Fecha Ingreso': p.fecha_creacion.strftime('%d/%m/%Y %H:%M') if p.fecha_creacion else 'N/A',
+            'Ticket Venta': ticket_id,
+            'Fecha Venta': fecha_venta_str,
+            'Vendedor (Caja)': vendedor_nombre,
+            'Asesor': asesor_nombre,
+            'Cliente': cliente_nombre,
+            'Doc. Cliente': cliente_doc,
+            'Tel. Cliente': cliente_tel
+        })
+
+    df = pd.DataFrame(filas)
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Inventario Celulares')
+
+    output.seek(0)
+    nombre_archivo = f"inventario_celulares_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        download_name=nombre_archivo,
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 @celulares_bp.route('/descargar_plantilla')
 @login_required
 @admin_required
