@@ -1,74 +1,222 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold text-brand-black m-0">Inventario de Accesorios Externos</h2>
+<style>
+    /* Estilos SaaS Corporativo - Inventario de Accesorios Externos */
+    .btn-acc-ext-add {
+        background-color: #DC2626;
+        color: #ffffff;
+        border: 1px solid #DC2626;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.45rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-acc-ext-add:hover {
+        background-color: #B91C1C;
+        border-color: #B91C1C;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(220, 38, 38, 0.35);
+    }
+
+    /* Buscador SaaS Moderno */
+    .saas-search-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 0.95rem 1.25rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill-box {
+        background: #F8FAFC;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.25rem 0.6rem;
+        transition: all 0.25s ease;
+    }
+    .saas-search-pill-box:focus-within {
+        background: #ffffff;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+    .saas-search-pill-box input {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Contenedor y Tabla SaaS */
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 950px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1200px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.85rem;
+        border-bottom: 2px solid rgba(220, 38, 38, 0.7);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 1rem 0.85rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    /* Botones de Acción Circulares */
+    .btn-table-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background: #ffffff;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .btn-table-action:hover {
+        transform: translateY(-2px);
+        border-color: #DC2626;
+        color: #DC2626;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
+    }
+    .btn-table-action-delete {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        background: #FEF2F2;
+        color: #DC2626;
+        transition: all 0.2s ease;
+    }
+    .btn-table-action-delete:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                <i class="fa-solid fa-headphones-simple text-danger me-2"></i>Inventario de Accesorios Externos
+            </h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Terceros / Consignación</span>
+        </div>
+        <p class="text-muted small mb-0">Gestión de fundas, cargadores y audífonos suministrados por proveedores externos</p>
+    </div>
     <div class="d-flex gap-2">
-        <a href="{{ url_for('externos_bp.nuevo_externo') }}" class="btn btn-blue rounded-pill px-4 fw-bold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Ingresar Externo
+        <a href="{{ url_for('externos_bp.nuevo_externo') }}" class="btn btn-acc-ext-add">
+            <i class="fa-solid fa-plus me-1.5"></i> Ingresar Externo
         </a>
     </div>
 </div>
 
 <!-- Barra de Búsqueda Server-Side -->
-<form method="GET" action="{{ url_for('externos_bp.inventario_accesorios') }}" id="searchForm" class="mb-4">
-    <div class="input-group shadow-sm" style="max-width: 480px;">
-        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-        <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
-               placeholder="Buscar por Marca, Nombre o Proveedor..."
-               value="{{ q }}">
-        {% if q %}
-        <a href="{{ url_for('externos_bp.inventario_accesorios') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
-        {% endif %}
-    </div>
-</form>
+<div class="saas-search-card mb-4">
+    <form method="GET" action="{{ url_for('externos_bp.inventario_accesorios') }}" id="searchForm" class="m-0">
+        <div class="saas-search-pill-box d-flex align-items-center" style="max-width: 480px;">
+            <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+            <input type="text" id="searchInput" name="q" class="form-control"
+                   placeholder="Buscar por Marca, Nombre o Proveedor..."
+                   value="{{ q }}">
+            {% if q %}
+            <a href="{{ url_for('externos_bp.inventario_accesorios') }}" class="btn btn-link text-muted p-0 me-2" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+    </form>
+</div>
 
-<div class="card card-custom p-0 shadow-sm border-0">
+<div class="saas-table-card mb-4 position-relative">
     <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
-            <thead class="bg-dark text-white text-nowrap" style="font-size: 0.8rem;">
+        <table class="table saas-table table-sm mb-0 align-middle text-center w-100">
+            <thead class="text-nowrap">
                 <tr>
-                    <th class="ps-3 py-2 text-start fw-bold">MARCA</th>
-                    <th class="py-2 text-start fw-bold">NOMBRE</th>
-                    <th class="py-2 fw-bold">PROVEEDOR</th>
-                    <th class="py-2 fw-bold">FECHA</th>
-                    <th class="py-2 fw-bold">COSTO</th>
-                    <th class="py-2 fw-bold">SUGERIDO</th>
-                    <th class="pe-3 py-2 text-center fw-bold">ACCIONES</th>
+                    <th class="ps-3 py-2 text-start" style="width: 100px;">MARCA</th>
+                    <th class="py-2 text-start" style="min-width: 180px;">NOMBRE</th>
+                    <th class="py-2" style="min-width: 140px;">PROVEEDOR</th>
+                    <th class="py-2" style="width: 110px;">FECHA</th>
+                    <th class="py-2 text-end" style="width: 130px;">COSTO</th>
+                    <th class="py-2 text-end pe-3" style="width: 130px;">SUGERIDO</th>
+                    <th class="pe-3 py-2 text-center" style="width: 150px;">ACCIONES</th>
                 </tr>
             </thead>
             <tbody class="text-nowrap">
                 {% for c in accesorios %}
                 <tr>
                     <td class="ps-3 fw-bold text-dark text-start">{{ c.marca or '-' }}</td>
-                    <td class="fw-semibold text-start">{{ c.nombre or '-' }}</td>
-                    <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
-                    <td>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                    <td class="fw-semibold text-start text-dark">{{ c.nombre or '-' }}</td>
+                    <td class="text-truncate text-muted" style="max-width: 140px;" title="{{ c.proveedor or '-' }}">
+                        <i class="fa-solid fa-truck-fast text-muted me-1 small"></i>{{ c.proveedor or '-' }}
+                    </td>
+                    <td class="text-muted">{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
                     
-                    <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>
-                    <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
+                    <td class="text-dark fw-bold text-end font-monospace">${{ c.precio_costo|cop }}</td>
+                    <td class="text-dark fw-bolder text-end pe-3 font-monospace">${{ c.precio_sugerido|cop }}</td>
                     
                     <td class="pe-3 text-center">
-                        <div class="d-flex justify-content-center align-items-center gap-1">
+                        <div class="d-flex justify-content-center align-items-center gap-1.5">
                             {% if c.estado_celular == 'Enviado' %}
-                                <span class="badge bg-dark rounded-pill shadow-sm me-1"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                                <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
+                                    <i class="fa-solid fa-circle-check me-1"></i> En Inventario
+                                </span>
                             {% endif %}
 
                             {% if c.detalles_venta %}
-                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Factura de Venta (#{{ c.detalles_venta[0].sale_id }})">
-                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn-table-action" title="Ver Factura de Venta (#{{ c.detalles_venta[0].sale_id }})">
+                                <i class="fa-solid fa-file-invoice-dollar text-danger" style="font-size: 0.8rem;"></i>
                             </a>
                             {% else %}
-                            <button type="button" class="btn btn-sm text-muted bg-light border rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px; opacity: 0.4;" disabled title="Sin factura asociada (En Inventario)">
-                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
+                            <button type="button" class="btn-table-action text-muted border-0 opacity-50" disabled title="Sin factura asociada">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.8rem;"></i>
                             </button>
                             {% endif %}
 
                             {% if c.estado_celular != 'Enviado' %}
-                            <form method="POST" action="{{ url_for('externos_bp.eliminar_externo', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar permanente?');">
+                            <form method="POST" action="{{ url_for('externos_bp.eliminar_externo', id=c.id) }}" class="d-inline m-0" onsubmit="return confirm('¿Eliminar permanente?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar">
-                                    <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
+                                <button type="submit" class="btn-table-action-delete border-0" title="Eliminar">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.78rem;"></i>
                                 </button>
                             </form>
                             {% endif %}
@@ -77,9 +225,9 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
-                        <i class="fa-solid fa-box-open fs-3 mb-2 opacity-50"></i>
-                        <p class="mb-0">No hay accesorios externos registrados.</p>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-box-open fs-2 mb-2 text-danger opacity-50"></i>
+                        <p class="mb-0 fw-semibold">No hay accesorios externos registrados.</p>
                     </td>
                 </tr>
                 {% endfor %}

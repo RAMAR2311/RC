@@ -3,74 +3,190 @@
 {% block title %}Clientes de Celulares - RedCover{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-0 text-brand-black"><i class="fa-solid fa-users me-2 text-brand-blue"></i>Clientes de Celulares</h2>
-            <p class="text-muted">Registro de clientes y garantías de equipos vendidos.</p>
-        </div>
-        <div class="col-md-6 text-end">
-            <!-- Search bar -->
-            <div class="input-group" style="max-width: 400px; margin-left: auto;">
-                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                <input type="text" id="buscadorClientes" class="form-control border-start-0" placeholder="Buscar por Nombre, Cédula o Modelo...">
-            </div>
-        </div>
-    </div>
+<style>
+    /* Estilos SaaS Corporativo - Directorio Clientes */
+    .saas-search-pill {
+        background: #ffffff;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.28rem 0.6rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill:focus-within {
+        border-color: #D91616;
+        box-shadow: 0 0 0 4px rgba(217, 22, 22, 0.12);
+    }
+    .saas-search-pill input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.88rem;
+    }
 
-    <div class="card card-custom border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="tablaClientes">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Cliente</th>
-                            <th>Contacto</th>
-                            <th>Correo Electrónico</th>
-                            <th>Dirección</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cliente in clientes %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold text-dark">{{ cliente.nombre }}</div>
-                                <div class="small text-muted"><i class="fa-regular fa-id-card me-1"></i> CC: {{ cliente.documento }}</div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="fa-solid fa-phone small text-muted me-2"></i> {{ cliente.telefono }}
-                                    <a href="https://wa.me/57{{ cliente.telefono|replace(' ', '') }}" target="_blank" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" title="Contactar por WhatsApp">
-                                        <i class="fa-brands fa-whatsapp"></i> Chat
-                                    </a>
-                                </div>
-                            </td>
-                            <td class="text-muted">
-                                {{ cliente.email or '—' }}
-                            </td>
-                            <td class="text-muted">
-                                {{ cliente.direccion or '—' }}
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ url_for('celulares_bp.detalle_cliente', documento=cliente.documento) }}"
-                                   class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                   title="Ver historial completo">
-                                    <i class="fa-solid fa-eye me-1"></i> Detalle
-                                </a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5">
-                                <div class="text-muted fs-5"><i class="fa-solid fa-folder-open mb-3 fs-1 d-block text-secondary"></i>No hay clientes registrados aún.</div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 950px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1200px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.95rem;
+        border-bottom: 2px solid rgba(217, 22, 22, 0.6);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 1rem 0.95rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    .client-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #F1F5F9;
+        color: #0F172A;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        border: 1px solid #E2E8F0;
+        flex-shrink: 0;
+    }
+
+    .btn-detail-client {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 0.45rem 1.15rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+    }
+    .btn-detail-client:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(217, 22, 22, 0.25);
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                <i class="fa-solid fa-users text-danger me-2"></i>Directorio de Clientes
+            </h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Garantías & CRM</span>
         </div>
+        <p class="text-muted small mb-0">Base de clientes compradores, garantías asociadas e historial de compras</p>
+    </div>
+    
+    <!-- Buscador de Clientes -->
+    <div class="saas-search-pill d-flex align-items-center" style="max-width: 400px; width: 100%;">
+        <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+        <input type="text" id="buscadorClientes" class="form-control ps-1" placeholder="Buscar por Nombre, Cédula o Celular...">
+    </div>
+</div>
+
+<div class="saas-table-card mb-4 position-relative">
+    <div class="table-responsive">
+        <table class="table saas-table table-sm mb-0 align-middle w-100" id="tablaClientes">
+            <thead class="text-nowrap">
+                <tr>
+                    <th class="ps-4" style="min-width: 200px;">CLIENTE</th>
+                    <th style="min-width: 170px;">CONTACTO</th>
+                    <th style="min-width: 180px;">CORREO ELECTRÓNICO</th>
+                    <th style="min-width: 160px;">DIRECCIÓN</th>
+                    <th class="text-center pe-4" style="width: 120px;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="client-avatar">
+                                {{ (cliente.nombre or 'C')[0]|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark fs-6">{{ cliente.nombre }}</div>
+                                <div class="small text-muted font-monospace"><i class="fa-regular fa-id-card me-1 text-danger"></i>CC: {{ cliente.documento }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-semibold text-dark me-2"><i class="fa-solid fa-phone small text-muted me-1.5"></i>{{ cliente.telefono }}</span>
+                            {% if cliente.telefono %}
+                            <a href="https://wa.me/57{{ cliente.telefono|replace(' ', '') }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill py-0.5 px-2.5 fw-bold" style="font-size: 0.72rem;" title="Contactar por WhatsApp">
+                                <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="text-muted small">
+                        {% if cliente.email %}
+                            <i class="fa-regular fa-envelope text-muted me-1.5"></i>{{ cliente.email }}
+                        {% else %}
+                            <span class="text-muted opacity-50">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">
+                        {% if cliente.direccion %}
+                            <i class="fa-solid fa-location-dot text-danger opacity-75 me-1.5"></i>{{ cliente.direccion }}
+                        {% else %}
+                            <span class="text-muted opacity-50">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center pe-4">
+                        <a href="{{ url_for('celulares_bp.detalle_cliente', documento=cliente.documento) }}"
+                           class="btn-detail-client"
+                           title="Ver historial completo">
+                            <i class="fa-solid fa-eye me-1.5 text-danger"></i> Ver Ficha
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-users-slash fs-2 mb-2 opacity-50 d-block"></i>
+                        <p class="mb-0 fw-semibold">No hay clientes registrados aún.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 

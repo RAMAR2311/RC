@@ -106,6 +106,26 @@ def create_app():
     from routes.zenic import zenic_bp
     app.register_blueprint(zenic_bp, url_prefix='/zenic')
 
+    # Registro de Blueprint Legal / Cumplimiento SIC (Ley 1581)
+    from routes.legal import legal_bp
+    app.register_blueprint(legal_bp, url_prefix='/legal')
+
+    @app.context_processor
+    def inject_legal_agreement():
+        # Toggle para pausar el bloqueo mientras realizas cambios en desarrollo
+        # Pon en True cuando vayas a desplegar a producción
+        BLOQUEO_SIC_ACTIVO = False
+
+        acuerdo = None
+        try:
+            from models import ZenicDataAgreementAudit
+            acuerdo = ZenicDataAgreementAudit.query.filter_by(terms_version='v2026.1').first()
+        except Exception:
+            pass
+        return {
+            'acuerdo_sic_firmado': acuerdo is not None or not BLOQUEO_SIC_ACTIVO,
+            'acuerdo_sic_data': acuerdo
+        }
 
     @app.template_filter('cop')
     def cop_filter(value):

@@ -1,42 +1,156 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Estilos Premium Formulario Dispositivos - RedCover */
+    .device-form-card {
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(217, 22, 22, 0.02);
+        padding: 2.25rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .device-form-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #D91616, rgba(217, 22, 22, 0.3) 60%, transparent 100%);
+    }
+
+    .form-section-title {
+        color: #0F172A;
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #F1F5F9;
+        margin-bottom: 1.35rem;
+    }
+    .form-section-title i {
+        color: #D91616;
+        font-size: 1.15rem;
+    }
+
+    .form-label-saas {
+        font-size: 0.73rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        margin-bottom: 0.45rem;
+        display: block;
+    }
+
+    .form-control-saas, .form-select-saas {
+        border-radius: 12px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.68rem 0.95rem;
+        font-size: 0.9rem;
+        color: #1E293B;
+        background-color: #FFFFFF;
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+        width: 100%;
+    }
+    .form-control-saas:focus, .form-select-saas:focus {
+        border-color: #D91616;
+        box-shadow: 0 0 0 4px rgba(217, 22, 22, 0.12);
+        outline: none;
+        background-color: #FFFFFF;
+    }
+
+    .pricing-box-saas {
+        background: #F8FAFC;
+        border-radius: 18px;
+        border: 1.5px solid #E2E8F0;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .btn-save-device {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 750;
+        font-size: 0.95rem;
+        padding: 0.8rem 2.5rem;
+        letter-spacing: 0.2px;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-save-device:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(217, 22, 22, 0.35);
+    }
+</style>
+
 <div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-brand-black m-0">{% if celular %}Editar Dispositivo{% else %}Ingresar Equipo / Dispositivo{% endif %}</h2>
-            <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-light rounded-pill px-4 shadow-sm border">
-                <i class="fa-solid fa-arrow-left me-1"></i> Volver al Inventario
+    <div class="col-lg-10 col-12">
+        <!-- Encabezado de la página -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                        {% if celular %}Editar Dispositivo{% else %}Ingresar Dispositivo{% endif %}
+                    </h2>
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">
+                        {% if celular %}ID #{{ celular.id }}{% else %}Nuevo{% endif %}
+                    </span>
+                </div>
+                <p class="text-muted small mb-0">Registra las especificaciones técnicas, seriales y esquema de precios del equipo</p>
+            </div>
+            <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold small shadow-sm d-inline-flex align-items-center">
+                <i class="fa-solid fa-arrow-left me-2"></i> Volver al Inventario
             </a>
         </div>
 
-        <div class="card card-custom border-0 shadow-sm p-4">
+        <div class="device-form-card mb-5">
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 
                 {% if celular and celular.total_stock <= 0 %}
-                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3">
+                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between p-3.5 mb-4 rounded-4" style="background-color: #FEF3C7; border: 1px solid #FDE68A !important;">
                     <div class="d-flex align-items-center">
-                        <i class="fa-solid fa-triangle-exclamation fs-4 me-3 text-warning"></i>
+                        <div class="rounded-circle p-2 bg-warning bg-opacity-25 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <i class="fa-solid fa-triangle-exclamation fs-5 text-dark"></i>
+                        </div>
                         <div>
-                            <span class="badge bg-dark rounded-pill me-2">EQUIPO VENDIDO</span>
-                            <span class="fw-bold">Este celular ya fue vendido.</span>
-                            <span class="d-block small text-muted">Puedes corregir su costo, proveedor, precio sugerido o información técnica.</span>
+                            <span class="badge bg-dark rounded-pill me-2 px-2.5 py-1">VENDIDO</span>
+                            <span class="fw-bolder text-dark">Este dispositivo ya fue vendido en punto de venta.</span>
+                            <span class="d-block small text-muted">Puedes corregir atributos contables, proveedor o precio de referencia si es necesario.</span>
                         </div>
                     </div>
                     {% if celular.detalles_venta %}
-                    <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=celular.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
-                        <i class="fa-solid fa-receipt me-1"></i> Ver Ticket Venta #{{ celular.detalles_venta[0].sale_id }}
+                    <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=celular.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3.5 py-1.5 fw-bold">
+                        <i class="fa-solid fa-receipt me-1.5 text-warning"></i> Ticket Venta #{{ celular.detalles_venta[0].sale_id }}
                     </a>
                     {% endif %}
                 </div>
                 {% endif %}
 
-                <h5 class="fw-bold mb-3 border-bottom pb-2">Datos del Dispositivo</h5>
+                <!-- 1. Especificaciones del Dispositivo -->
+                <div class="form-section-title">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span>Datos Principales y Especificaciones</span>
+                </div>
                 
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Tipo de Dispositivo</label>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4 col-12">
+                        <label class="form-label-saas">Tipo de Dispositivo</label>
                         {% set current_tipo = 'Celular' %}
                         {% if celular and celular.nombre %}
                             {% if celular.nombre.startswith('Computador') or celular.nombre.startswith('Laptop') %}{% set current_tipo = 'Computador' %}
@@ -47,7 +161,7 @@
                             {% elif celular.nombre.startswith('Dispositivo') %}{% set current_tipo = 'Otro' %}
                             {% endif %}
                         {% endif %}
-                        <select name="tipo_dispositivo" class="form-select fw-semibold border bg-light shadow-sm" required>
+                        <select name="tipo_dispositivo" class="form-select-saas fw-bold" required>
                             <option value="Celular" {% if current_tipo == 'Celular' %}selected{% endif %}>📱 Celular / Smartphone</option>
                             <option value="Computador" {% if current_tipo == 'Computador' %}selected{% endif %}>💻 Computador / Laptop</option>
                             <option value="Tablet" {% if current_tipo == 'Tablet' %}selected{% endif %}>📟 Tablet / iPad</option>
@@ -57,76 +171,102 @@
                             <option value="Otro" {% if current_tipo == 'Otro' %}selected{% endif %}>📦 Otro Dispositivo</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Marca</label>
-                        <input type="text" name="marca" class="form-control" value="{{ celular.marca if celular else '' }}" placeholder="Ej: Apple, Samsung, Ray-Ban, Lenovo" required>
+
+                    <div class="col-md-4 col-12">
+                        <label class="form-label-saas">Marca <span class="text-danger">*</span></label>
+                        <input type="text" name="marca" class="form-control-saas fw-bold" value="{{ celular.marca if celular else '' }}" placeholder="Ej: Apple, Samsung, Xiaomi" required>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Referencia (Modelo)</label>
-                        <input type="text" name="modelo_celular" class="form-control" value="{{ celular.modelo_celular if celular else '' }}" placeholder="Ej: iPhone 15 Pro, MacBook Air, Meta Wayfarer" required>
+
+                    <div class="col-md-4 col-12">
+                        <label class="form-label-saas">Referencia (Modelo) <span class="text-danger">*</span></label>
+                        <input type="text" name="modelo_celular" class="form-control-saas fw-bold" value="{{ celular.modelo_celular if celular else '' }}" placeholder="Ej: iPhone 15 Pro, S24 Ultra" required>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Capacidad / RAM</label>
-                        <input type="text" name="memoria" class="form-control" value="{{ celular.memoria if celular else '' }}" placeholder="Ej: 128GB, 512GB SSD">
+
+                    <div class="col-md-3 col-6">
+                        <label class="form-label-saas">Capacidad / RAM</label>
+                        <input type="text" name="memoria" class="form-control-saas" value="{{ celular.memoria if celular else '' }}" placeholder="Ej: 128GB, 256GB, 8GB RAM">
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Color</label>
-                        <input type="text" name="color" class="form-control" value="{{ celular.color if celular else '' }}" placeholder="Ej: Negro, Azul">
+
+                    <div class="col-md-3 col-6">
+                        <label class="form-label-saas">Color</label>
+                        <input type="text" name="color" class="form-control-saas" value="{{ celular.color if celular else '' }}" placeholder="Ej: Titanio Natural, Negro">
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Batería (%)</label>
-                        <input type="text" name="bateria" class="form-control" value="{{ celular.bateria if celular else '' }}" placeholder="Ej: 85% o N/A">
+
+                    <div class="col-md-3 col-6">
+                        <label class="form-label-saas">Batería (%)</label>
+                        <input type="text" name="bateria" class="form-control-saas" value="{{ celular.bateria if celular else '' }}" placeholder="Ej: 88% o N/A">
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Proveedor</label>
-                        <input type="text" name="proveedor" class="form-control" value="{{ celular.proveedor if celular else '' }}" placeholder="Ej: Mayorista A, Retoma">
+
+                    <div class="col-md-3 col-6">
+                        <label class="form-label-saas">Inventario</label>
+                        <input type="text" name="inventario" class="form-control-saas" value="{{ celular.inventario if celular else '' }}" placeholder="Ej: Nuevo, Usado, Vitrina">
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Inventario</label>
-                        <input type="text" name="inventario" class="form-control" value="{{ celular.inventario if celular else '' }}" placeholder="Ej: Nuevo, Usado, Vitrina">
+
+                    <div class="col-md-6 col-12">
+                        <label class="form-label-saas">Proveedor / Origen</label>
+                        <input type="text" name="proveedor" class="form-control-saas" value="{{ celular.proveedor if celular else '' }}" placeholder="Ej: Mayorista Central, Retoma">
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">Foto (Opcional)</label>
-                        <input type="file" name="imagen" class="form-control" accept="image/*">
+
+                    <div class="col-md-6 col-12">
+                        <label class="form-label-saas">Fotografía del Dispositivo (Opcional)</label>
+                        <input type="file" name="imagen" class="form-control-saas" accept="image/*">
                         {% if celular and celular.imagen %}
-                            <small class="text-success"><i class="fa-solid fa-check"></i> Foto actual guardada</small>
+                            <small class="text-success fw-bold d-block mt-1"><i class="fa-solid fa-circle-check me-1"></i> Foto actual almacenada</small>
                         {% endif %}
                     </div>
                 </div>
 
-                <h5 class="fw-bold mb-3 border-bottom pb-2">Identificación (IMEI)</h5>
+                <!-- 2. Identificadores Únicos (IMEI) -->
+                <div class="form-section-title">
+                    <i class="fa-solid fa-barcode"></i>
+                    <span>Identificación Técnica (IMEI / Serial)</span>
+                </div>
                 
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">IMEI 1 (Obligatorio)</label>
-                        <input type="text" name="imei" class="form-control bg-light" value="{{ celular.imei if celular else '' }}" placeholder="Ingresa el IMEI de 15 dígitos" required>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label-saas">IMEI 1 (Obligatorio) <span class="text-danger">*</span></label>
+                        <input type="text" name="imei" class="form-control-saas font-monospace fw-bold" style="letter-spacing: 1px;" value="{{ celular.imei if celular else '' }}" placeholder="15 dígitos numéricos" required>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase">IMEI 2 (Opcional)</label>
-                        <input type="text" name="imei2" class="form-control bg-light" value="{{ celular.imei2 if celular else '' }}" placeholder="Segundo IMEI (si es dual SIM)">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label-saas">IMEI 2 (Opcional - Dual SIM)</label>
+                        <input type="text" name="imei2" class="form-control-saas font-monospace" style="letter-spacing: 1px;" value="{{ celular.imei2 if celular else '' }}" placeholder="Segundo IMEI (si aplica)">
                     </div>
                 </div>
 
-                <h5 class="fw-bold mb-3 border-bottom pb-2">Precios</h5>
+                <!-- 3. Precios y Márgenes Financieros -->
+                <div class="form-section-title">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <span>Esquema de Precios y Rentabilidad</span>
+                </div>
                 
-                <div class="row bg-light rounded-3 p-3 mx-0 border mb-4">
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <label class="form-label text-muted fw-bold small text-uppercase">Costo ($)</label>
-                        <input type="text" name="precio_costo" class="form-control format-price" value="{{ "%.0f"|format(celular.precio_costo|float) if celular and celular.precio_costo else '0' }}" required>
-                    </div>
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <label class="form-label text-success fw-bold small text-uppercase">P. Sugerido ($)</label>
-                        <input type="text" name="precio_sugerido" class="form-control format-price" value="{{ "%.0f"|format(celular.precio_sugerido|float) if celular and celular.precio_sugerido else '0' }}" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-danger fw-bold small text-uppercase">P. Mínimo ($)</label>
-                        <input type="text" name="precio_minimo" class="form-control format-price" value="{{ "%.0f"|format(celular.precio_minimo|float) if celular and celular.precio_minimo else '0' }}" required>
+                <div class="pricing-box-saas mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-4 col-12">
+                            <label class="form-label-saas text-muted">Costo Directo ($)</label>
+                            <input type="text" name="precio_costo" class="form-control-saas format-price fw-bold" value="{{ "%.0f"|format(celular.precio_costo|float) if celular and celular.precio_costo else '0' }}" required>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Valor de compra al proveedor</small>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <label class="form-label-saas text-danger">Precio Mínimo de Venta ($)</label>
+                            <input type="text" name="precio_minimo" class="form-control-saas format-price fw-bold text-danger" value="{{ "%.0f"|format(celular.precio_minimo|float) if celular and celular.precio_minimo else '0' }}" required>
+                            <small class="text-danger d-block mt-1" style="font-size: 0.72rem;">Límite para descuentos en caja</small>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <label class="form-label-saas text-success">Precio Sugerido al Público ($)</label>
+                            <input type="text" name="precio_sugerido" class="form-control-saas format-price fw-bold text-success fs-5" value="{{ "%.0f"|format(celular.precio_sugerido|float) if celular and celular.precio_sugerido else '0' }}" required>
+                            <small class="text-success d-block mt-1" style="font-size: 0.72rem;">Precio estándar de vitrina</small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="text-end mt-2">
-                    <button type="submit" class="btn btn-blue rounded-pill px-5 py-2 fw-bold shadow-sm" onclick="cleanPrices(this.form)">
-                        <i class="fa-solid fa-save me-1"></i> {% if celular %}Actualizar Dispositivo{% else %}Guardar Dispositivo{% endif %}
+                <!-- Botón Principal Guardar -->
+                <div class="d-flex justify-content-end align-items-center gap-3 mt-4 pt-2">
+                    <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-save-device" onclick="cleanPrices(this.form)">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>{% if celular %}Actualizar Dispositivo{% else %}Guardar en Inventario{% endif %}</span>
                     </button>
                 </div>
             </form>

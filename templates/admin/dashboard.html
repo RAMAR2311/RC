@@ -1,163 +1,607 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-5">
+<style>
+    /* Expansión panorámica del Dashboard para eliminar espacios vacíos en pantallas anchas */
+    main.container {
+        max-width: 96% !important;
+        width: 96% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Estilos Premium Inspirados en Tarjetas de Alto Nivel para RedCover */
+    .dashboard-header-badge {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 9999px;
+        padding: 0.55rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease-in-out;
+    }
+    .dashboard-header-badge:hover {
+        border-color: rgba(217, 22, 22, 0.4);
+        box-shadow: 0 4px 14px rgba(217, 22, 22, 0.1);
+    }
+
+    .btn-red-action {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        padding: 0.65rem 1.6rem;
+        transition: all 0.22s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+    }
+    .btn-red-action:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(217, 22, 22, 0.35);
+    }
+
+    /* Tarjetas de Gran Formato con Relieve, Volumen y Estilo Corporativo RedCover */
+    .rc-showcase-card {
+        background: #FFFFFF;
+        border-radius: 26px;
+        border: 1.5px solid #CBD5E1;
+        box-shadow: 0 14px 34px -8px rgba(15, 23, 42, 0.08), 0 6px 14px -4px rgba(15, 23, 42, 0.04);
+        padding: 1.85rem 1.75rem;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 335px;
+        transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Borde superior de acento Rojo RedCover para jerarquía visual */
+    .rc-showcase-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: linear-gradient(90deg, #DC2626 0%, rgba(220, 38, 38, 0.4) 60%, transparent 100%);
+        z-index: 1;
+    }
+
+    /* Destello suave y pausado (3.5s) que recorre suavemente sin ser molesto ni acelerado */
+    .rc-showcase-card::after {
+        content: "";
+        position: absolute;
+        top: -150%;
+        left: -150%;
+        width: 400%;
+        height: 400%;
+        background: linear-gradient(
+            135deg, 
+            transparent 42%, 
+            rgba(220, 38, 38, 0.03) 48%, 
+            rgba(255, 255, 255, 0.75) 50%, 
+            rgba(220, 38, 38, 0.08) 52%, 
+            transparent 58%
+        );
+        transform: rotate(28deg) translateY(-100%);
+        transition: transform 3.2s cubic-bezier(0.15, 0.85, 0.35, 1);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .rc-showcase-card:hover {
+        transform: translateY(-7px);
+        border-color: #DC2626;
+        box-shadow: 0 24px 50px -10px rgba(15, 23, 42, 0.12), 0 10px 24px rgba(220, 38, 38, 0.18);
+    }
+
+    .rc-showcase-card:hover::after {
+        transform: rotate(28deg) translateY(100%);
+    }
+
+    /* Icon Capsule tipo mockup con fondo suave y bordes redondeados orgánicos */
+    .rc-icon-squircle {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        background: #F8FAFC;
+        border: 1.5px solid #E2E8F0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #DC2626;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
+        transition: transform 0.3s ease;
+    }
+    .rc-showcase-card:hover .rc-icon-squircle {
+        transform: scale(1.08) rotate(-2deg);
+    }
+
+    /* Pastilla de Periodo / Estado idéntica al mockup */
+    .rc-pill-badge {
+        background: #0F172A;
+        color: #FFFFFF;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 0.48rem 1.15rem;
+        border-radius: 9999px;
+        letter-spacing: 0.2px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    }
+    .rc-pill-badge-red {
+        background: #DC2626;
+        color: #FFFFFF;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+    }
+    .rc-pill-badge-outline {
+        background: #F8FAFC;
+        color: #0F172A;
+        border: 1.5px solid #CBD5E1;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    /* Tipografía y Textos de Tarjeta */
+    .rc-card-title {
+        color: #475569;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+        margin-bottom: 0.35rem;
+    }
+    .rc-card-amount {
+        color: #0F172A;
+        font-weight: 850;
+        font-size: 2.35rem;
+        line-height: 1.15;
+        letter-spacing: -1px;
+        margin-bottom: 0.65rem;
+    }
+    .rc-card-subtitle {
+        color: #64748B;
+        font-size: 0.92rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    /* Subdesglose inferior de métricas (efectivo, banco, etc.) */
+    .rc-split-metrics {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px dashed rgba(226, 215, 205, 0.8);
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    /* Botón Principal de la Tarjeta tipo mockup (píldora oscura) */
+    .rc-card-cta-btn {
+        background: #0E1726;
+        color: #FFFFFF;
+        border-radius: 9999px;
+        padding: 0.82rem 1.4rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        width: 100%;
+        border: none;
+        box-shadow: 0 6px 16px rgba(14, 23, 38, 0.12);
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        z-index: 3;
+    }
+    .rc-card-cta-btn:hover {
+        background: #D91616;
+        color: #FFFFFF;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(217, 22, 22, 0.35);
+    }
+    .rc-card-cta-btn-outline {
+        background: #FFFFFF;
+        color: #0E1726;
+        border: 1.5px solid #E2E8F0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    }
+    .rc-card-cta-btn-outline:hover {
+        background: #D91616;
+        color: #FFFFFF;
+        border-color: #D91616;
+        box-shadow: 0 8px 22px rgba(217, 22, 22, 0.3);
+    }
+
+    /* Barra de Accesos Rápidos del Dashboard */
+    .rc-quick-strip {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        padding: 0.85rem 1.5rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    }
+</style>
+
+<!-- Cabecera Superior del Dashboard -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
-        <h2 class="fw-bold text-brand-black mb-0">Dashboard Operativo</h2>
-        <p class="text-muted">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder mb-0 text-dark" style="letter-spacing: -0.6px; font-weight: 850;">Dashboard Operativo</h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Live</span>
+        </div>
+        <p class="text-muted small mb-0">¡Bienvenido al panel central de control, <strong class="text-dark">{{ current_user.nombre }}</strong>!</p>
     </div>
-    <div>
-        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-inline-flex align-items-center me-3 bg-white border rounded-pill px-3 py-2 shadow-sm">
-            <i class="fa-regular fa-calendar text-brand-pink me-2"></i>
-            <span class="fw-bold text-brand-black me-2 small">Mes:</span>
-            <input type="month" name="mes" class="form-control form-control-sm border-0 shadow-none bg-transparent p-0 text-brand-black fw-bold" style="max-width: 180px; outline: none; cursor: pointer;" value="{{ mes_filtro }}" onchange="this.form.submit()">
+    
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="dashboard-header-badge d-inline-flex align-items-center m-0">
+            <i class="fa-regular fa-calendar text-danger me-2"></i>
+            <span class="fw-bold text-muted me-2 small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Periodo:</span>
+            <input type="month" name="mes" class="form-control form-control-sm border-0 shadow-none bg-transparent p-0 fw-bold text-dark" style="max-width: 145px; outline: none; cursor: pointer; font-size: 0.85rem;" value="{{ mes_filtro }}" onchange="this.form.submit()">
         </form>
-        <button type="button" class="btn btn-dark rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
-            <i class="fa-solid fa-scale-balanced text-brand-pink me-2"></i>Generar Balance
+        
+        <button type="button" class="btn btn-red-action" data-bs-toggle="modal" data-bs-target="#modalBalance">
+            <i class="fa-solid fa-scale-balanced text-danger me-2"></i>Generar Balance
         </button>
     </div>
 </div>
 
+<!-- Barra de Resumen Ejecutivo y Accesos Rápidos (Llena el espacio superior con gran presencia) -->
+<div class="rc-quick-strip mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(217, 22, 22, 0.1); color: #D91616;">
+                <i class="fa-solid fa-building-circle-check"></i>
+            </span>
+            <div>
+                <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">Sedes Activas</div>
+                <div class="fw-bolder text-dark" style="font-size: 0.95rem;">Local 136 & 197</div>
+            </div>
+        </div>
+        <div class="vr opacity-25 d-none d-md-block" style="height: 32px;"></div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1); color: #059669;">
+                <i class="fa-solid fa-signal"></i>
+            </span>
+            <div>
+                <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">Estado Operativo</div>
+                <div class="fw-bolder text-success" style="font-size: 0.95rem;">En Línea & Sincronizado</div>
+            </div>
+        </div>
+        <div class="vr opacity-25 d-none d-md-block" style="height: 32px;"></div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(59, 130, 246, 0.1); color: #2563eb;">
+                <i class="fa-solid fa-shield-check"></i>
+            </span>
+            <div>
+                <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">Protección de Datos</div>
+                <div class="fw-bolder text-dark" style="font-size: 0.95rem;">SIC / Ley 1581 Activo</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+        <a href="/sales/caja_visual" class="btn btn-sm btn-outline-dark rounded-pill fw-bold px-3 py-1.5" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-cash-register me-1 text-danger"></i> Punto de Venta
+        </a>
+        <a href="/celulares/inventario" class="btn btn-sm btn-outline-dark rounded-pill fw-bold px-3 py-1.5" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-mobile-screen-button me-1 text-danger"></i> Celulares
+        </a>
+    </div>
+</div>
+
+
 <!-- Modal Generar Balance Financiero -->
 <div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4">
-      <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2 text-brand-pink"></i>Balance Financiero y General</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
+      <div class="modal-header bg-dark text-white border-bottom-0 py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-3 p-2 bg-black border border-secondary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-file-invoice-dollar text-danger"></i>
+            </div>
+            <h5 class="fw-bold m-0">Balance Financiero y General</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
-          <div class="modal-body">
-              <p class="text-muted small">Selecciona el local comercial y rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
+          <div class="modal-body p-4" style="font-size: 0.88rem;">
+              <p class="text-muted small mb-4">Selecciona el local comercial y rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
               <div class="mb-3">
-                  <label class="form-label fw-bold text-brand-black small">Punto de Venta / Local</label>
-                  <select name="ambito" class="form-select bg-light border-1">
+                  <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem;">Punto de Venta / Local</label>
+                  <select name="ambito" class="form-select bg-light border-1 rounded-3">
                       <option value="consolidado" selected>Consolidado General (Ambos Locales: 136 + 197)</option>
                       <option value="local_136">Local 136</option>
                       <option value="local_197">Local 197</option>
                   </select>
               </div>
-              <div class="mb-3">
-                  <label class="form-label fw-bold text-brand-black small">Fecha de Inicio</label>
-                  <input type="date" name="fecha_inicio" class="form-control" required>
-              </div>
-              <div class="mb-4">
-                  <label class="form-label fw-bold text-brand-black small">Fecha de Fin</label>
-                  <input type="date" name="fecha_fin" class="form-control" required>
+              <div class="row g-2 mb-4">
+                  <div class="col-6">
+                      <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem;">Fecha de Inicio</label>
+                      <input type="date" name="fecha_inicio" class="form-control bg-light rounded-3" required>
+                  </div>
+                  <div class="col-6">
+                      <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem;">Fecha de Fin</label>
+                      <input type="date" name="fecha_fin" class="form-control bg-light rounded-3" required>
+                  </div>
               </div>
           </div>
-          <div class="modal-footer border-top-0 pt-0">
-            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf text-brand-pink me-1"></i> Calcular y Validar</button>
+          <div class="modal-footer bg-light border-0 py-3 px-4 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-red-action px-4"><i class="fa-solid fa-file-pdf text-danger me-1"></i> Calcular y Validar</button>
           </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Layout de Tarjetas (Fila de 4 Elementos) -->
-<div class="row g-3 mb-4">
-    <!-- 1. Tarjeta: Ingresos Totales (Botones/Textos Azul Turquesa / .btn-blue) -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-sack-dollar fs-1 text-brand-pink"></i>
-                <span class="badge bg-dark rounded-pill">{{ texto_periodo }}</span>
+<!-- Layout de Tarjetas Métricas: Gran Formato y Diseño Idéntico al Ejemplo de Referencia -->
+<div class="row g-4 mb-4">
+    
+    <!-- 1. Tarjeta: Ingresos Totales (Idéntica al mockup de referencia) -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="rc-showcase-card h-100">
+            <div>
+                <!-- Top Bar: Icon Squircle + Star + Period Pill -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-warning small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge">{{ texto_periodo }}</span>
+                </div>
+                
+                <!-- Titulo y Monto Principal -->
+                <div class="rc-card-title">Ingresos (Mes)</div>
+                <div class="rc-card-amount">${{ (total_ventas)|cop }}</div>
+                
+                <!-- Subtítulo de ventas realizadas -->
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-receipt text-warning opacity-75"></i>
+                    <span>{{ conteo_ventas }} ventas realizadas</span>
+                </div>
+
+                <!-- Desglose inferior Efectivo vs Bancos / Canales -->
+                <div class="rc-split-metrics">
+                    <div class="d-flex align-items-center gap-1.5 text-success">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <span class="text-dark fw-bold">${{ (total_ventas)|cop }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5 text-primary">
+                        <i class="fa-regular fa-credit-card"></i>
+                        <span class="text-dark fw-bold">$0</span>
+                    </div>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Ingresos (Mensual)</h5>
-            <h2 class="fw-bolder text-brand-black">${{ (total_ventas)|cop }}</h2>
-            <p class="text-muted small mb-0"><i class="fa-solid fa-receipt text-brand-pink me-1"></i> {{ conteo_ventas }} ventas realizadas</p>
-            <div class="mt-auto pt-3">
-                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-file-invoice-dollar text-brand-pink me-2"></i> Ver Historial</a>
+
+            <!-- Botón CTA Inferior tipo píldora oscura -->
+            <div class="pt-3 mt-auto">
+                <a href="{{ url_for('sales_bp.historial') }}" class="rc-card-cta-btn">
+                    <i class="fa-solid fa-file-lines text-white"></i> Ver Historial
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- 2. Tarjeta: Productos en Catálogo (Rosa Pastel / .btn-pink) -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-cubes fs-1 text-brand-pink"></i>
+    <!-- 2. Tarjeta: Productos en Catálogo -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="rc-showcase-card h-100">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #2563eb; background: #eef2ff; border-color: #dbeafe;">
+                            <i class="fa-solid fa-cubes"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-primary small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge">En Stock</span>
+                </div>
+                
+                <div class="rc-card-title">Productos en Catálogo</div>
+                <div class="rc-card-amount">{{ total_productos }} <span class="fs-5 text-muted fw-normal">uds.</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-boxes-stacked text-primary opacity-75"></i>
+                    <span>Total referencias activas</span>
+                </div>
+
+                <div class="rc-split-metrics">
+                    <div class="d-flex align-items-center gap-1.5 text-primary">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span class="text-dark fw-bold">Celulares & Acc.</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5 text-success">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span class="text-muted fw-bold">Disponibles</span>
+                    </div>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Productos en Catálogo</h5>
-            <h2 class="fw-bolder text-brand-black">{{ total_productos }} uds.</h2>
-            <div class="mt-auto pt-4">
-                <a href="/inventory/" class="btn btn-dark w-100 rounded-pill text-white fw-bold"><i class="fa-solid fa-sliders text-brand-pink me-2"></i> Gestionar Inventario</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="/inventory/" class="rc-card-cta-btn">
+                    <i class="fa-solid fa-sliders text-white"></i> Gestionar Inventario
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- 3. Tarjeta: Alertas de Stock (Danger Colors / Bootstrap Nativo) -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-triangle-exclamation fs-1 text-brand-pink"></i>
+    <!-- 3. Tarjeta: Alertas Críticas de Stock -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="rc-showcase-card h-100" style="border-color: rgba(217, 22, 22, 0.45); background: radial-gradient(circle at 10% 10%, #FFFFFF 0%, #FEF5F5 100%);">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #D91616; background: #fee2e2; border-color: #fca5a5;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-danger small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge rc-pill-badge-red">Crítico</span>
+                </div>
+                
+                <div class="rc-card-title text-danger">Alertas de Stock</div>
+                <div class="rc-card-amount text-danger">{{ productos_bajo_stock }} <span class="fs-5 text-muted fw-normal">items</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-bell text-danger opacity-75"></i>
+                    <span>Existencias bajas (≤ 10 uds)</span>
+                </div>
+
+                <div class="rc-split-metrics" style="border-color: rgba(217, 22, 22, 0.2);">
+                    <div class="d-flex align-items-center gap-1.5 text-danger">
+                        <i class="fa-solid fa-arrow-trend-down"></i>
+                        <span class="text-danger fw-bold">Reponer pronto</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5 text-muted">
+                        <i class="fa-solid fa-shield-virus"></i>
+                        <span class="fw-bold">Urgente</span>
+                    </div>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Alertas Críticas de Stock</h5>
-            <h2 class="fw-bolder text-brand-pink">{{ productos_bajo_stock }} productos</h2>
-            <p class="text-muted small">Tienen existencias limitadas (10 o menos unidades).</p>
-            <div class="mt-auto pt-3">
-                <a href="/inventory/" class="btn btn-outline-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Revisar Urgencias</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="/inventory/" class="rc-card-cta-btn" style="background: #D91616;">
+                    <i class="fa-solid fa-eye text-white"></i> Revisar Urgencias
+                </a>
             </div>
         </div>
     </div>
 
     <!-- 4. Tarjeta: Maneos de Mercancía -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-handshake fs-1 text-brand-pink"></i>
+    <div class="col-lg-3 col-md-6 col-12">
+        <div class="rc-showcase-card h-100" style="min-height: 295px;">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #d97706; background: #fef3c7; border-color: #fde68a;">
+                            <i class="fa-solid fa-handshake"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-warning small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge rc-pill-badge-outline">Maneos</span>
+                </div>
+                
+                <div class="rc-card-title">Maneos Activos</div>
+                <div class="rc-card-amount">{{ maneos_activos }} <span class="fs-6 text-muted fw-normal">docs.</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-store text-warning opacity-75"></i>
+                    <span>Préstamos con locales</span>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Maneos Activos</h5>
-            <h2 class="fw-bolder text-brand-black">{{ maneos_activos }} docs.</h2>
-            <p class="text-muted small">Préstamos vecinos esperando resolución.</p>
-            <div class="mt-auto pt-3">
-                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Maneos</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="{{ url_for('admin_bp.maneos') }}" class="rc-card-cta-btn rc-card-cta-btn-outline">
+                    <i class="fa-solid fa-arrow-right text-dark"></i> Ver Maneos
+                </a>
             </div>
         </div>
     </div>
+
     <!-- 5. Tarjeta: Proveedores -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-truck-fast fs-1 text-brand-pink"></i>
+    <div class="col-lg-3 col-md-6 col-12">
+        <div class="rc-showcase-card h-100" style="min-height: 295px;">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #4f46e5; background: #e0e7ff; border-color: #c7d2fe;">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-indigo small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge rc-pill-badge-outline">Cuentas</span>
+                </div>
+                
+                <div class="rc-card-title">Proveedores Activos</div>
+                <div class="rc-card-amount">{{ proveedores_activos }} <span class="fs-6 text-muted fw-normal">aliados</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-hand-holding-dollar text-indigo opacity-75"></i>
+                    <span>Cuentas y compras</span>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Proveedores Activos</h5>
-            <h2 class="fw-bolder text-brand-black">{{ proveedores_activos }} cuentas</h2>
-            <p class="text-muted small">Cuentas por pagar a proveedores.</p>
-            <div class="mt-auto pt-3">
-                <a href="{{ url_for('providers_bp.list_providers') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Cuentas</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="{{ url_for('providers_bp.list_providers') }}" class="rc-card-cta-btn rc-card-cta-btn-outline">
+                    <i class="fa-solid fa-arrow-right text-dark"></i> Ver Cuentas
+                </a>
             </div>
         </div>
     </div>
 
     <!-- 6. Tarjeta: Garantías -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-shield-halved fs-1 text-brand-pink"></i>
+    <div class="col-lg-3 col-md-6 col-12">
+        <div class="rc-showcase-card h-100" style="min-height: 295px;">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #059669; background: #d1fae5; border-color: #a7f3d0;">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-success small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge rc-pill-badge-outline">Soporte</span>
+                </div>
+                
+                <div class="rc-card-title">Garantías Pendientes</div>
+                <div class="rc-card-amount">{{ garantias_pendientes }} <span class="fs-6 text-muted fw-normal">casos</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-screwdriver-wrench text-success opacity-75"></i>
+                    <span>Diagnóstico & servicio</span>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Garantías Pendientes</h5>
-            <h2 class="fw-bolder text-brand-black">{{ garantias_pendientes }} reportes</h2>
-            <p class="text-muted small">Equipos en proceso de soporte.</p>
-            <div class="mt-auto pt-3">
-                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Gestionar</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="{{ url_for('warranties_bp.index') }}" class="rc-card-cta-btn rc-card-cta-btn-outline">
+                    <i class="fa-solid fa-arrow-right text-dark"></i> Gestionar
+                </a>
             </div>
         </div>
     </div>
+
     <!-- 7. Tarjeta: Aprobaciones -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-dark border-2">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-tags fs-1 text-brand-pink"></i>
+    <div class="col-lg-3 col-md-6 col-12">
+        <div class="rc-showcase-card h-100" style="min-height: 295px;">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rc-icon-squircle" style="color: #db2777; background: #fce7f3; border-color: #fbcfe8;">
+                            <i class="fa-solid fa-tags"></i>
+                        </div>
+                        <i class="fa-solid fa-star text-pink small opacity-75"></i>
+                    </div>
+                    <span class="rc-pill-badge rc-pill-badge-outline">Precios</span>
+                </div>
+                
+                <div class="rc-card-title">Aprobaciones Precio</div>
+                <div class="rc-card-amount">{{ aprobaciones_pendientes }} <span class="fs-6 text-muted fw-normal">solicitudes</span></div>
+                
+                <div class="rc-card-subtitle">
+                    <i class="fa-solid fa-percent text-pink opacity-75"></i>
+                    <span>Descuentos pendientes</span>
+                </div>
             </div>
-            <h5 class="text-brand-black fw-bold">Aprobaciones Precio</h5>
-            <h2 class="fw-bolder text-brand-black">{{ aprobaciones_pendientes }} solicitudes</h2>
-            <p class="text-muted small">Descuentos esperando autorización.</p>
-            <div class="mt-auto pt-3">
-                <a href="{{ url_for('admin_bp.aprobaciones') }}" class="btn btn-outline-dark text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye text-brand-pink me-2"></i> Ver Solicitudes</a>
+
+            <div class="pt-3 mt-auto">
+                <a href="{{ url_for('admin_bp.aprobaciones') }}" class="rc-card-cta-btn rc-card-cta-btn-outline">
+                    <i class="fa-solid fa-arrow-right text-dark"></i> Ver Solicitudes
+                </a>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
