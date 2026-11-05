@@ -1,27 +1,139 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-recycle text-brand-pink me-2"></i> Registro de Retomas</h2>
+<style>
+    /* Estilos SaaS Corporativo - Registro de Retomas */
+    .saas-search-pill {
+        background: #ffffff;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.28rem 0.6rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill:focus-within {
+        border-color: #D91616;
+        box-shadow: 0 0 0 4px rgba(217, 22, 22, 0.12);
+    }
+    .saas-search-pill input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.88rem;
+    }
+
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 1250px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1550px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid rgba(217, 22, 22, 0.6);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 0.95rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    .spec-pill {
+        background: #F1F5F9;
+        color: #334155;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 8px;
+        display: inline-block;
+    }
+    .imei-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.77rem;
+        color: #64748B;
+        background: #F8FAFC;
+        padding: 0.2rem 0.45rem;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .btn-table-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background: #ffffff;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .btn-table-action:hover {
+        transform: translateY(-2px);
+        border-color: #D91616;
+        color: #D91616;
+        box-shadow: 0 4px 10px rgba(217, 22, 22, 0.18);
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                <i class="fa-solid fa-recycle text-danger me-2"></i>Registro de Retomas
+            </h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Cuarentena & Validación</span>
+        </div>
+        <p class="text-muted small mb-0">Control de dispositivos recibidos como parte de pago, validación técnica y pase a inventario</p>
+    </div>
+    <a href="/celulares/inventario" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold small shadow-sm d-inline-flex align-items-center">
+        <i class="fa-solid fa-arrow-left me-2"></i> Volver al Inventario
+    </a>
 </div>
 
 <!-- Barra de Búsqueda -->
 <form method="GET" action="{{ url_for('retomas_bp.cuarentena') }}" id="filtroForm" class="mb-4">
-    <div class="input-group shadow-sm" style="max-width: 480px;">
-        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-        <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
+    <div class="saas-search-pill d-flex align-items-center" style="max-width: 520px;">
+        <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+        <input type="text" id="searchInput" name="q" class="form-control ps-1"
                placeholder="Buscar por IMEI, Marca, Modelo..."
                value="{{ q }}">
         {% if q %}
-        <a href="{{ url_for('retomas_bp.cuarentena') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+        <a href="{{ url_for('retomas_bp.cuarentena') }}" class="btn btn-sm btn-link text-muted p-0 me-2" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
         {% endif %}
     </div>
 </form>
 
-<div class="card card-custom p-0 shadow-sm border-0">
+<div class="saas-table-card mb-4 position-relative">
     <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
-            <thead class="bg-light text-nowrap" style="font-size: 0.8rem;">
+        <table class="table saas-table table-sm mb-0 align-middle text-center w-100">
+            <thead class="text-nowrap">
                 <tr>
                     <th class="ps-3 py-2 text-start">MARCA</th>
                     <th class="py-2 text-start">REFERENCIA</th>
@@ -85,52 +197,56 @@
                     <td class="pe-3 text-center">
                         <div class="d-inline-flex align-items-center justify-content-center gap-1 bg-light p-1 rounded-3 border">
                             {% if r.estado == 'aprobado' %}
-                                <span class="badge bg-success rounded-pill px-2 py-1" title="Aprobado y enviado a Inventario">
-                                    <i class="fa-solid fa-check me-1"></i> Inventario
+                                <span class="badge bg-dark text-white rounded-pill px-2.5 py-1.5 fw-bold small" title="Aprobado y enviado a Inventario">
+                                    <i class="fa-solid fa-check me-1 text-success"></i> Inventario
                                 </span>
                             {% else %}
                                 <button type="button"
-                                        class="btn btn-sm btn-primary py-1 px-2 fw-bold text-nowrap rounded-2"
+                                        class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-bold text-nowrap shadow-sm"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalAprobar{{ r.id }}"
-                                        title="Pasar al Inventario">
+                                        title="Pasar al Inventario"
+                                        style="font-size: 0.76rem;">
                                     <i class="fa-solid fa-boxes-packing me-1"></i> Aprobar
                                 </button>
                             {% endif %}
 
                             <button type="button"
-                                    class="btn btn-sm btn-outline-warning text-dark py-1 px-2 rounded-2"
+                                    class="btn-table-action"
+                                    style="color: #d97706;"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalEditarRetoma{{ r.id }}"
                                     title="Editar Datos de Retoma">
-                                <i class="fa-solid fa-pen-to-square"></i>
+                                <i class="fa-solid fa-pen-to-square" style="font-size: 0.75rem;"></i>
                             </button>
 
                             {% if r.observaciones %}
                             <button type="button"
-                                    class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2"
+                                    class="btn-table-action"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalObs{{ r.id }}"
                                     title="Ver Observación">
-                                <i class="fa-solid fa-eye"></i>
+                                <i class="fa-solid fa-eye" style="font-size: 0.75rem;"></i>
                             </button>
                             {% endif %}
 
                             {% if r.sale_id %}
                             <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=r.sale_id) }}"
                                target="_blank"
-                               class="btn btn-sm btn-outline-info text-dark py-1 px-2 rounded-2"
+                               class="btn-table-action"
+                               style="color: #0284c7;"
                                title="Ver Factura de Venta (#{{ r.sale_id }})">
-                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
                             </a>
                             {% endif %}
 
                             {% if r.producto_generado and r.producto_generado.detalles_venta %}
                             <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=r.producto_generado.detalles_venta[0].sale_id) }}"
                                target="_blank"
-                               class="btn btn-sm btn-outline-success py-1 px-2 rounded-2"
+                               class="btn-table-action"
+                               style="color: #059669;"
                                title="Ver Factura del Equipo (#{{ r.producto_generado.detalles_venta[0].sale_id }})">
-                                <i class="fa-solid fa-receipt"></i>
+                                <i class="fa-solid fa-receipt" style="font-size: 0.75rem;"></i>
                             </a>
                             {% endif %}
 
@@ -140,9 +256,10 @@
                                   onsubmit="return confirm('¿Estás seguro de eliminar esta retoma de forma permanente?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit"
-                                        class="btn btn-sm btn-outline-danger py-1 px-2 rounded-2"
+                                        class="btn-table-action"
+                                        style="color: #D91616;"
                                         title="Eliminar Retoma">
-                                    <i class="fa-solid fa-trash-can"></i>
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
                                 </button>
                             </form>
                         </div>

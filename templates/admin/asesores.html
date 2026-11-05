@@ -1,125 +1,191 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="row mb-5">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
-            <i class="fa-solid fa-users-gear me-2"></i>Gestión de Asesores
-        </h2>
-        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i> Panel Principal
-        </a>
-    </div>
-</div>
+{% block title %}Gestión de Asesores - RedCover{% endblock %}
 
-<div class="row g-4 mb-5">
-    <!-- Columna Izquierda: Registro -->
-    <div class="col-md-4">
-        <div class="card card-custom p-4 h-100">
-            <h5 class="fw-bold text-brand-black mb-4"><i class="fa-solid fa-user-plus me-2 text-brand-pink"></i> Registrar Nuevo Asesor</h5>
-            <form method="POST" action="{{ url_for('admin_bp.asesores') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                
-                <div class="mb-4">
-                    <label class="form-label text-brand-black fw-semibold small">Nombre Completo</label>
-                    <input type="text" name="nombre" class="form-control bg-light border-0 py-2" required placeholder="Ej. Carlos Mendoza">
-                </div>
-                
-                <div class="d-grid mt-auto">
-                    <button type="submit" class="btn btn-blue py-3 fw-bold text-white rounded-3 shadow-sm text-uppercase">
-                        <i class="fa-solid fa-check me-1"></i> Registrar Asesor
-                    </button>
-                </div>
-            </form>
+{% block content %}
+<div class="container-fluid px-0 px-md-2 py-3">
+    <!-- Header Principal -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                    FUERZA COMERCIAL
+                </span>
+            </div>
+            <h2 class="fw-bolder m-0 text-brand-black" style="font-size: 1.75rem; letter-spacing: -0.5px;">
+                <i class="fa-solid fa-user-tie me-2" style="color: #DC2626;"></i>Gestión de Asesores
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Registro centralizado de asesores comerciales y control de comisiones por ventas.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('admin_bp.ventas_vendedores') }}" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-dark shadow-sm me-1" style="transition: all 0.2s ease;">
+                <i class="fa-solid fa-chart-line text-danger me-2"></i>Ver Ventas y Comisiones
+            </a>
+            <a href="/admin/dashboard" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-secondary shadow-sm" style="transition: all 0.2s ease;">
+                <i class="fa-solid fa-arrow-left me-2 text-muted"></i>Panel Principal
+            </a>
         </div>
     </div>
 
-    <!-- Columna Derecha: Tabla -->
-    <div class="col-md-8">
-        <div class="card card-custom p-0 overflow-hidden h-100 table-custom">
-            <div class="bg-light p-4 border-bottom">
-                 <h5 class="fw-bold text-brand-black m-0 mt-2">Listado de Asesores Globales</h5>
+    <div class="row g-4">
+        <!-- Columna Izquierda: Registro de Asesor -->
+        <div class="col-lg-4 col-xl-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(220, 38, 38, 0.08); color: #DC2626;">
+                            <i class="fa-solid fa-user-plus fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.1rem;">Registrar Nuevo Asesor</h5>
+                            <span class="text-muted extra-small">Alta inmediata en el padrón comercial</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4 pt-3 d-flex flex-column">
+                    <form method="POST" action="{{ url_for('admin_bp.asesores') }}" class="d-flex flex-column flex-grow-1">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-dark fw-bold small mb-1">Nombre Completo del Asesor <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 text-muted"><i class="fa-regular fa-id-card"></i></span>
+                                <input type="text" name="nombre" class="form-control bg-light border-0 py-2 fw-medium" required placeholder="Ej. Carlos Mendoza" style="border-radius: 0 10px 10px 0;">
+                            </div>
+                            <small class="text-muted extra-small mt-1 d-block">Este nombre aparecerá en los recibos y al procesar comisiones en caja.</small>
+                        </div>
+                        
+                        <div class="d-grid mt-auto pt-3">
+                            <button type="submit" class="btn text-white py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); transition: all 0.2s ease; border: none;">
+                                <i class="fa-solid fa-check"></i> Registrar Asesor
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="table-responsive p-0">
-                <table class="table table-hover align-middle m-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">NOMBRE DEL ASESOR</th>
-                            <th>FECHA REGISTRO</th>
-                            <th class="text-center">ESTADO</th>
-                            <th class="text-center pe-4">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for asesor in asesores %}
-                        <tr>
-                            <td class="fw-bold text-brand-black ps-4">{{ asesor.nombre }}</td>
-                            <td class="text-muted small">{{ asesor.created_at.strftime('%d/%m/%Y %I:%M %p') if asesor.created_at else 'N/A' }}</td>
-                            <td class="text-center">
-                                {% if asesor.activo %}
-                                <span class="badge bg-success rounded-pill px-3 py-1">Activo</span>
-                                {% else %}
-                                <span class="badge bg-danger rounded-pill px-3 py-1">Inactivo</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center pe-4">
-                                <div class="d-flex justify-content-center align-items-center gap-2">
-                                    <!-- Botón Editar -->
-                                    <button class="btn btn-sm btn-outline-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editModal{{ asesor.id }}">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i> Editar
-                                    </button>
-                                    
-                                    <!-- Botón Toggle Estado -->
-                                    <form action="{{ url_for('admin_bp.toggle_asesor', id=asesor.id) }}" method="POST" class="d-inline m-0">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        {% if asesor.activo %}
-                                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">
-                                            <i class="fa-solid fa-user-slash me-1"></i> Desactivar
-                                        </button>
-                                        {% else %}
-                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                            <i class="fa-solid fa-user-check me-1"></i> Activar
-                                        </button>
-                                        {% endif %}
-                                    </form>
-                                </div>
+        </div>
 
-                                <!-- Modal Editar Asesor -->
-                                <div class="modal fade text-start text-wrap" id="editModal{{ asesor.id }}" tabindex="-1" aria-hidden="true" style="white-space: normal;">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow-lg">
-                                            <div class="modal-header bg-dark text-white border-0 py-3">
-                                                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-2 text-brand-pink"></i> Editar Asesor</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="{{ url_for('admin_bp.editar_asesor', id=asesor.id) }}" method="POST">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                <div class="modal-body p-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold">Nombre Completo</label>
-                                                        <input type="text" name="nombre" class="form-control bg-light" value="{{ asesor.nombre }}" required>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer border-0 bg-light">
-                                                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold"><i class="fa-solid fa-check text-brand-pink me-1"></i> Guardar Cambios</button>
-                                                </div>
-                                            </form>
+        <!-- Columna Derecha: Listado Global de Asesores -->
+        <div class="col-lg-8 col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white overflow-hidden" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">Listado Global de Asesores</h5>
+                        <p class="text-muted extra-small mb-0">Total: <strong>{{ asesores|length }}</strong> asesores vinculados al sistema</p>
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2" style="background: rgba(15, 23, 42, 0.06); color: #0F172A; font-weight: 700; font-size: 0.8rem;">
+                        <i class="fa-solid fa-users me-1 text-danger"></i> Asesores Activos
+                    </span>
+                </div>
+                
+                <div class="table-responsive p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light border-bottom border-light">
+                            <tr style="font-size: 0.78rem; letter-spacing: 0.5px; color: #64748B;">
+                                <th class="ps-4 py-3 fw-bold text-uppercase">Asesor Comercial</th>
+                                <th class="py-3 fw-bold text-uppercase">Fecha de Registro</th>
+                                <th class="py-3 text-center fw-bold text-uppercase">Estado</th>
+                                <th class="pe-4 py-3 text-center fw-bold text-uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            {% for asesor in asesores %}
+                            <tr style="transition: background 0.15s ease;">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.85rem; background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); flex-shrink: 0;">
+                                            <i class="fa-solid fa-user-tie"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-brand-black" style="font-size: 0.95rem;">{{ asesor.nombre }}</div>
+                                            <small class="text-muted" style="font-size: 0.75rem;">ID Asesor: #{{ asesor.id }}</small>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-folder-open fs-2 mb-2 d-block opacity-50"></i>
-                                No hay asesores registrados en el sistema.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td class="py-3 text-secondary fw-medium" style="font-size: 0.88rem;">
+                                    <i class="fa-regular fa-calendar me-1 text-muted"></i>
+                                    {{ asesor.created_at.strftime('%d/%m/%Y %I:%M %p') if asesor.created_at else 'Sin registro' }}
+                                </td>
+                                <td class="py-3 text-center">
+                                    {% if asesor.activo %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(34, 197, 94, 0.12); color: #16A34A; font-size: 0.8rem;">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Activo
+                                    </span>
+                                    {% else %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(239, 68, 68, 0.12); color: #DC2626; font-size: 0.8rem;">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>Inactivo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 py-3 text-center">
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <!-- Botón Editar -->
+                                        <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ asesor.id }}" style="font-size: 0.8rem;">
+                                            <i class="fa-solid fa-pen-to-square me-1 text-primary"></i> Editar
+                                        </button>
+                                        
+                                        <!-- Botón Toggle Estado -->
+                                        <form action="{{ url_for('admin_bp.toggle_asesor', id=asesor.id) }}" method="POST" class="d-inline m-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            {% if asesor.activo %}
+                                            <button type="submit" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-danger shadow-sm" style="font-size: 0.8rem;">
+                                                <i class="fa-solid fa-user-slash me-1"></i> Desactivar
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-success shadow-sm" style="font-size: 0.8rem;">
+                                                <i class="fa-solid fa-user-check me-1"></i> Activar
+                                            </button>
+                                            {% endif %}
+                                        </form>
+
+                                        <!-- Botón Enlace Rápido a sus Ventas -->
+                                        <a href="{{ url_for('admin_bp.ventas_vendedores', asesor_id=asesor.id) }}" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-muted" title="Ver Ventas de este Asesor" style="width: 30px; height: 30px;">
+                                            <i class="fa-solid fa-chart-line text-brand-pink" style="font-size: 0.8rem;"></i>
+                                        </a>
+                                    </div>
+
+                                    <!-- Modal Editar Asesor -->
+                                    <div class="modal fade text-start" id="editModal{{ asesor.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                                <div class="modal-header border-0 bg-light py-3 px-4">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="fa-solid fa-user-pen text-danger fs-5"></i>
+                                                        <h5 class="modal-title fw-bold text-brand-black">Editar Asesor</h5>
+                                                    </div>
+                                                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form action="{{ url_for('admin_bp.editar_asesor', id=asesor.id) }}" method="POST">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <div class="modal-body p-4 text-start">
+                                                        <div class="mb-3">
+                                                            <label class="form-label text-dark fw-bold small">Nombre Completo del Asesor</label>
+                                                            <input type="text" name="nombre" class="form-control bg-light border-0 py-2 fw-medium rounded-3" value="{{ asesor.nombre }}" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0 bg-light px-4 py-3">
+                                                        <button type="button" class="btn btn-white bg-white border rounded-pill px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" style="background: #0F172A;"><i class="fa-solid fa-check text-brand-pink me-1"></i> Guardar Cambios</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <div class="py-4">
+                                        <i class="fa-solid fa-user-slash fs-1 mb-3 opacity-25"></i>
+                                        <p class="mb-0 fw-bold">No hay asesores comerciales registrados en el sistema.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

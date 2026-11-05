@@ -16,6 +16,11 @@
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/redcover.png') }}">
     <meta name="theme-color" content="#F8F9FA">
 
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
@@ -23,18 +28,20 @@
     <style>
         /* REGLA DE BRANDING ESTRICTA Y COLORES: RED COVER (MODO CLARO) */
         :root {
-            --brand-red: #D91616;    /* Rojo Red Cover */
-            --brand-black: #000000;  /* Negro Puro */
+            --brand-red: #DC2626;    /* Rojo Vivo RedCover */
+            --brand-red-hover: #B91C1C;
+            --brand-black: #0F172A;  /* Slate/Negro Moderno */
+            --brand-header-bg: #111827; /* Dark Header sólido */
             --brand-white: #FFFFFF;  /* Blanco */
             
-            --brand-bg: #F8F9FA;     /* Fondo gris súper claro */
+            --brand-bg: #F1F5F9;     /* Fondo gris estructurado para máximo relieve */
             --brand-card-bg: #FFFFFF; /* Fondo de tarjetas */
         }
 
         body {
-            background-color: var(--brand-bg);
-            color: var(--brand-black);
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F1F5F9 !important;
+            color: #0F172A;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -49,12 +56,12 @@
         .btn-brand-blue { background-color: var(--brand-red) !important; color: var(--brand-white) !important; border: none; }
         .btn-brand-blue:hover { background-color: #b81212 !important; color: var(--brand-white) !important; }
 
-        /* Navbar E-commerce Vibe (En Negro y Rojo) */
+        /* Navbar E-commerce Vibe (En Negro y Borde Rojo Brillante) */
         .navbar-custom {
             background-color: var(--brand-black);
-            border-bottom: 2px solid var(--brand-red);
-            padding: 1rem 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 3px solid var(--brand-red) !important;
+            padding: 0.9rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 10px rgba(217, 22, 22, 0.25);
         }
         
         .navbar-custom .navbar-brand {
@@ -104,61 +111,387 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        /* Superficies Claras y Limpias -> Ahora Claras (Light Mode) */
+        /* Superficies Claras y Limpias con Relieve */
         .card-custom {
-            background-color: var(--brand-card-bg);
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            background-color: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
         }
 
-        /* Tablas */
-        .table-custom {
-            background-color: var(--brand-card-bg);
-            border-radius: 12px;
-            color: var(--brand-black);
+        /* Modern RedCover SaaS Data Tables (High Contrast & Volume) */
+        .table-container-card {
+            background: #FFFFFF !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 20px !important;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+            overflow: hidden !important;
         }
+        .table-custom {
+            background-color: #FFFFFF;
+            color: #0F172A;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        /* Cabecera Oscura Grafito con Línea de Acento Rojo RedCover */
         .table-custom thead th {
-            color: var(--brand-black);
-            border-bottom: 2px solid var(--brand-red);
+            background: #111827 !important;
+            color: #F8FAFC !important;
+            font-weight: 700 !important;
             text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 1.25rem 1rem;
+            font-size: 0.74rem !important;
+            letter-spacing: 0.06em !important;
+            padding: 1.1rem 1.25rem !important;
+            border-top: 3px solid #DC2626 !important;
+            border-bottom: 2px solid #0F172A !important;
+        }
+        .table-custom tbody tr {
+            transition: all 0.18s ease-in-out;
+            background: #FFFFFF;
+            border-left: 4px solid transparent;
+        }
+        .table-custom tbody tr:nth-child(even) {
+            background: #F8FAFC;
+        }
+        /* Hover de Alto Impacto: Borde Rojo RedCover Vivo y Elevación */
+        .table-custom tbody tr:hover {
+            background: #F1F5F9 !important;
+            border-left: 4px solid #DC2626 !important;
+            transform: scale(1.002);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+            position: relative;
+            z-index: 2;
         }
         .table-custom tbody td {
-            padding: 1.25rem 1rem;
+            padding: 1.15rem 1.25rem !important;
             vertical-align: middle;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #E2E8F0 !important;
+            border-top: none !important;
+            color: #1E293B;
         }
 
-        /* Sidebar Offcanvas Estilos (Adaptados a Light Mode) */
-        .offcanvas {
-            background-color: var(--brand-bg) !important;
-            color: var(--brand-black) !important;
-            border-right: 1px solid #dee2e6 !important;
+        /* Botones de Acción de Alto Contraste */
+        .btn-action-dark {
+            background: #0F172A !important;
+            color: #FFFFFF !important;
+            border: 1px solid #1E293B !important;
+            border-radius: 9999px !important;
+            font-weight: 700 !important;
+            font-size: 0.82rem !important;
+            padding: 0.4rem 1rem !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            text-decoration: none !important;
+        }
+        .btn-action-dark:hover {
+            background: #DC2626 !important;
+            border-color: #DC2626 !important;
+            color: #FFFFFF !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+        }
+        .btn-action-icon-del {
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 50% !important;
+            background: #FEF2F2 !important;
+            color: #DC2626 !important;
+            border: 1px solid #FECACA !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08) !important;
+            padding: 0 !important;
+        }
+        .btn-action-icon-del:hover {
+            background: #DC2626 !important;
+            color: #FFFFFF !important;
+            border-color: #DC2626 !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35) !important;
+        }
+
+        /* Badges de Código / Factura en Dark Slate Nítido */
+        .badge-dark-code {
+            background: #0F172A !important;
+            color: #F8FAFC !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            padding: 0.3rem 0.65rem !important;
+            border-radius: 6px !important;
+            letter-spacing: 0.03em !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+        }
+
+        /* Soft Badges con Volumen y Status Dots */
+        .badge-soft-red {
+            background: #FEE2E2 !important;
+            color: #DC2626 !important;
+            border: 1px solid #FECACA !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            border-radius: 9999px !important;
+            padding: 0.35rem 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .badge-soft-green {
+            background: #DCFCE7 !important;
+            color: #16A34A !important;
+            border: 1px solid #BBF7D0 !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            border-radius: 9999px !important;
+            padding: 0.35rem 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .badge-soft-amber {
+            background: #FEF3C7 !important;
+            color: #D97706 !important;
+            border: 1px solid #FDE68A !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            border-radius: 9999px !important;
+            padding: 0.35rem 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .badge-soft-blue {
+            background: #E0F2FE !important;
+            color: #0284C7 !important;
+            border: 1px solid #BAE6FD !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            border-radius: 9999px !important;
+            padding: 0.35rem 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .badge-soft-slate {
+            background: #F1F5F9 !important;
+            color: #475569 !important;
+            border: 1px solid #CBD5E1 !important;
+            font-weight: 700 !important;
+            font-size: 0.78rem !important;
+            border-radius: 9999px !important;
+            padding: 0.35rem 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .status-dot-red { background: #DC2626; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2); }
+        .status-dot-green { background: #16A34A; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2); }
+        .status-dot-amber { background: #D97706; box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2); }
+        .status-dot-blue { background: #0284C7; box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2); }
+        .status-dot-slate { background: #475569; box-shadow: 0 0 0 2px rgba(71, 85, 105, 0.2); }
+
+        /* SIDEBAR OFFCANVAS SAAS HIGH-END (Panel Flotante RedCover Amplio y Ergonómico) */
+        .offcanvas-start {
+            width: 380px !important;
+            max-width: 88vw !important;
+            background: #FFFFFF !important;
+            border-right: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+            box-shadow: 20px 0 50px -10px rgba(15, 23, 42, 0.12) !important;
+            border-radius: 0 30px 30px 0 !important;
         }
         .offcanvas-header {
-            background-color: var(--brand-white) !important;
-            border-bottom: 1px solid #dee2e6 !important;
+            background: #FFFFFF !important;
+            border-bottom: 1.5px solid #F1F5F9 !important;
+            padding: 1.6rem 1.8rem !important;
+        }
+        .offcanvas-user-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .offcanvas-user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28);
         }
         .offcanvas-title {
-            color: var(--brand-black) !important;
+            color: #0F172A !important;
+            font-weight: 850 !important;
+            font-size: 1.25rem !important;
+            letter-spacing: -0.4px;
+            margin: 0;
+            line-height: 1.2;
         }
+        .offcanvas-subtitle {
+            font-size: 0.8rem;
+            color: #64748B;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 2px 0 0 0;
+        }
+        .offcanvas-body {
+            padding: 1.4rem 1.5rem !important;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(220, 38, 38, 0.25) transparent;
+        }
+        .offcanvas-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .offcanvas-body::-webkit-scrollbar-thumb {
+            background: rgba(220, 38, 38, 0.2);
+            border-radius: 9999px;
+        }
+
+        /* Enlaces del Sidebar Amplios, Claros y Legibles */
         .offcanvas-body .nav-link {
-            color: var(--brand-black) !important;
-            transition: all 0.2s ease-in-out;
+            color: #1E293B !important;
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            min-height: 48px !important;
+            padding: 0.75rem 1.15rem !important;
+            border-radius: 12px !important;
+            border-bottom: none !important;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .offcanvas-body .nav-link > span {
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-grow: 1 !important;
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+        }
+        .offcanvas-body .nav-link i {
+            font-size: 1.25rem !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            max-width: 28px !important;
+            text-align: center !important;
+            margin-right: 14px !important;
+            flex-shrink: 0 !important;
+            display: inline-block !important;
+        }
+        /* Icono chevron con rotación suave */
+        .offcanvas-body .nav-link i.fa-chevron-down {
+            font-size: 0.85rem !important;
+            width: auto !important;
+            min-width: auto !important;
+            max-width: auto !important;
+            margin-right: 0 !important;
+            margin-left: auto !important;
+            transition: transform 0.25s ease !important;
+            color: #94A3B8 !important;
+        }
+        .offcanvas-body .nav-link[aria-expanded="true"] i.fa-chevron-down {
+            transform: rotate(180deg) !important;
+            color: #DC2626 !important;
+        }
+        /* Iconos con acento corporativo de RedCover */
+        .offcanvas-body .nav-link .text-brand-pink,
+        .offcanvas-body .nav-link i.fa-solid.fa-chart-pie,
+        .offcanvas-body .nav-link i.fa-solid.fa-mobile-screen-button,
+        .offcanvas-body .nav-link i.fa-solid.fa-headphones,
+        .offcanvas-body .nav-link i.fa-solid.fa-cash-register,
+        .offcanvas-body .nav-link i.fa-solid.fa-tags,
+        .offcanvas-body .nav-link i.fa-solid.fa-recycle {
+            color: #DC2626 !important;
         }
         .offcanvas-body .nav-link:hover {
-            background-color: rgba(217, 22, 22, 0.05);
+            background: #FEF2F2 !important;
+            color: #DC2626 !important;
             transform: translateX(4px);
-            border-left: 3px solid var(--brand-red) !important;
-            color: var(--brand-red) !important;
         }
-        /* Ajustes específicos de Bootstrap utilitarios en el sidebar */
-        .offcanvas-body .border-bottom { border-bottom-color: #dee2e6 !important; }
-        .offcanvas-body .bg-light { background-color: #FFFFFF !important; border-color: #dee2e6 !important; }
-        .offcanvas-body .text-muted { color: #6c757d !important; }
+        .offcanvas-body .nav-link:hover i:not(.fa-chevron-down) {
+            color: #DC2626 !important;
+        }
+        
+        /* Submenús colapsables: Identico tamaño y proporción */
+        .offcanvas-body .collapse ul {
+            border-left: 2px solid #FEE2E2 !important;
+            margin-left: 1.5rem !important;
+            padding-left: 0.5rem !important;
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.5rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            list-style: none !important;
+        }
+        .offcanvas-body .collapse .nav-link {
+            font-size: 1.05rem !important; /* Mismo tamaño estético exacto */
+            font-weight: 600 !important;
+            min-height: 44px !important;
+            padding: 0.65rem 1rem !important;
+            color: #334155 !important;
+            border-radius: 10px !important;
+        }
+        .offcanvas-body .collapse .nav-link i {
+            font-size: 1.2rem !important;
+            width: 26px !important;
+            min-width: 26px !important;
+            max-width: 26px !important;
+            margin-right: 12px !important;
+            flex-shrink: 0 !important;
+        }
+        .offcanvas-body .collapse .nav-link:hover {
+            background: #FFF1F2 !important;
+            color: #DC2626 !important;
+            transform: translateX(4px);
+        }
+
+        /* Botón Salir del Sistema Amplio */
+        .btn-sidebar-logout {
+            background: #FFFFFF;
+            color: #DC2626 !important;
+            border: 2px solid #FCA5A5;
+            border-radius: 9999px;
+            font-weight: 800;
+            font-size: 1.05rem;
+            padding: 0.95rem 1.5rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+        }
+        .btn-sidebar-logout i {
+            font-size: 1.15rem;
+        }
+        .btn-sidebar-logout:hover {
+            background: #DC2626;
+            color: #FFFFFF !important;
+            border-color: #DC2626;
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.28);
+            transform: translateY(-2px);
+        }
 
         /* OPTIMIZACIONES PWA Y MÓVIL (PANTALLAS TÁCTILES) */
         button, a, input, select, textarea, .btn, .nav-link, .modal {
@@ -173,6 +506,45 @@
             z-index: 1050 !important;
         }
 
+        /* REGLAS MAESTRAS DE TABLAS RESPONSIVAS (Móvil, Tablet, PWA y Computador) */
+        .table-responsive,
+        .table-responsive-desktop-free {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-x pan-y !important;
+            overscroll-behavior-x: contain;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(217, 22, 22, 0.4) #f1f5f9;
+        }
+
+        /* Scrollbar elegante y visible para guiar al usuario a deslizar si hace falta */
+        .table-responsive::-webkit-scrollbar,
+        .table-responsive-desktop-free::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-track,
+        .table-responsive-desktop-free::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 9999px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb,
+        .table-responsive-desktop-free::-webkit-scrollbar-thumb {
+            background: rgba(217, 22, 22, 0.35);
+            border-radius: 9999px;
+            transition: background 0.2s ease;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover,
+        .table-responsive-desktop-free::-webkit-scrollbar-thumb:hover {
+            background: #D91616;
+        }
+
+        /* En Computadores (pantallas anchas), permitir que las celdas se ajusten cómodamente */
+        @media (min-width: 1400px) {
+            .saas-table, .table-custom {
+                width: 100% !important;
+            }
+        }
+
         /* Área táctil mínima para botones en móvil para evitar pulsaciones fallidas */
         @media (max-width: 768px) {
             .btn {
@@ -185,9 +557,6 @@
                 min-height: 32px;
                 padding-left: 0.65rem !important;
                 padding-right: 0.65rem !important;
-            }
-            .table-responsive {
-                -webkit-overflow-scrolling: touch;
             }
         }
     </style>
@@ -219,66 +588,71 @@
     </nav>
 
     {% if current_user.is_authenticated %}
-    <!-- Offcanvas Menú Lateral (Sidebar) -->
-    <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 280px;">
-        <div class="offcanvas-header bg-brand-pink border-bottom">
-            <h5 class="offcanvas-title fw-bold text-brand-black" id="offcanvasNavbarLabel">
-                <i class="fa-solid fa-user-circle me-2"></i>{{ current_user.rol | capitalize }}
-            </h5>
+    <!-- Offcanvas Menú Lateral (Sidebar Moderno SaaS Premium) -->
+    <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 380px; max-width: 88vw;">
+        <div class="offcanvas-header pb-2">
+            <div class="offcanvas-user-card">
+                <div class="offcanvas-user-avatar">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">{{ current_user.nombre or current_user.rol | capitalize }}</h5>
+                    <p class="offcanvas-subtitle">{{ current_user.rol | upper }} &bull; REDCOVER</p>
+                </div>
+            </div>
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column p-0">
-            <ul class="navbar-nav w-100 mb-auto px-3 py-3 gap-2">
+            <ul class="navbar-nav w-100 mb-auto px-4 py-3 gap-2">
                 {% if current_user.rol == 'admin' %}
                     <!-- Enlaces Únicos para el Administrador de la Tienda -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-brand-pink me-2" style="width:20px; text-align:center;"></i> Dashboard</a>
+                        <a class="nav-link" href="/admin/dashboard"><i class="fa-solid fa-chart-pie sidebar-icon"></i> Dashboard</a>
                     </li>
 
                     <!-- Módulo Celulares -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseCelulares" role="button" aria-expanded="false" aria-controls="collapseCelulares">
-                            <span><i class="fa-solid fa-mobile-screen-button text-brand-black me-2" style="width:20px; text-align:center;"></i> Módulo Celulares</span>
-                            <i class="fa-solid fa-chevron-down small text-muted"></i>
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseCelulares" role="button" aria-expanded="false" aria-controls="collapseCelulares">
+                            <span><i class="fa-solid fa-mobile-screen-button text-brand-black"></i> Módulo Celulares</span>
+                            <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.85rem !important; width: auto !important; margin: 0 !important;"></i>
                         </a>
                         <div class="collapse" id="collapseCelulares">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.inventario') }}"><i class="fa-solid fa-mobile-screen-button text-brand-pink me-2" style="width:20px; text-align:center;"></i> Inventario Celulares</a>
+                                    <a class="nav-link" href="{{ url_for('celulares_bp.inventario') }}"><i class="fa-solid fa-mobile-screen-button text-brand-pink"></i> Inventario Celulares</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('externos_bp.inventario') }}"><i class="fa-solid fa-box-open text-brand-black me-2" style="width:20px; text-align:center;"></i> Productos Externos</a>
+                                    <a class="nav-link" href="{{ url_for('externos_bp.inventario') }}"><i class="fa-solid fa-box-open text-brand-black"></i> Productos Externos</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('retomas_bp.cuarentena') }}"><i class="fa-solid fa-recycle text-brand-pink me-2" style="width:20px; text-align:center;"></i> Retomas</a>
+                                    <a class="nav-link" href="{{ url_for('retomas_bp.cuarentena') }}"><i class="fa-solid fa-recycle text-brand-pink"></i> Retomas</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.clientes') }}"><i class="fa-solid fa-users text-brand-black me-2" style="width:20px; text-align:center;"></i> Clientes Celulares</a>
+                                    <a class="nav-link" href="{{ url_for('celulares_bp.clientes') }}"><i class="fa-solid fa-users text-brand-black"></i> Clientes Celulares</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.historial_ventas') }}"><i class="fa-solid fa-clock-rotate-left text-brand-pink me-2" style="width:20px; text-align:center;"></i> Historial Celulares</a>
+                                    <a class="nav-link" href="{{ url_for('celulares_bp.historial_ventas') }}"><i class="fa-solid fa-clock-rotate-left text-brand-pink"></i> Historial Celulares</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('celulares_bp.trazabilidad') }}"><i class="fa-solid fa-timeline text-brand-pink me-2" style="width:20px; text-align:center;"></i> Trazabilidad IMEI</a>
+                                    <a class="nav-link" href="{{ url_for('celulares_bp.trazabilidad') }}"><i class="fa-solid fa-timeline text-brand-pink"></i> Trazabilidad IMEI</a>
                                 </li>
-
                             </ul>
                         </div>
                     </li>
 
                     <!-- Módulo Accesorios -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseAccesorios" role="button" aria-expanded="false" aria-controls="collapseAccesorios">
-                            <span><i class="fa-solid fa-headphones text-brand-black me-2" style="width:20px; text-align:center;"></i> Módulo Accesorios</span>
-                            <i class="fa-solid fa-chevron-down small text-muted"></i>
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseAccesorios" role="button" aria-expanded="false" aria-controls="collapseAccesorios">
+                            <span><i class="fa-solid fa-headphones text-brand-black"></i> Módulo Accesorios</span>
+                            <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.85rem !important; width: auto !important; margin: 0 !important;"></i>
                         </a>
                         <div class="collapse" id="collapseAccesorios">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/inventory"><i class="fa-solid fa-box-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Inventario Accesorios</a>
+                                    <a class="nav-link" href="/inventory"><i class="fa-solid fa-box-open text-brand-pink"></i> Inventario Accesorios</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('externos_bp.inventario_accesorios') }}"><i class="fa-solid fa-headphones-simple text-brand-black me-2" style="width:20px; text-align:center;"></i> Accesorios Externos</a>
+                                    <a class="nav-link" href="{{ url_for('externos_bp.inventario_accesorios') }}"><i class="fa-solid fa-headphones-simple text-brand-black"></i> Accesorios Externos</a>
                                 </li>
                             </ul>
                         </div>
@@ -286,22 +660,22 @@
 
                     <!-- Catálogo -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-black me-2" style="width:20px; text-align:center;"></i> Catálogo Tienda</a>
+                        <a class="nav-link" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-black"></i> Catálogo Tienda</a>
                     </li>
 
                     <!-- Módulo Caja -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseCaja" role="button" aria-expanded="false" aria-controls="collapseCaja">
-                            <span><i class="fa-solid fa-cash-register text-brand-pink me-2" style="width:20px; text-align:center;"></i> Módulo Caja</span>
-                            <i class="fa-solid fa-chevron-down small text-muted"></i>
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseCaja" role="button" aria-expanded="false" aria-controls="collapseCaja">
+                            <span><i class="fa-solid fa-cash-register text-brand-pink"></i> Módulo Caja</span>
+                            <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.85rem !important; width: auto !important; margin: 0 !important;"></i>
                         </a>
                         <div class="collapse" id="collapseCaja">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink me-2" style="width:20px; text-align:center;"></i> Caja Rápida Visual</a>
+                                    <a class="nav-link" href="/sales/caja_visual"><i class="fa-solid fa-store text-brand-pink"></i> Caja Rápida Visual</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
+                                    <a class="nav-link" href="/sales/ventas_hoy"><i class="fa-solid fa-list-check text-brand-pink"></i> Ventas de Hoy</a>
                                 </li>
                             </ul>
                         </div>
@@ -309,41 +683,63 @@
                     
                     <!-- Módulo Personal / Asesores -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsePersonal" role="button" aria-expanded="false" aria-controls="collapsePersonal">
-                            <span><i class="fa-solid fa-users text-brand-black me-2" style="width:20px; text-align:center;"></i> Personal</span>
-                            <i class="fa-solid fa-chevron-down small text-muted"></i>
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsePersonal" role="button" aria-expanded="false" aria-controls="collapsePersonal">
+                            <span><i class="fa-solid fa-users text-brand-black"></i> Personal</span>
+                            <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.85rem !important; width: auto !important; margin: 0 !important;"></i>
                         </a>
                         <div class="collapse" id="collapsePersonal">
                             <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="/admin/vendedores"><i class="fa-solid fa-users-gear text-brand-black me-2" style="width:20px; text-align:center;"></i> Perfiles</a>
+                                    <a class="nav-link" href="/admin/vendedores"><i class="fa-solid fa-users-gear text-brand-black"></i> Perfiles</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.asesores') }}"><i class="fa-solid fa-user-tie text-brand-black me-2" style="width:20px; text-align:center;"></i> Asesores</a>
+                                    <a class="nav-link" href="{{ url_for('admin_bp.asesores') }}"><i class="fa-solid fa-user-tie text-brand-black"></i> Asesores</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink me-2" style="width:20px; text-align:center;"></i> Ventas Asesores</a>
+                                    <a class="nav-link" href="{{ url_for('admin_bp.ventas_vendedores') }}"><i class="fa-solid fa-chart-line text-brand-pink"></i> Ventas Asesores</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold small" href="{{ url_for('admin_bp.vales') }}"><i class="fa-solid fa-receipt text-warning me-2" style="width:20px; text-align:center;"></i> Vales</a>
+                                    <a class="nav-link" href="{{ url_for('admin_bp.vales') }}"><i class="fa-solid fa-receipt text-warning"></i> Vales</a>
                                 </li>
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Módulo Auditoría & Arqueo (Sección Independiente Reestructurada) -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved text-brand-pink me-2" style="width:20px; text-align:center;"></i> Garantías</a>
+                        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseAuditoria" role="button" aria-expanded="false" aria-controls="collapseAuditoria">
+                            <span><i class="fa-solid fa-scale-balanced text-danger"></i> Auditoría & Finanzas</span>
+                            <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.85rem !important; width: auto !important; margin: 0 !important;"></i>
+                        </a>
+                        <div class="collapse" id="collapseAuditoria">
+                            <ul class="nav flex-column ms-3 mt-1 mb-2 gap-1 border-start ps-2">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-danger"></i> Arqueo de Caja</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('arqueo_bp.reporte') }}"><i class="fa-solid fa-file-invoice-dollar text-danger"></i> Reporte Arqueos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning"></i> Log de Sobrantes</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved text-brand-pink"></i> Garantías</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('providers_bp.list_providers') }}"><i class="fa-solid fa-truck-fast text-brand-black me-2" style="width:20px; text-align:center;"></i> Proveedores</a>
+                        <a class="nav-link" href="{{ url_for('providers_bp.list_providers') }}"><i class="fa-solid fa-truck-fast text-brand-black"></i> Proveedores</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('admin_bp.aprobaciones') }}"><i class="fa-solid fa-tags text-brand-pink me-2" style="width:20px; text-align:center;"></i> Aprobaciones</a>
+                        <a class="nav-link" href="{{ url_for('admin_bp.aprobaciones') }}"><i class="fa-solid fa-tags text-brand-pink"></i> Aprobaciones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-brand-black me-2" style="width:20px; text-align:center;"></i> Gastos</a>
+                        <a class="nav-link" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-brand-black"></i> Gastos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/maneos"><i class="fa-solid fa-handshake text-brand-pink me-2" style="width:20px; text-align:center;"></i> Maneos</a>
+                        <a class="nav-link" href="/admin/maneos"><i class="fa-solid fa-handshake text-brand-pink"></i> Maneos</a>
                     </li>
                     <!-- ZENIC — Asistente IA -->
                     <li class="nav-item">
@@ -354,11 +750,16 @@
                             ZENIC <span style="font-size:.6rem;background:#D91616;color:#fff;padding:1px 6px;border-radius:10px;margin-left:4px;letter-spacing:1px;">IA</span>
                         </a>
                     </li>
-                    <li class="nav-item mt-2">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-black me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
-                    </li>
+                    <!-- Protocolo Legal y Protección de Datos (SIC / Ley 1581) -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('arqueo_bp.log_sobrantes') }}"><i class="fa-solid fa-scale-unbalanced-flip text-warning me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom d-flex align-items-center justify-content-between" href="{{ url_for('legal_bp.ver_acuerdo') }}">
+                            <span><i class="fa-solid fa-scale-balanced text-primary me-2" style="width:20px; text-align:center;"></i> Protección Datos (SIC)</span>
+                            {% if acuerdo_sic_firmado %}
+                                <span class="badge bg-success rounded-pill" style="font-size: 0.65rem;">Firmado</span>
+                            {% else %}
+                                <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Pendiente</span>
+                            {% endif %}
+                        </a>
                     </li>
                 {% elif current_user.rol == 'vendedor' %}
                     <!-- Vistas Estrictamente Operativas (Cajeros) -->
@@ -436,17 +837,17 @@
             </ul>
             
             <!-- Interfaz de Desconexión / Fin de Turno al final del sidebar -->
-            <div class="px-3 pb-4 mt-auto">
-                <a class="btn btn-outline-danger w-100 rounded-pill fw-bold" href="{{ url_for('auth_bp.logout') }}">
-                    <i class="fa-solid fa-sign-out-alt me-2"></i> Salir del Sistema
+            <div class="px-3 pb-4 mt-auto pt-3 border-top">
+                <a class="btn-sidebar-logout w-100" href="{{ url_for('auth_bp.logout') }}">
+                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Salir del Sistema
                 </a>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- App Container -->
-    <main class="container mb-5">
+    <!-- App Container Fluido y Adaptable -->
+    <main class="container-fluid px-3 px-md-4 mb-5" style="max-width: 1720px;">
         <!-- Renderizado de Flash Messages de Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -589,5 +990,278 @@
     </script>
     {% endif %}
 
+    <!-- ======================================================== -->
+    <!-- MODAL GATEKEEPER BLOQUEANTE: PROTOCOLO SIC / LEY 1581 (ZENIC) -->
+    <!-- ======================================================== -->
+    {% if current_user.is_authenticated and not acuerdo_sic_firmado and request.endpoint != 'legal_bp.ver_acuerdo' %}
+    <div class="modal fade" id="modalGatekeeperSIC" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalGatekeeperSICLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 70px rgba(0,0,0,0.45);">
+                
+                <!-- Header con branding Zenic e Isotipo del Cerebro -->
+                <div class="modal-header bg-dark text-white border-bottom border-secondary py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-1 bg-white border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <img src="{{ url_for('static', filename='img/zenic_brain.png') }}" alt="Zenic S.A.S." style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold m-0" id="modalGatekeeperSICLabel">Zenic S.A.S. • Protocolo Legal de Datos</h5>
+                            <span class="small text-muted" style="font-size: 0.72rem;">Conformidad Ley 1581 de 2012 / Decreto 1377 de 2013 (SIC)</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                        Obligatorio
+                    </span>
+                </div>
+
+                {% if current_user.rol == 'admin' %}
+                <!-- FORMULARIO DE FIRMA PARA EL ADMINISTRADOR -->
+                <form action="{{ url_for('legal_bp.firmar_acuerdo') }}" method="POST" id="formFirmarDPA">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="signature_data" id="inputModalSignatureData">
+
+                    <div class="modal-body p-4" style="font-size: 0.85rem; max-height: 72vh; overflow-y: auto;">
+
+                        <!-- Alerta Informativa de Roles -->
+                        <div class="alert alert-primary border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3" style="background: rgba(59, 130, 246, 0.08);">
+                            <i class="fa-solid fa-scale-balanced fs-4 text-primary mt-1"></i>
+                            <div>
+                                <strong class="text-dark d-block mb-1">Aceptación y Firma del Acuerdo de Transmisión (DPA v2026.1)</strong>
+                                <span class="text-muted small">
+                                    En calidad de <strong>Responsable del Tratamiento</strong>, debes validar tus datos jurídicos y suscribir electrónicamente el acuerdo con <strong>Zenic S.A.S. (El Encargado)</strong> para activar el software.
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 1. Campos Editables de Identificación del Comercio -->
+                        <h6 class="fw-bold text-dark mb-2 text-uppercase small" style="letter-spacing: 0.5px;">1. Datos del Comercio y Representación Legal</h6>
+                        <div class="row g-2 mb-4 p-3 rounded-3 bg-light border">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold text-muted mb-1">Razón Social Jurídica *</label>
+                                <input type="text" name="business_name" id="gk_business_name" class="form-control form-control-sm fw-semibold" value="RED COVER COMUNICACIONES S.A.S." required placeholder="Ej: RedCover S.A.S.">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-muted mb-1">NIT / Cédula del Comercio *</label>
+                                <input type="text" name="business_nit" id="gk_business_nit" class="form-control form-control-sm fw-semibold" value="901.888.777-1" required placeholder="Ej: 901.234.567-8">
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold text-muted mb-1">Representante Legal / Titular *</label>
+                                <input type="text" name="legal_representative" id="gk_legal_rep" class="form-control form-control-sm fw-semibold" value="{{ current_user.nombre }}" required placeholder="Nombre completo">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-muted mb-1">C.C. y Lugar de Expedición *</label>
+                                <input type="text" name="legal_rep_id" id="gk_legal_rep_id" class="form-control form-control-sm fw-semibold" required placeholder="Ej: 1.098.765.432 de Bucaramanga">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Ciudad y Departamento *</label>
+                                <input type="text" name="business_city" class="form-control form-control-sm" value="Bucaramanga, Santander" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Correo de Notificaciones *</label>
+                                <input type="email" name="business_email" class="form-control form-control-sm" value="{{ current_user.email }}" required>
+                            </div>
+                        </div>
+
+                        <!-- 2. Aviso de Privacidad y Salvaguardas Visible -->
+                        <h6 class="fw-bold text-dark mb-2 text-uppercase small" style="letter-spacing: 0.5px;">2. Salvaguardas Vinculantes de Zenic S.A.S.</h6>
+                        <div class="p-3 rounded-3 mb-4 text-muted small" style="background: #fafafa; border: 1px solid #e5e7eb; line-height: 1.55;">
+                            • <strong>Zenic S.A.S. (NIT 902067639-6)</strong> no monetiza, no cruza ni comercializa las bases de datos de clientes ni seriales/IMEI de su negocio.<br>
+                            • Infraestructura híbrida de alta seguridad en servidores Hostinger con copias físicas locales cifradas bajo custodia de Zenic.<br>
+                            • <strong>Sin Permanencia Mínima:</strong> Portabilidad garantizada en CSV/Excel/SQL y destrucción definitiva certificada tras 30 días de gracia.
+                        </div>
+
+                        <!-- 3. Casillas Clickwrap Desmarcadas por Defecto -->
+                        <h6 class="fw-bold text-dark mb-2 text-uppercase small" style="letter-spacing: 0.5px;">3. Declaración de Consentimiento Expreso (Clickwrap)</h6>
+                        <div class="space-y-3 mb-4">
+                            <div class="form-check p-3 rounded-3 border mb-2" style="background-color: #fdfdfd;">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="accepted_terms" id="gk_chk_terms" value="1" onchange="validarFirmaGatekeeper()">
+                                <label class="form-check-label text-dark fw-medium" for="gk_chk_terms" style="cursor: pointer;">
+                                    He leído y acepto los <a href="{{ url_for('legal_bp.ver_acuerdo') }}" target="_blank" class="text-primary fw-bold text-decoration-underline">Términos del Servicio</a> y la Política de Tratamiento de Datos de Zenic S.A.S.
+                                </label>
+                            </div>
+
+                            <div class="form-check p-3 rounded-3 border mb-3" style="background-color: #fdfdfd;">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="accepted_dpa" id="gk_chk_dpa" value="1" onchange="validarFirmaGatekeeper()">
+                                <label class="form-check-label text-dark fw-medium" for="gk_chk_dpa" style="cursor: pointer;">
+                                    En calidad de <strong>Representante Legal</strong>, autorizo y suscribo electrónicamente el <a href="{{ url_for('legal_bp.ver_acuerdo') }}" target="_blank" class="text-primary fw-bold text-decoration-underline">Acuerdo de Transmisión DPA</a> dejando constancia de que los datos de mis clientes fueron recolectados con previa autorización legal.
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 4. Canvas Interactivo de Firma Digital -->
+                        <h6 class="fw-bold text-dark mb-2 text-uppercase small d-flex justify-content-between align-items-center" style="letter-spacing: 0.5px;">
+                            <span>4. Rúbrica Digital del Representante Legal *</span>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" onclick="limpiarCanvasModal()">Borrar y reintentar</button>
+                        </h6>
+                        <div class="position-relative border-2 border-dashed rounded-3 bg-white mb-2" style="height: 120px; border-color: #cbd5e1 !important;">
+                            <canvas id="canvasModalFirma" class="w-100 h-100 cursor-crosshair touch-none" style="touch-action: none;"></canvas>
+                            <div id="hintCanvasModal" class="position-absolute top-50 start-50 translate-middle text-muted small pointer-events-none" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-pen-nib me-1 text-primary"></i> Traza tu firma aquí con el dedo o puntero
+                            </div>
+                        </div>
+                        <small class="text-muted d-block" style="font-size: 0.72rem;">
+                            Conforme a la Ley 527 de 1999, esta firma genera un sello probatorio SHA-256 inmutable con fecha, hora oficial colombiana (UTC-5) e IP de origen.
+                        </small>
+
+                    </div>
+
+                    <div class="modal-footer bg-light border-top py-3 px-4 d-flex justify-content-between align-items-center">
+                        <span class="text-muted small" id="gk_estado_text" style="font-size: 0.75rem;">
+                            <i class="fa-solid fa-lock me-1 text-danger"></i> Completa los campos y firma para acceder
+                        </span>
+                        <button type="submit" id="btnSubmitGatekeeper" class="btn btn-secondary rounded-pill px-4 fw-bold shadow-sm" disabled>
+                            <i class="fa-solid fa-signature me-1"></i> Firmar Electrónicamente y Acceder
+                        </button>
+                    </div>
+                </form>
+
+                {% else %}
+                <!-- AVISO BLOQUEANTE PARA ROLES SUBORDINADOS (CAJEROS / VENDEDORES / BODEGA) -->
+                <div class="modal-body p-5 text-center">
+                    <div class="mb-3 text-warning">
+                        <i class="fa-solid fa-shield-halved fa-3x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Configuración Legal Pendiente ante la SIC</h5>
+                    <p class="text-muted small mb-4 mx-auto" style="max-width: 500px;">
+                        Para garantizar el cumplimiento de la Ley 1581 de 2012, el <strong>Administrador o Representante Legal</strong> de la tienda debe iniciar sesión y suscribir el Acuerdo de Transmisión de Datos de Zenic antes de habilitar la operación general.
+                    </p>
+                    <a href="{{ url_for('auth_bp.logout') }}" class="btn btn-outline-danger rounded-pill px-4 fw-bold">
+                        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Salir del Sistema
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Inicialización del Gatekeeper Modal y Canvas -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEl = document.getElementById('modalGatekeeperSIC');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+                modal.show();
+                setupModalCanvas();
+            }
+        });
+
+        let modalCanvas, modalCtx, modalDrawing = false, modalHasDrawn = false;
+
+        function setupModalCanvas() {
+            modalCanvas = document.getElementById('canvasModalFirma');
+            if (!modalCanvas) return;
+            modalCtx = modalCanvas.getContext('2d');
+
+            function resize() {
+                const rect = modalCanvas.getBoundingClientRect();
+                if (rect.width === 0) return;
+                const dpr = window.devicePixelRatio || 1;
+                modalCanvas.width = rect.width * dpr;
+                modalCanvas.height = rect.height * dpr;
+                modalCtx.scale(dpr, dpr);
+                modalCtx.strokeStyle = '#0f172a';
+                modalCtx.lineWidth = 2.2;
+                modalCtx.lineCap = 'round';
+                modalCtx.lineJoin = 'round';
+            }
+
+            setTimeout(resize, 350);
+            window.addEventListener('resize', resize);
+
+            function getPos(e) {
+                const rect = modalCanvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            function start(e) {
+                modalDrawing = true;
+                modalHasDrawn = true;
+                const hint = document.getElementById('hintCanvasModal');
+                if (hint) hint.style.opacity = '0';
+                const pos = getPos(e);
+                modalCtx.beginPath();
+                modalCtx.moveTo(pos.x, pos.y);
+                if (e.cancelable) e.preventDefault();
+                validarFirmaGatekeeper();
+            }
+
+            function draw(e) {
+                if (!modalDrawing) return;
+                const pos = getPos(e);
+                modalCtx.lineTo(pos.x, pos.y);
+                modalCtx.stroke();
+                if (e.cancelable) e.preventDefault();
+            }
+
+            function stop() {
+                if (modalDrawing) {
+                    modalDrawing = false;
+                    const inputSig = document.getElementById('inputModalSignatureData');
+                    if (inputSig && modalCanvas) {
+                        inputSig.value = modalCanvas.toDataURL('image/png');
+                    }
+                    validarFirmaGatekeeper();
+                }
+            }
+
+            modalCanvas.addEventListener('mousedown', start);
+            modalCanvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stop);
+
+            modalCanvas.addEventListener('touchstart', start, { passive: false });
+            modalCanvas.addEventListener('touchmove', draw, { passive: false });
+            window.addEventListener('touchend', stop);
+        }
+
+        function limpiarCanvasModal() {
+            if (!modalCanvas || !modalCtx) return;
+            modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+            const hint = document.getElementById('hintCanvasModal');
+            if (hint) hint.style.opacity = '1';
+            const inputSig = document.getElementById('inputModalSignatureData');
+            if (inputSig) inputSig.value = '';
+            modalHasDrawn = false;
+            validarFirmaGatekeeper();
+        }
+
+        function validarFirmaGatekeeper() {
+            const chkTerms = document.getElementById('gk_chk_terms');
+            const chkDpa = document.getElementById('gk_chk_dpa');
+            const btn = document.getElementById('btnSubmitGatekeeper');
+            const estadoText = document.getElementById('gk_estado_text');
+            const repId = document.getElementById('gk_legal_rep_id');
+            const inputSig = document.getElementById('inputModalSignatureData');
+
+            const casillasOk = chkTerms && chkTerms.checked && chkDpa && chkDpa.checked;
+            const cedulaOk = repId && repId.value.trim().length > 3;
+            const firmaOk = modalHasDrawn && inputSig && inputSig.value.length > 50;
+
+            if (casillasOk && cedulaOk && firmaOk) {
+                btn.disabled = false;
+                btn.className = 'btn btn-primary rounded-pill px-4 fw-bold shadow-sm';
+                estadoText.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> Requisitos completos para firma formal';
+            } else {
+                btn.disabled = true;
+                btn.className = 'btn btn-secondary rounded-pill px-4 fw-bold shadow-sm';
+                let faltante = [];
+                if (!cedulaOk) faltante.push("cédula");
+                if (!casillasOk) faltante.push("marcar casillas");
+                if (!firmaOk) faltante.push("trazar firma");
+                estadoText.innerHTML = '<i class="fa-solid fa-lock text-danger me-1"></i> Falta: ' + faltante.join(", ");
+            }
+        }
+
+        // Detectar cambios en cédula
+        const inputRepId = document.getElementById('gk_legal_rep_id');
+        if (inputRepId) {
+            inputRepId.addEventListener('input', validarFirmaGatekeeper);
+        }
+    </script>
+    {% endif %}
+
 </body>
 </html>
+

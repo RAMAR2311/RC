@@ -322,7 +322,76 @@ def eliminar_celular(id):
         db.session.rollback()
         flash(f'Error al eliminar el modelo: {str(e)}', 'danger')
         
-    return redirect(url_for('celulares_bp.inventario'))
+@celulares_bp.route('/editar_masivo', methods=['POST'])
+@login_required
+@admin_required
+def editar_masivo_celulares():
+    ids_raw = request.form.getlist('celular_ids')
+    # También soportar IDs separados por coma si vienen de un solo campo
+    if not ids_raw and request.form.get('celular_ids_str'):
+        ids_raw = [x.strip() for x in request.form.get('celular_ids_str').split(',') if x.strip()]
+        
+    nueva_marca = request.form.get('nueva_marca', '').strip()
+    nueva_referencia = request.form.get('nueva_referencia', '').strip()
+
+    if not ids_raw:
+        flash('No se seleccionó ningún equipo para la edición masiva.', 'warning')
+        return redirect(request.referrer or url_for('celulares_bp.inventario'))
+
+    if not nueva_marca and not nueva_referencia:
+        flash('Debes indicar al menos una nueva Marca o Referencia.', 'warning')
+        return redirect(request.referrer or url_for('celulares_bp.inventario'))
+
+    try:
+        ids = [int(i) for i in ids_raw]
+    except ValueError:
+        flash('Identificadores de equipos inválidos.', 'danger')
+        return redirect(request.referrer or url_for('celulares_bp.inventario'))
+
+    equipos = Product.query.filter(Product.id.in_(ids), Product.tipo_inventario == 'celulares').all()
+
+    if not equipos:
+        flash('No se encontraron los equipos seleccionados en la base de datos.', 'danger')
+        return redirect(request.referrer or url_for('celulares_bp.inventario'))
+
+    actualizados = 0
+    for eq in equipos:
+        if nueva_marca:
+            eq.marca = nueva_marca
+        if nueva_referencia:
+            eq.modelo_celular = nueva_referencia
+
+        # Reconstruir el nombre descriptivo respetando tipo, color y memoria
+        nombre_base = eq.nombre or ''
+        tipo = 'Celular'
+        for prefijo in ['Computador', 'Laptop', 'Tablet', 'iPad', 'Gafas Inteligentes', 'Smartwatch', 'Reloj', 'Consola', 'Otro', 'Celular']:
+            if nombre_base.startswith(prefijo):
+                tipo = prefijo
+                break
+
+        partes = []
+        if tipo and tipo != 'Otro':
+            partes.append(tipo)
+        if eq.marca:
+            partes.append(eq.marca)
+        if eq.modelo_celular:
+            partes.append(eq.modelo_celular)
+        if eq.color:
+            partes.append(eq.color)
+        if eq.memoria:
+            partes.append(eq.memoria)
+
+        eq.nombre = ' '.join(partes).strip()
+        actualizados += 1
+
+    try:
+        db.session.commit()
+        flash(f'¡Se actualizaron exitosamente {actualizados} equipos de forma masiva!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al realizar la actualización masiva: {str(e)}', 'danger')
+
+    return redirect(request.referrer or url_for('celulares_bp.inventario'))
 
 @celulares_bp.route('/clientes')
 @login_required

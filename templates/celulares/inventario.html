@@ -1,14 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-brand-black m-0">Inventario de Celulares</h2>
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
-            <i class="fa-solid fa-file-excel me-1"></i> Importar Excel
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">Inventario de Celulares</h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Dispositivos</span>
+        </div>
+        <p class="text-muted small mb-0">Control integral de stock, costos, márgenes e IMEIs en tiempo real</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-inv-excel" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+            <i class="fa-solid fa-file-excel text-success me-2"></i> Importar Excel
         </button>
-        <a href="{{ url_for('celulares_bp.nuevo_celular') }}" class="btn btn-blue rounded-pill px-4 fw-bold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Ingresar Celular
+        <a href="{{ url_for('celulares_bp.nuevo_celular') }}" class="btn btn-inv-primary">
+            <i class="fa-solid fa-plus me-1.5"></i> Ingresar Celular
         </a>
     </div>
 </div>
@@ -16,232 +22,648 @@
 <!-- Modal Importar Excel -->
 <div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-labelledby="modalImportarExcelLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-success text-white border-0">
-                <h5 class="modal-title fw-bold" id="modalImportarExcelLabel"><i class="fa-solid fa-file-excel me-2"></i> Subida Masiva por Excel</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-3 p-2 bg-black border border-secondary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-file-excel text-success"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold m-0" id="modalImportarExcelLabel">Subida Masiva por Excel</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('celulares_bp.importar_excel') }}" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4 text-center">
-                    <p class="mb-4 text-muted">Sube tu archivo de Excel con el inventario de celulares. Asegúrate de usar el formato correcto.</p>
+                    <p class="mb-4 text-muted small">Carga tu plantilla con los dispositivos móviles. El sistema validará marcas, modelos, IMEIs y costos automáticamente.</p>
                     
-                    <a href="{{ url_for('celulares_bp.descargar_plantilla') }}" class="btn btn-outline-success fw-bold mb-4 rounded-pill">
-                        <i class="fa-solid fa-download me-1"></i> Descargar Plantilla de Ejemplo
+                    <a href="{{ url_for('celulares_bp.descargar_plantilla') }}" class="btn btn-outline-dark fw-bold mb-4 rounded-pill px-4 py-2 small shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-down text-success me-2"></i> Descargar Plantilla Oficial (.xlsx)
                     </a>
                     
-                    <div class="mb-3 text-start">
-                        <label for="archivo_excel" class="form-label fw-bold">Archivo Excel (.xlsx, .xls)</label>
-                        <input class="form-control" type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
+                    <div class="mb-2 text-start bg-light p-3 rounded-3 border">
+                        <label for="archivo_excel" class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Seleccionar Archivo Excel</label>
+                        <input class="form-control bg-white rounded-3 border" type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold"><i class="fa-solid fa-upload me-1"></i> Subir Inventario</button>
+                <div class="modal-footer bg-light border-0 py-3 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-inv-primary px-4"><i class="fa-solid fa-upload me-1.5"></i> Subir Inventario</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Tarjetas KPI -->
+<style>
+    /* Estilos SaaS Corporativo Prémium - Inventario RedCover */
+    .btn-inv-primary {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.45rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-inv-primary:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(217, 22, 22, 0.32);
+    }
+
+    .btn-inv-excel {
+        background-color: #ffffff;
+        color: #0F172A;
+        border: 1px solid #E2E8F0;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.35rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-inv-excel:hover {
+        background-color: #F8FAFC;
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #0F172A;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
+    }
+
+    /* KPI Cards Flotantes con Bordes Sutiles y Acento RedCover */
+    .saas-kpi-card {
+        background: radial-gradient(circle at 10% 10%, #FFFFFF 0%, #FAF8F5 100%);
+        border-radius: 20px;
+        border: 1.5px solid rgba(226, 215, 205, 0.7);
+        box-shadow: 0 10px 26px -6px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(217, 22, 22, 0.02);
+        padding: 1.35rem 1.4rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .saas-kpi-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(217, 22, 22, 0.4);
+        box-shadow: 0 18px 36px -8px rgba(0, 0, 0, 0.07), 0 8px 22px rgba(217, 22, 22, 0.15);
+    }
+    .saas-kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(217, 22, 22, 0.7), rgba(217, 22, 22, 0.15) 50%, transparent 100%);
+    }
+
+    .saas-icon-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: #F3ECE5;
+        border: 1px solid rgba(220, 205, 190, 0.6);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
+    }
+    .saas-kpi-card:hover .saas-icon-badge {
+        transform: scale(1.08) rotate(-3deg);
+    }
+
+    /* Barra de Búsqueda Estilo Pill */
+    .saas-search-pill {
+        background: #ffffff;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.28rem 0.6rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill:focus-within {
+        border-color: #D91616;
+        box-shadow: 0 0 0 4px rgba(217, 22, 22, 0.12);
+    }
+    .saas-search-pill input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.88rem;
+    }
+
+    /* Selector de Referencias */
+    .btn-ref-selector {
+        background: #ffffff;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.55rem 1.15rem;
+        font-size: 0.86rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease;
+    }
+    .btn-ref-selector:hover, .btn-ref-selector[aria-expanded="true"] {
+        border-color: rgba(217, 22, 22, 0.45);
+        background-color: #FFFFFF;
+    }
+
+    /* Segmented Control de Pestañas de Estado */
+    .saas-segmented-control {
+        background: #EEF2F6;
+        padding: 0.32rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+    .saas-segment-btn {
+        border-radius: 9999px;
+        padding: 0.48rem 1.15rem;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: inline-flex;
+        align-items: center;
+    }
+    .saas-segment-btn:hover {
+        color: #0F172A;
+    }
+    .saas-segment-btn.active-dark {
+        background: #0F172A;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+    }
+    .saas-segment-btn.active-warning {
+        background: #F59E0B;
+        color: #000000 !important;
+        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Dropdown Menú Filtro Mejorado y sin cortes */
+    .dropdown-refs-menu {
+        width: 320px !important;
+        min-width: 320px !important;
+        border-radius: 18px !important;
+        border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 18px 45px rgba(0,0,0,0.18) !important;
+        z-index: 1080 !important;
+        overflow: hidden;
+    }
+    .ref-item-check {
+        transition: background-color 0.15s ease;
+        padding-left: 2rem !important;
+    }
+    .ref-item-check:hover {
+        background-color: #FFF5F5;
+    }
+
+    /* Tabla SaaS Prémium con Alta Legibilidad y Tamaño Cómodo */
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1.5px solid #CBD5E1;
+        box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+    .saas-table {
+        table-layout: auto;
+        font-size: 1.05rem; /* Aumentado a 1.05rem para lectura súper clara */
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .saas-table thead th {
+        background: #111827;
+        color: #F8FAFC;
+        font-size: 0.88rem; /* Aumentado a 0.88rem */
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 1.25rem 1.05rem;
+        border-top: 3px solid #DC2626;
+        border-bottom: 2px solid #0F172A;
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 1.25rem 1.05rem; /* Espaciado amplio y despejado */
+        vertical-align: middle;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        font-size: 1.02rem; /* Tamaño de texto de datos principal */
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #F1F5F9 !important;
+    }
+    .saas-table tbody tr.table-primary td {
+        background-color: #FEF2F2 !important;
+    }
+
+    /* Badges de especificación técnica más legibles y claros */
+    .spec-pill {
+        background: #F1F5F9;
+        color: #0F172A;
+        font-weight: 700;
+        font-size: 0.92rem; /* Aumentado */
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        border: 1px solid #CBD5E1;
+        display: inline-block;
+    }
+    .imei-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.95rem; /* Aumentado para que los dígitos sean claros */
+        font-weight: 600;
+        color: #1E293B;
+        background: #F8FAFC;
+        padding: 0.35rem 0.7rem;
+        border-radius: 8px;
+        border: 1.5px solid #CBD5E1;
+        letter-spacing: 0.02em;
+        display: inline-block;
+    }
+
+    /* Botones de acción circular estilizados y más cómodos al tacto */
+    .btn-table-action {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #E2E8F0;
+        background: #ffffff;
+        color: #1E293B;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+    .btn-table-action:hover {
+        transform: translateY(-2px);
+        border-color: #DC2626;
+        color: #DC2626;
+        box-shadow: 0 6px 14px rgba(220, 38, 38, 0.2);
+    }
+    .btn-table-action-delete {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #FECACA;
+        background: #FEF2F2;
+        color: #DC2626;
+        transition: all 0.2s ease;
+    }
+    .btn-table-action-delete:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+        color: #ffffff;
+        box-shadow: 0 6px 14px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Checkboxes estilizados con toque rojo RedCover */
+    .form-check-input:checked {
+        background-color: #D91616 !important;
+        border-color: #D91616 !important;
+    }
+
+    /* Barra flotante de acciones masivas */
+    .bulk-bar-floating {
+        position: sticky;
+        top: 15px;
+        z-index: 1060;
+        backdrop-filter: blur(12px);
+        background: rgba(15, 23, 42, 0.95);
+        border: 1.5px solid rgba(217, 22, 22, 0.5);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.35), 0 0 20px rgba(217, 22, 22, 0.25);
+        border-radius: 9999px;
+    }
+
+    /* Reglas de Desplazamiento y Responsividad para Inventario */
+    .table-responsive-desktop-free {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x pan-y !important;
+        overscroll-behavior-x: contain;
+        width: 100%;
+    }
+    .saas-table {
+        min-width: 1300px;
+        width: 100%;
+    }
+    @media (min-width: 1600px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+</style>
+
+<!-- Tarjetas KPI Flotantes (SaaS High-End) -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0f8ff);">
-            <div class="fs-1 fw-bold text-brand-blue">{{ stock_activo }}</div>
-            <div class="text-muted small fw-bold">STOCK ACTIVO (EN TIENDA)</div>
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="saas-kpi-card h-100 d-flex flex-column justify-content-between">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted fw-bold text-uppercase small" style="letter-spacing: 0.6px; font-size: 0.74rem;">Stock en Tienda</span>
+                <span class="saas-icon-badge" style="color: #D91616;">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                </span>
+            </div>
+            <div>
+                <div class="fs-2 text-dark lh-1 mb-2" style="font-weight: 850; letter-spacing: -0.8px;">{{ stock_activo }} <span class="fs-6 fw-semibold text-muted">uds.</span></div>
+                <div class="small text-muted" style="font-size: 0.78rem;">
+                    <span class="text-danger fw-bold"><i class="fa-solid fa-circle-check me-1"></i>Equipos</span> listos para venta directa
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #fffdf0); border: 1px solid #ffeeba !important;">
-            <div class="fs-1 fw-bold text-warning">{{ celulares_en_maneo }}</div>
-            <div class="text-muted small fw-bold">EN MANEO (PRESTADOS)</div>
+    
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="saas-kpi-card h-100 d-flex flex-column justify-content-between">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted fw-bold text-uppercase small" style="letter-spacing: 0.6px; font-size: 0.74rem;">En Maneo</span>
+                <span class="saas-icon-badge" style="color: #d97706; background: #FEF3C7; border-color: #FDE68A;">
+                    <i class="fa-solid fa-handshake"></i>
+                </span>
+            </div>
+            <div>
+                <div class="fs-2 text-warning lh-1 mb-2" style="font-weight: 850; letter-spacing: -0.8px;">{{ celulares_en_maneo }} <span class="fs-6 fw-semibold text-muted">docs.</span></div>
+                <div class="small text-muted" style="font-size: 0.78rem;">
+                    <span class="text-warning fw-bold"><i class="fa-solid fa-store me-1"></i>Prestados</span> a locales comerciales
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #fff5f5);">
-            <div class="fs-1 fw-bold text-danger">${{ costo_total|cop }}</div>
-            <div class="text-muted small fw-bold">COSTO TOTAL MERCANCÍA</div>
+
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="saas-kpi-card h-100 d-flex flex-column justify-content-between">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted fw-bold text-uppercase small" style="letter-spacing: 0.6px; font-size: 0.74rem;">Costo Mercancía</span>
+                <span class="saas-icon-badge" style="color: #D91616;">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </span>
+            </div>
+            <div>
+                <div class="fs-2 text-danger lh-1 mb-2 text-truncate" style="font-weight: 850; letter-spacing: -0.8px;" title="${{ costo_total|cop }}">${{ costo_total|cop }}</div>
+                <div class="small text-muted" style="font-size: 0.78rem;">
+                    <span class="text-danger fw-bold"><i class="fa-solid fa-wallet me-1"></i>Inversión</span> activa en vitrina
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="card border-0 shadow-sm rounded-4 p-3 text-center" style="background: linear-gradient(135deg, #ffffff, #f0fff4);">
-            <div class="fs-1 fw-bold text-success">${{ ventas_estimadas|cop }}</div>
-            <div class="text-muted small fw-bold">VALOR ESTIMADO VENTAS</div>
+
+    <div class="col-xl-3 col-md-6 col-6">
+        <div class="saas-kpi-card h-100 d-flex flex-column justify-content-between">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted fw-bold text-uppercase small" style="letter-spacing: 0.6px; font-size: 0.74rem;">Ventas Estimadas</span>
+                <span class="saas-icon-badge" style="color: #059669; background: #D1FAE5; border-color: #A7F3D0;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </span>
+            </div>
+            <div>
+                <div class="fs-2 text-success lh-1 mb-2 text-truncate" style="font-weight: 850; letter-spacing: -0.8px;" title="${{ ventas_estimadas|cop }}">${{ ventas_estimadas|cop }}</div>
+                <div class="small text-muted" style="font-size: 0.78rem;">
+                    <span class="text-success fw-bold"><i class="fa-solid fa-arrow-trend-up me-1"></i>Proyección</span> sugerida
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
     <!-- Barra de Búsqueda y Filtro por Referencia Server-Side -->
-    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex flex-wrap gap-2 w-100" style="max-width: 720px;">
-        <div class="input-group shadow-sm" style="flex: 1 1 280px;">
-            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-            <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
-                   placeholder="Buscar por Marca, Modelo, IMEI, Proveedor..."
+    <form method="GET" action="{{ url_for('celulares_bp.inventario') }}" id="searchForm" class="d-flex flex-wrap gap-2 flex-grow-1" style="max-width: 780px;">
+        <div class="saas-search-pill d-flex align-items-center" style="flex: 1 1 270px;">
+            <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+            <input type="text" id="searchInput" name="q" class="form-control ps-1"
+                   placeholder="Buscar Marca, Modelo, IMEI, Proveedor..."
                    value="{{ q }}">
             {% if q %}
-            <a href="{{ url_for('celulares_bp.inventario', estado=estado, referencia=referencia) }}" class="btn btn-outline-secondary border-start-0" title="Limpiar texto"><i class="fa-solid fa-xmark"></i></a>
+            <a href="{{ url_for('celulares_bp.inventario', estado=estado, referencia=referencia) }}" class="btn btn-sm btn-link text-muted p-0 me-2" title="Limpiar"><i class="fa-solid fa-xmark"></i></a>
             {% endif %}
         </div>
 
         <!-- Filtro desplegable intuitivo con Selección Múltiple de Referencias -->
-        <div class="dropdown shadow-sm" style="flex: 0 1 260px;">
-            <button class="btn btn-white bg-white border dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center fw-semibold text-truncate" 
-                    type="button" id="referenciasDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="padding: 0.375rem 0.75rem;">
+        <div class="dropdown" style="flex: 0 1 270px;">
+            <button class="btn btn-ref-selector w-100 text-start d-flex justify-content-between align-items-center fw-semibold text-truncate" 
+                    type="button" id="referenciasDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                 <span class="text-truncate">
-                    <i class="fa-solid fa-layer-group text-muted me-1"></i>
+                    <i class="fa-solid fa-layer-group text-danger me-1.5"></i>
                     {% if referencias_seleccionadas|length == 0 %}
                         <span class="text-muted fw-normal">Todas las Referencias</span>
                     {% elif referencias_seleccionadas|length == 1 %}
-                        {{ referencias_seleccionadas[0] }}
+                        <span class="fw-bold text-dark">{{ referencias_seleccionadas[0] }}</span>
                     {% else %}
-                        <span class="badge bg-primary rounded-pill me-1">{{ referencias_seleccionadas|length }}</span> Ref. seleccionadas
+                        <span class="badge bg-danger rounded-pill me-1">{{ referencias_seleccionadas|length }}</span> Ref. seleccionadas
                     {% endif %}
                 </span>
+                <i class="fa-solid fa-chevron-down small text-muted ms-2"></i>
             </button>
-            <div class="dropdown-menu p-2 shadow-lg border-0 rounded-3 w-100" style="min-width: 280px; max-height: 380px; overflow-y: auto;" aria-labelledby="referenciasDropdown">
-                <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                    <span class="fw-bold small text-muted text-uppercase">Filtrar por modelo</span>
+            <div class="dropdown-menu p-0 shadow-xl border-0 dropdown-refs-menu" aria-labelledby="referenciasDropdown">
+                <!-- Header del Menú -->
+                <div class="p-3 bg-light border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold small text-muted text-uppercase" style="letter-spacing: 0.5px; font-size: 0.72rem;">Filtrar por modelo</span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 fw-bold text-primary" onclick="seleccionarTodasRefs(true)">Todas</button>
+                            <span class="text-muted">|</span>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 fw-bold text-danger" onclick="seleccionarTodasRefs(false)">Limpiar</button>
+                        </div>
+                    </div>
                     <div>
-                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 me-2 text-primary" onclick="seleccionarTodasRefs(true)">Todas</button>
-                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" onclick="seleccionarTodasRefs(false)">Limpiar</button>
+                        <input type="text" id="buscarRefInMenu" class="form-control form-control-sm rounded-pill" placeholder="Buscar en lista..." oninput="filtrarListaRefs(this.value)">
+                    </div>
+                    <div class="mt-2 d-grid">
+                        <button type="button" class="btn btn-inv-primary btn-sm justify-content-center" onclick="document.getElementById('searchForm').submit();">
+                            <i class="fa-solid fa-filter me-1.5"></i> Aplicar Filtro
+                        </button>
                     </div>
                 </div>
-                <div class="mb-2 px-1">
-                    <input type="text" id="buscarRefInMenu" class="form-control form-control-sm" placeholder="Buscar en lista..." oninput="filtrarListaRefs(this.value)">
-                </div>
-                <hr class="my-1">
-                <div id="listaReferenciasContainer">
+
+                <!-- Lista de Referencias con scroll cómodo y espaciado -->
+                <div id="listaReferenciasContainer" class="p-2" style="max-height: 250px; overflow-y: auto; overflow-x: hidden;">
                     {% for ref in referencias_disponibles %}
-                    <div class="form-check py-1 px-2 rounded ref-item-check hover-bg">
-                        <input class="form-check-input ref-checkbox" type="checkbox" name="referencias" value="{{ ref }}" id="ref_check_{{ loop.index }}"
+                    <div class="form-check py-1 px-3 rounded ref-item-check position-relative d-flex align-items-center mb-1">
+                        <input class="form-check-input ref-checkbox position-static me-2 mt-0" type="checkbox" name="referencias" value="{{ ref }}" id="ref_check_{{ loop.index }}"
                                {% if ref in referencias_seleccionadas %}checked{% endif %}>
-                        <label class="form-check-label w-100 text-truncate small fw-medium" for="ref_check_{{ loop.index }}" style="cursor: pointer;">
+                        <label class="form-check-label w-100 text-truncate small fw-medium mb-0" for="ref_check_{{ loop.index }}" style="cursor: pointer;" title="{{ ref }}">
                             {{ ref }}
                         </label>
                     </div>
                     {% endfor %}
                 </div>
-                <div class="mt-2 pt-2 border-top d-grid gap-1">
-                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold" onclick="document.getElementById('searchForm').submit();">
-                        <i class="fa-solid fa-filter me-1"></i> Aplicar Filtro
+
+                <!-- Footer del Menú -->
+                <div class="p-2 bg-light border-top d-grid">
+                    <button type="button" class="btn btn-outline-dark btn-sm rounded-pill fw-bold" onclick="document.getElementById('searchForm').submit();">
+                        <i class="fa-solid fa-check me-1"></i> Listo
                     </button>
                 </div>
             </div>
         </div>
         {% if referencias_seleccionadas %}
-        <a href="{{ url_for('celulares_bp.inventario', estado=estado, q=q) }}" class="btn btn-outline-secondary border shadow-sm" title="Quitar filtro de referencias">
-            <i class="fa-solid fa-xmark text-danger"></i>
+        <a href="{{ url_for('celulares_bp.inventario', estado=estado, q=q) }}" class="btn btn-outline-danger rounded-pill px-3 shadow-sm d-flex align-items-center" title="Quitar filtro de referencias">
+            <i class="fa-solid fa-xmark"></i>
         </a>
         {% endif %}
         
         <input type="hidden" name="estado" id="estadoInput" value="{{ estado }}">
     </form>
     
-    <div class="btn-group shadow-sm">
-        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-dark {% if estado == 'activos' %}active fw-bold{% endif %}">
-            <i class="fa-solid fa-boxes-stacked me-1"></i> Activos
+    <!-- Pestañas de Estado con Segmented Control Moderno -->
+    <div class="saas-segmented-control">
+        <a href="{{ url_for('celulares_bp.inventario', estado='activos', q=q, referencias=referencias_seleccionadas) }}" 
+           class="saas-segment-btn {% if estado == 'activos' %}active-dark{% endif %}">
+            <i class="fa-solid fa-boxes-stacked me-1.5"></i> Activos
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-warning text-dark {% if estado == 'maneo' %}active fw-bold bg-warning text-dark border-warning{% endif %}">
-            <i class="fa-solid fa-handshake me-1"></i> En Maneo ({{ celulares_en_maneo }})
+        <a href="{{ url_for('celulares_bp.inventario', estado='maneo', q=q, referencias=referencias_seleccionadas) }}" 
+           class="saas-segment-btn {% if estado == 'maneo' %}active-warning{% endif %}">
+            <i class="fa-solid fa-handshake me-1.5"></i> En Maneo ({{ celulares_en_maneo }})
         </a>
-        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencias=referencias_seleccionadas) }}" class="btn btn-outline-dark {% if estado == 'vendidos' %}active fw-bold{% endif %}">
-            <i class="fa-solid fa-check me-1"></i> Vendidos
+        <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencias=referencias_seleccionadas) }}" 
+           class="saas-segment-btn {% if estado == 'vendidos' %}active-dark{% endif %}">
+            <i class="fa-solid fa-check me-1.5"></i> Vendidos
         </a>
     </div>
 </div>
 
-<div class="card card-custom p-0 shadow-sm border-0">
-    <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.84rem; min-width: 1320px;">
-            <thead class="bg-dark text-white text-nowrap" style="font-size: 0.8rem;">
+<!-- Barra Flotante de Acciones Masivas -->
+<div id="bulkActionsBar" class="d-none bulk-bar-floating text-white px-4 py-2 mb-3 mx-auto d-flex align-items-center justify-content-between flex-wrap gap-3" style="max-width: 820px; width: 100%;">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold fs-6 shadow-sm" id="bulkSelectedCount">0 seleccionados</span>
+        <span class="small text-light d-none d-sm-inline">Dispositivos listos para edición en lote</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-danger btn-sm rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarMasivo">
+            <i class="fa-solid fa-pen-to-square me-1.5"></i> Editar Marca / Referencia
+        </button>
+        <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="deseleccionarTodos()">
+            <i class="fa-solid fa-xmark me-1"></i> Cancelar
+        </button>
+    </div>
+</div>
+
+<!-- Contenedor de Tabla SaaS Prémium -->
+<div class="saas-table-card mb-4 position-relative">
+    <div class="table-responsive-desktop-free">
+        <table class="table saas-table table-sm mb-0 align-middle text-center w-100">
+            <thead class="text-nowrap">
                 <tr>
-                    <th class="ps-3 py-2 text-start fw-bold" style="width: 100px;">MARCA</th>
-                    <th class="py-2 text-start fw-bold" style="min-width: 160px;">REFERENCIA</th>
-                    <th class="py-2 fw-bold" style="width: 65px;">CAP.</th>
-                    <th class="py-2 fw-bold" style="width: 60px;">BAT.</th>
-                    <th class="py-2 fw-bold" style="width: 90px;">COLOR</th>
-                    <th class="py-2 fw-bold" style="width: 140px;">IMEI 1</th>
-                    <th class="py-2 fw-bold" style="width: 140px;">IMEI 2</th>
-                    <th class="py-2 fw-bold" style="width: 120px;">PROVEEDOR</th>
-                    <th class="py-2 fw-bold" style="width: 110px;">INVENTARIO</th>
+                    <th class="ps-3 text-center" style="width: 40px;">
+                        <input type="checkbox" class="form-check-input" id="checkSelectAll" title="Seleccionar todos los visibles" onchange="toggleSelectAll(this.checked)">
+                    </th>
+                    <th class="text-start" style="width: 90px;">MARCA</th>
+                    <th class="text-start" style="min-width: 150px;">REFERENCIA</th>
+                    <th style="width: 65px;">CAP.</th>
+                    <th style="width: 55px;">BAT.</th>
+                    <th style="width: 85px;">COLOR</th>
+                    <th style="min-width: 130px;">IMEI 1</th>
+                    <th style="min-width: 130px;">IMEI 2</th>
+                    <th style="min-width: 115px;">PROVEEDOR</th>
+                    <th style="width: 95px;">INVENTARIO</th>
                     {% if estado == 'vendidos' %}
-                        <th class="py-2 fw-bold text-info" style="width: 130px;">FECHA VENTA</th>
+                        <th class="text-info" style="width: 110px;">FECHA VENTA</th>
                     {% elif estado == 'maneo' %}
-                        <th class="py-2 fw-bold text-warning" style="width: 130px;">LOCAL RECEPTOR</th>
+                        <th class="text-warning" style="width: 120px;">LOCAL RECEPTOR</th>
                     {% else %}
-                        <th class="py-2 fw-bold" style="width: 120px;">FECHA INGRESO</th>
+                        <th style="width: 105px;">INGRESO</th>
                     {% endif %}
-                    <th class="py-2 fw-bold" style="width: 100px;">COSTO</th>
-                    <th class="py-2 fw-bold" style="width: 100px;">MINIMO</th>
-                    <th class="py-2 fw-bold" style="width: 100px;">SUGERIDO</th>
-                    <th class="pe-3 py-2 text-center fw-bold" style="width: 125px;">ACCIONES</th>
+                    <th class="text-end" style="width: 100px;">COSTO</th>
+                    <th class="text-end" style="width: 100px;">MÍNIMO</th>
+                    <th class="text-end pe-3" style="width: 105px;">SUGERIDO</th>
+                    <th class="pe-3 text-center" style="width: 100px;">ACCIONES</th>
                 </tr>
             </thead>
             <tbody class="text-nowrap">
                 {% for c in celulares %}
-                <tr>
-                    <td class="ps-3 fw-bold text-dark text-start">{{ c.marca or '-' }}</td>
-                    <td class="fw-semibold text-start">{{ c.modelo_celular or '-' }}</td>
-                    <td>{{ c.memoria or '-' }}</td>
-                    <td>{{ c.bateria or '-' }}</td>
-                    <td>{{ c.color or '-' }}</td>
-                    <td class="text-muted font-monospace">{{ c.imei or '-' }}</td>
-                    <td class="text-muted font-monospace">{{ c.imei2 or '-' }}</td>
-                    <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
-                    <td class="text-truncate" style="max-width: 100px;" title="{{ c.inventario or '-' }}">{{ c.inventario or '-' }}</td>
+                <tr id="row-celular-{{ c.id }}">
+                    <td class="ps-3 text-center">
+                        <input type="checkbox" class="form-check-input check-celular-item" value="{{ c.id }}" data-marca="{{ c.marca or '' }}" data-referencia="{{ c.modelo_celular or '' }}" onchange="actualizarSeleccionMasiva()">
+                    </td>
+                    <td class="fw-bold text-dark text-start" style="font-size: 1.05rem;">{{ c.marca or '-' }}</td>
+                    <td class="fw-bold text-start text-truncate" style="max-width: 210px;" title="{{ c.modelo_celular or '-' }}">
+                        <span class="text-dark" style="font-size: 1.05rem;">{{ c.modelo_celular or '-' }}</span>
+                    </td>
+                    <td><span class="spec-pill">{{ c.memoria or '-' }}</span></td>
+                    <td>
+                        {% if c.bateria and c.bateria != 'N/A' and c.bateria != '-' %}
+                            <span class="spec-pill text-dark fw-bold"><i class="fa-solid fa-battery-half text-success me-1"></i>{{ c.bateria }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="text-secondary fw-semibold" style="font-size: 0.95rem;">{{ c.color or '-' }}</span></td>
+                    <td><span class="imei-badge">{{ c.imei or '-' }}</span></td>
+                    <td><span class="imei-badge">{{ c.imei2 or '-' }}</span></td>
+                    <td class="text-truncate text-secondary fw-medium" style="max-width: 140px; font-size: 0.95rem;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
+                    <td class="text-truncate" style="max-width: 100px;">
+                        <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1.5 fw-bold" style="font-size: 0.82rem;">{{ c.inventario or '-' }}</span>
+                    </td>
                     <td>
                         {% if estado == 'vendidos' and c.detalles_venta %}
-                            <span class="fw-bold text-dark">{{ c.detalles_venta[0].venta.fecha_venta.strftime('%d/%m/%Y') }}</span>
-                            <small class="text-muted d-block" style="font-size: 0.7rem;" title="Fecha de Ingreso al Inventario">Ingreso: {{ c.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                            <span class="fw-bold text-dark" style="font-size: 0.98rem;">{{ c.detalles_venta[0].venta.fecha_venta.strftime('%d/%m/%Y') }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.78rem;" title="Fecha de Ingreso">Ing: {{ c.fecha_creacion.strftime('%d/%m/%Y') }}</small>
                         {% elif estado == 'maneo' and c.maneo_activo %}
-                            <span class="fw-bold text-dark"><i class="fa-solid fa-store text-warning me-1"></i>{{ c.maneo_activo.local_vecino }}</span>
-                            <small class="text-muted d-block" style="font-size: 0.7rem;">Prestado: {{ c.maneo_activo.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</small>
+                            <span class="fw-bold text-dark" style="font-size: 0.98rem;"><i class="fa-solid fa-store text-warning me-1"></i>{{ c.maneo_activo.local_vecino }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.78rem;">{{ c.maneo_activo.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</small>
                         {% else %}
-                            <span>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</span>
+                            <span class="text-dark fw-semibold" style="font-size: 0.95rem;">{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</span>
                         {% endif %}
                     </td>
                     
-                    <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>
-                    <td class="text-muted fw-bold">${{ c.precio_minimo|cop }}</td>
-                    <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
+                    <td class="fw-bold text-dark text-end" style="font-size: 1.05rem;">${{ c.precio_costo|cop }}</td>
+                    <td class="text-secondary fw-bold text-end" style="font-size: 1.05rem;">${{ c.precio_minimo|cop }}</td>
+                    <td class="text-danger fw-bolder text-end pe-3" style="font-size: 1.12rem;">${{ c.precio_sugerido|cop }}</td>
                     
                     <td class="pe-3 text-center">
                         {% if c.maneo_activo %}
                             <div class="d-flex flex-column align-items-center gap-1">
-                                <span class="badge bg-warning text-dark fw-bold shadow-sm rounded-pill px-2 py-1" style="font-size: 0.72rem;" title="Prestado a {{ c.maneo_activo.local_vecino }}">
-                                    <i class="fa-solid fa-handshake me-1"></i>En Maneo: {{ c.maneo_activo.local_vecino }}
+                                <span class="badge bg-warning text-dark fw-bold shadow-sm rounded-pill px-2.5 py-1" style="font-size: 0.7rem;" title="Prestado a {{ c.maneo_activo.local_vecino }}">
+                                    <i class="fa-solid fa-handshake me-1"></i>{{ c.maneo_activo.local_vecino }}
                                 </span>
-                                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-xs btn-outline-dark rounded-pill py-0 px-2 shadow-sm" style="font-size: 0.7rem;" title="Gestionar Maneo (Cobrar o Devolver)">
+                                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-xs btn-outline-dark rounded-pill py-0.5 px-2.5 shadow-sm fw-bold" style="font-size: 0.68rem;" title="Gestionar Maneo (Cobrar o Devolver)">
                                     <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Gestionar
                                 </a>
                             </div>
                         {% elif c.total_stock <= 0 %}
-                            <div class="d-flex justify-content-center align-items-center gap-1">
-                                <span class="badge bg-dark fw-bold shadow-sm rounded-pill px-2 py-1" style="font-size: 0.72rem;">VENDIDO</span>
-                                <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar información / Precios / Costo">
-                                    <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
+                            <div class="d-flex justify-content-center align-items-center gap-1.5">
+                                <span class="badge bg-dark fw-bold rounded-pill px-2.5 py-1" style="font-size: 0.7rem; letter-spacing: 0.3px;">VENDIDO</span>
+                                <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn-table-action" title="Editar información / Precios / Costo">
+                                    <i class="fa-solid fa-pen" style="font-size: 0.72rem;"></i>
                                 </a>
                                 {% if c.detalles_venta %}
-                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Ticket de Venta (#{{ c.detalles_venta[0].sale_id }})">
-                                    <i class="fa-solid fa-receipt" style="font-size: 0.75rem;"></i>
+                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn-table-action" style="color: #2563eb;" title="Ver Ticket de Venta (#{{ c.detalles_venta[0].sale_id }})">
+                                    <i class="fa-solid fa-receipt" style="font-size: 0.72rem;"></i>
                                 </a>
                                 {% endif %}
                             </div>
                         {% else %}
-                            <div class="d-flex justify-content-center gap-1">
+                            <div class="d-flex justify-content-center gap-1.5">
                                 <!-- Botón Rápido: Prestar a Local Vecino (Maneo) -->
-                                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Prestar a Local Vecino (Maneo)" data-bs-toggle="modal" data-bs-target="#modalPrestarCelular{{ c.id }}">
-                                    <i class="fa-solid fa-handshake text-dark" style="font-size: 0.75rem;"></i>
+                                <button type="button" class="btn-table-action" style="color: #d97706;" title="Prestar a Local Vecino (Maneo)" data-bs-toggle="modal" data-bs-target="#modalPrestarCelular{{ c.id }}">
+                                    <i class="fa-solid fa-handshake" style="font-size: 0.75rem;"></i>
                                 </button>
-                                <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar">
-                                    <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
+                                <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn-table-action" title="Editar">
+                                    <i class="fa-solid fa-pen" style="font-size: 0.72rem;"></i>
                                 </a>
                                 <form method="POST" action="{{ url_for('celulares_bp.eliminar_celular', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar permanente?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar">
-                                        <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
+                                    <button type="submit" class="btn-table-action btn-table-action-delete" title="Eliminar">
+                                        <i class="fa-solid fa-trash-can" style="font-size: 0.72rem;"></i>
                                     </button>
                                 </form>
                             </div>
@@ -250,7 +672,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="14" class="text-center py-4 text-muted">
+                    <td colspan="15" class="text-center py-4 text-muted">
                         <i class="fa-solid fa-mobile-screen-button fs-3 mb-2 opacity-50"></i>
                         <p class="mb-0">No hay celulares registrados.</p>
                     </td>
@@ -258,6 +680,69 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal Edición Masiva de Marca y Referencia -->
+<div class="modal fade" id="modalEditarMasivo" tabindex="-1" aria-labelledby="modalEditarMasivoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="modalEditarMasivoLabel">
+                    <i class="fa-solid fa-pen-to-square text-warning me-2"></i> Edición Masiva de Equipos
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('celulares_bp.editar_masivo_celulares') }}" method="POST" id="formEditarMasivo">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="celular_ids_str" id="inputModalCelularIds">
+                
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 mb-3 d-flex align-items-center">
+                        <i class="fa-solid fa-circle-info fs-4 me-3 text-info"></i>
+                        <div>
+                            Vas a modificar <strong id="modalCantEquipos">0</strong> equipos simultáneamente.
+                            <div class="small text-muted">Deja un campo vacío si no deseas modificar ese atributo.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nueva_marca" class="form-label fw-bold small text-muted text-uppercase">Nueva Marca</label>
+                        <input type="text" class="form-control form-control-lg fw-semibold" id="nueva_marca" name="nueva_marca" placeholder="Ej: Apple, Samsung, Xiaomi..." list="marcasSugeridas">
+                        <datalist id="marcasSugeridas">
+                            <option value="Apple">
+                            <option value="Samsung">
+                            <option value="Xiaomi">
+                            <option value="Motorola">
+                            <option value="Huawei">
+                            <option value="Realme">
+                            <option value="Infinix">
+                            <option value="Tecno">
+                            <option value="Google">
+                            <option value="Honor">
+                            <option value="Oppo">
+                        </datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nueva_referencia" class="form-label fw-bold small text-muted text-uppercase">Nueva Referencia (Modelo)</label>
+                        <input type="text" class="form-control form-control-lg fw-semibold" id="nueva_referencia" name="nueva_referencia" placeholder="Ej: iPhone 13, Galaxy S24 Ultra..." list="referenciasExistentesDatalist">
+                        <datalist id="referenciasExistentesDatalist">
+                            {% for ref in referencias_disponibles %}
+                            <option value="{{ ref }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light border-0 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Aplicar a Seleccionados
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -363,6 +848,74 @@
                 cb.checked = marcar;
             }
         });
+    }
+
+    // --- LÓGICA DE SELECCIÓN Y EDICIÓN MASIVA ---
+    function toggleSelectAll(checked) {
+        const itemChecks = document.querySelectorAll('.check-celular-item');
+        itemChecks.forEach(cb => {
+            cb.checked = checked;
+            const tr = cb.closest('tr');
+            if (checked) {
+                tr.classList.add('table-primary');
+            } else {
+                tr.classList.remove('table-primary');
+            }
+        });
+        actualizarSeleccionMasiva();
+    }
+
+    function actualizarSeleccionMasiva() {
+        const itemChecks = document.querySelectorAll('.check-celular-item');
+        const selectedIds = [];
+        let primeraMarca = '';
+        let primeraRef = '';
+
+        itemChecks.forEach(cb => {
+            const tr = cb.closest('tr');
+            if (cb.checked) {
+                selectedIds.push(cb.value);
+                tr.classList.add('table-primary');
+                if (!primeraMarca && cb.dataset.marca) primeraMarca = cb.dataset.marca;
+                if (!primeraRef && cb.dataset.referencia) primeraRef = cb.dataset.referencia;
+            } else {
+                tr.classList.remove('table-primary');
+            }
+        });
+
+        const totalItems = itemChecks.length;
+        const totalSelected = selectedIds.length;
+        const checkAll = document.getElementById('checkSelectAll');
+        if (checkAll) {
+            checkAll.checked = (totalSelected > 0 && totalSelected === totalItems);
+            checkAll.indeterminate = (totalSelected > 0 && totalSelected < totalItems);
+        }
+
+        const bar = document.getElementById('bulkActionsBar');
+        const countBadge = document.getElementById('bulkSelectedCount');
+        const modalCount = document.getElementById('modalCantEquipos');
+        const inputIds = document.getElementById('inputModalCelularIds');
+
+        if (totalSelected > 0) {
+            bar.classList.remove('d-none');
+            countBadge.innerText = `${totalSelected} seleccionado${totalSelected > 1 ? 's' : ''}`;
+            if (modalCount) modalCount.innerText = totalSelected;
+            if (inputIds) inputIds.value = selectedIds.join(',');
+
+            // Sugerir la marca / ref si todos comparten o el primero
+            const inputMarca = document.getElementById('nueva_marca');
+            const inputRef = document.getElementById('nueva_referencia');
+            if (inputMarca && !inputMarca.value) inputMarca.value = primeraMarca;
+            if (inputRef && !inputRef.value) inputRef.value = primeraRef;
+        } else {
+            bar.classList.add('d-none');
+            if (modalCount) modalCount.innerText = '0';
+            if (inputIds) inputIds.value = '';
+        }
+    }
+
+    function deseleccionarTodos() {
+        toggleSelectAll(false);
     }
 </script>
 {% endblock %}

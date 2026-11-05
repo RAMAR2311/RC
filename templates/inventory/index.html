@@ -1,38 +1,339 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-brand-black m-0">Inventario Central</h2>
+<style>
+    /* Estilos SaaS Corporativo - Inventario Central de Accesorios */
+    .btn-inv-add {
+        background-color: #DC2626;
+        color: #ffffff;
+        border: 1px solid #DC2626;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.45rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-inv-add:hover {
+        background-color: #B91C1C;
+        border-color: #B91C1C;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-inv-excel {
+        background-color: #ffffff;
+        color: #0F172A;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.35rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-inv-excel:hover {
+        background-color: #F8FAFC;
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #0F172A;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
+    }
+
+    /* Buscador SaaS Moderno */
+    .saas-search-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 1rem 1.25rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill-box {
+        background: #F8FAFC;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.25rem 0.6rem;
+        transition: all 0.25s ease;
+    }
+    .saas-search-pill-box:focus-within {
+        background: #ffffff;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+    .saas-search-pill-box input {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Contenedor y Tabla SaaS */
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 1050px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1400px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.85rem;
+        border-bottom: 2px solid rgba(220, 38, 38, 0.7);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 1rem 0.85rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    /* Badges de Stock Píldora */
+    .stock-badge-low {
+        background: rgba(220, 38, 38, 0.08);
+        color: #DC2626;
+        border: 1px solid rgba(220, 38, 38, 0.25);
+        font-weight: 700;
+        border-radius: 9999px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    .stock-badge-normal {
+        background: #F8FAFC;
+        color: #1E293B;
+        border: 1px solid #E2E8F0;
+        font-weight: 700;
+        border-radius: 9999px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Botón Variantes */
+    .btn-variantes-pill {
+        background: #ffffff;
+        color: #0F172A;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.78rem;
+        padding: 0.32rem 0.85rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-variantes-pill:hover {
+        background: #FEF2F2;
+        border-color: #DC2626;
+        color: #DC2626;
+        transform: translateY(-1px);
+    }
+
+    /* Botones de Acción Circulares */
+    .btn-table-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background: #ffffff;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .btn-table-action:hover {
+        transform: translateY(-2px);
+        border-color: #DC2626;
+        color: #DC2626;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
+    }
+    .btn-table-action-delete {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        background: #FEF2F2;
+        color: #DC2626;
+        transition: all 0.2s ease;
+    }
+    .btn-table-action-delete:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+    }
+
+    .sku-tag {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        background: #F1F5F9;
+        padding: 0.22rem 0.55rem;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                <i class="fa-solid fa-boxes-stacked text-danger me-2"></i>Inventario Central de Accesorios
+            </h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Stock y Variantes</span>
+        </div>
+        <p class="text-muted small mb-0">Control de referencias, subcategorías, costos, precios sugeridos y valorización de inventario</p>
+    </div>
     <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#importarModal">
-            <i class="fa-solid fa-file-excel me-1"></i> Importar Masivo
+        <button type="button" class="btn btn-inv-excel" data-bs-toggle="modal" data-bs-target="#importarModal">
+            <i class="fa-solid fa-file-excel text-success me-2"></i> Importar Masivo
         </button>
-        <a href="/inventory/nuevo" class="btn btn-blue rounded-pill px-4 fw-bold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Nuevo Producto
+        <a href="/inventory/nuevo" class="btn btn-inv-add">
+            <i class="fa-solid fa-plus me-1.5"></i> Nuevo Producto
         </a>
     </div>
 </div>
 
+<!-- Tarjetas Grandes y Llamativas de Valorización de Inventario -->
+<div class="row g-3 mb-4">
+    <!-- 1. Total Unidades y Referencias -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="card border-0 rounded-4 p-4 h-100 position-relative overflow-hidden shadow-sm" style="background: #FFFFFF; border: 1.5px solid #CBD5E1 !important; border-top: 4px solid #0F172A !important; box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08) !important; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px -10px rgba(15, 23, 42, 0.15)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 12px 30px -8px rgba(15, 23, 42, 0.08)';">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center text-dark shadow-sm" style="width: 48px; height: 48px; background: #F1F5F9; border: 1px solid #E2E8F0; font-size: 1.3rem;">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                    <div>
+                        <span class="text-uppercase fw-bold text-muted d-block" style="font-size: 0.72rem; letter-spacing: 0.06em;">Existencias Totales</span>
+                        <span class="fw-bold text-dark small">Unidades en Físico</span>
+                    </div>
+                </div>
+                <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: #0F172A; color: #FFFFFF; font-size: 0.78rem;">
+                    {{ total_productos }} Refs.
+                </span>
+            </div>
+            <div class="fs-1 fw-bolder text-dark mb-1" style="font-weight: 850; letter-spacing: -1px; font-size: 2.2rem !important;">
+                {{ total_unidades_fisicas }} <span class="fs-5 text-muted fw-normal">uds</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 pt-2 border-top text-muted small mt-auto" style="border-color: #F1F5F9 !important;">
+                <i class="fa-solid fa-layer-group text-primary"></i>
+                <span>Disponibles para venta y consignación</span>
+            </div>
+        </div>
+    </div>
 
+    <!-- 2. Valor Total a Costo -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="card border-0 rounded-4 p-4 h-100 position-relative overflow-hidden shadow-sm" style="background: #FFFFFF; border: 1.5px solid #CBD5E1 !important; border-top: 4px solid #DC2626 !important; box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08) !important; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px -10px rgba(220, 38, 38, 0.18)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 12px 30px -8px rgba(15, 23, 42, 0.08)';">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center text-danger shadow-sm" style="width: 48px; height: 48px; background: #FEF2F2; border: 1px solid #FECACA; font-size: 1.3rem;">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <span class="text-uppercase fw-bold text-muted d-block" style="font-size: 0.72rem; letter-spacing: 0.06em;">Valorización Contable</span>
+                        <span class="fw-bold text-danger small">Inversión a Costo</span>
+                    </div>
+                </div>
+                <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; font-size: 0.78rem;">
+                    Capital Invertido
+                </span>
+            </div>
+            <div class="fs-1 fw-bolder text-danger mb-1" style="font-weight: 850; letter-spacing: -1px; font-size: 2.2rem !important;">
+                ${{ (valor_costo)|cop }}
+            </div>
+            <div class="d-flex align-items-center gap-2 pt-2 border-top text-muted small mt-auto" style="border-color: #F1F5F9 !important;">
+                <i class="fa-solid fa-receipt text-danger"></i>
+                <span>Costo real de compra acumulado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Valor Proyectado a Venta -->
+    <div class="col-lg-4 col-md-12 col-12">
+        <div class="card border-0 rounded-4 p-4 h-100 position-relative overflow-hidden shadow-sm" style="background: #FFFFFF; border: 1.5px solid #CBD5E1 !important; border-top: 4px solid #16A34A !important; box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08) !important; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px -10px rgba(22, 163, 74, 0.18)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 12px 30px -8px rgba(15, 23, 42, 0.08)';">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center text-success shadow-sm" style="width: 48px; height: 48px; background: #DCFCE7; border: 1px solid #BBF7D0; font-size: 1.3rem;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <span class="text-uppercase fw-bold text-muted d-block" style="font-size: 0.72rem; letter-spacing: 0.06em;">Valor de Venta</span>
+                        <span class="fw-bold text-success small">Precio Sugerido P.V.P</span>
+                    </div>
+                </div>
+                <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: #DCFCE7; color: #16A34A; border: 1px solid #BBF7D0; font-size: 0.78rem;">
+                    Proyección Venta
+                </span>
+            </div>
+            <div class="fs-1 fw-bolder text-success mb-1" style="font-weight: 850; letter-spacing: -1px; font-size: 2.2rem !important;">
+                ${{ (valor_sugerido)|cop }}
+            </div>
+            <div class="d-flex align-items-center gap-2 pt-2 border-top text-muted small mt-auto" style="border-color: #F1F5F9 !important;">
+                <i class="fa-solid fa-arrow-up-right-dots text-success"></i>
+                <span>Margen bruto potencial: <strong>${{ (valor_sugerido - valor_costo)|cop }}</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Buscador Rápido de Inventario -->
-<div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-white">
+<div class="saas-search-card mb-4">
     <div class="row align-items-center">
         <div class="col-md-8 col-lg-6 position-relative">
-            <div class="input-group input-group-lg shadow-sm rounded-pill border">
-                <span class="input-group-text bg-white border-0 ps-4"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="inventarioSearch" class="form-control border-0 bg-white shadow-none ps-2" placeholder="Busca por SKU o Nombre del producto..." autocomplete="off" style="border-radius: 0 50px 50px 0;">
-                <button class="btn btn-light border-0 px-3 text-muted" type="button" id="clearSearch" title="Limpiar búsqueda" style="border-radius: 0 50px 50px 0;">
+            <div class="saas-search-pill-box d-flex align-items-center">
+                <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+                <input type="text" id="inventarioSearch" class="form-control" placeholder="Busca por SKU o Nombre del producto..." autocomplete="off">
+                <button class="btn btn-link text-muted p-0 me-2" type="button" id="clearSearch" title="Limpiar búsqueda">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <!-- Contenedor para resultados desplegables -->
-            <div id="searchDropdown" class="dropdown-menu shadow-lg border-0 w-100 p-0 mt-2 d-none" style="max-height: 400px; overflow-y: auto;">
+            <div id="searchDropdown" class="dropdown-menu shadow-lg border-0 w-100 p-0 mt-2 d-none rounded-4 overflow-hidden" style="max-height: 400px; overflow-y: auto;">
             </div>
         </div>
         <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
-            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.75rem;">
-                Mostrando <span id="visibleCount" class="text-brand-pink">{{ productos|length }}</span>
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.74rem; letter-spacing: 0.4px;">
+                Mostrando <span id="visibleCount" class="text-danger fw-bolder">{{ productos|length }}</span>
                 de <strong>{{ total_productos }}</strong> productos
                 {% if paginacion.pages > 1 %}<span class="text-muted">&nbsp;· pág. {{ paginacion.page }}/{{ paginacion.pages }}</span>{% endif %}
             </small>
@@ -40,49 +341,47 @@
     </div>
 </div>
 
-<div class="card card-custom p-0 overflow-hidden">
+<div class="saas-table-card mb-4 position-relative">
     <div class="table-responsive">
-        <table class="table table-hover table-custom mb-0">
-            <thead class="bg-dark text-white">
+        <table class="table saas-table table-sm mb-0 align-middle">
+            <thead class="text-nowrap">
                 <tr>
-                    <th width="120" class="ps-4 fw-bold">SKU</th>
-                    <th class="fw-bold">PRODUCTO</th>
-                    <th width="150" class="text-center fw-bold">STOCK</th>
-                    <th width="150" class="text-end fw-bold">PRECIO COSTO</th>
-                    <th width="150" class="text-end fw-bold">PRECIO MÍNIMO</th>
-                    <th width="150" class="text-end pe-4 fw-bold">PRECIO SUGERIDO</th>
-                    <th width="220" class="text-center fw-bold">ACCIONES</th>
+                    <th width="140" class="ps-3">SKU</th>
+                    <th>PRODUCTO</th>
+                    <th width="140" class="text-center">STOCK</th>
+                    <th width="150" class="text-end">PRECIO COSTO</th>
+                    <th width="150" class="text-end">PRECIO MÍNIMO</th>
+                    <th width="150" class="text-end pe-3">PRECIO SUGERIDO</th>
+                    <th width="200" class="text-center pe-3">ACCIONES</th>
                 </tr>
             </thead>
             <tbody class="align-middle">
                 {% for p in productos %}
                 <tr>
-                    <td class="text-muted text-nowrap">
+                    <td class="ps-3 text-nowrap">
                         {% if p.variantes %}
-                            <button class="btn btn-sm btn-light border me-1 rounded-circle shadow-sm p-1" style="width: 28px; height: 28px;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVariantes{{ p.id }}" aria-expanded="false" title="Ver Subcategorías">
-                                <i class="fa-solid fa-chevron-down small"></i>
+                            <button class="btn btn-sm btn-light border me-1 rounded-circle shadow-sm p-1" style="width: 26px; height: 26px; line-height: 1;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVariantes{{ p.id }}" aria-expanded="false" title="Ver Subcategorías">
+                                <i class="fa-solid fa-chevron-down small" style="font-size: 0.7rem;"></i>
                             </button>
                         {% endif %}
-                        <small><strong>{{ p.sku }}</strong></small>
+                        <span class="sku-tag">{{ p.sku }}</span>
                     </td>
-                    <td class="fw-semibold text-brand-black">{{ p.nombre }}</td>
-                    <td>
-                        <!-- Regla Estricta: Badge rojo si el stock <= 3 -->
+                    <td class="fw-bold text-dark">{{ p.nombre }}</td>
+                    <td class="text-center">
                         {% if p.total_stock <= 3 %}
-                            <span class="badge bg-brand-pink text-white rounded-pill px-3 py-2 shadow-sm"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.total_stock }} (Bajo)</span>
+                            <span class="stock-badge-low"><i class="fa-solid fa-triangle-exclamation me-1.5"></i> {{ p.total_stock }} (Bajo)</span>
                         {% else %}
-                            <!-- Badge en negro para stock normal -->
-                            <span class="badge bg-light text-brand-black border border-dark rounded-pill px-3 py-2 fw-bold">{{ p.total_stock }} uds.</span>
+                            <span class="stock-badge-normal"><i class="fa-solid fa-cubes me-1.5 text-muted"></i> {{ p.total_stock }} uds.</span>
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold" style="color: var(--brand-pink);">
+                    <td class="text-end fw-bold" style="color: #DC2626;">
                         {% if p.rango_costos %}
                             {% if p.rango_costos is number %}
                                 ${{ (p.rango_costos)|cop }}
                             {% else %}
-                                <div class="small text-muted fw-normal" style="line-height:1;">Desde</div>
+                                <div class="small text-muted fw-normal" style="line-height:1; font-size: 0.68rem;">Desde</div>
                                 ${{ (p.rango_costos[0])|cop }}
-                                <div class="small text-muted fw-normal mt-1" style="line-height:1;">hasta</div>
+                                <div class="small text-muted fw-normal mt-1" style="line-height:1; font-size: 0.68rem;">hasta</div>
                                 ${{ (p.rango_costos[1])|cop }}
                             {% endif %}
                         {% else %}
@@ -94,44 +393,44 @@
                             {% if p.rango_minimos is number %}
                                 ${{ (p.rango_minimos)|cop }}
                             {% else %}
-                                <div class="small text-muted fw-normal" style="line-height:1;">Desde</div>
+                                <div class="small text-muted fw-normal" style="line-height:1; font-size: 0.68rem;">Desde</div>
                                 ${{ (p.rango_minimos[0])|cop }}
-                                <div class="small text-muted fw-normal mt-1" style="line-height:1;">hasta</div>
+                                <div class="small text-muted fw-normal mt-1" style="line-height:1; font-size: 0.68rem;">hasta</div>
                                 ${{ (p.rango_minimos[1])|cop }}
                             {% endif %}
                         {% else %}
                             ${{ (p.precio_minimo)|cop }}
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold text-brand-black pe-4">
+                    <td class="text-end fw-bolder text-dark pe-3">
                         {% if p.rango_precios %}
                             {% if p.rango_precios is number %}
                                 ${{ (p.rango_precios)|cop }}
                             {% else %}
-                                <div class="small text-muted fw-normal" style="line-height:1;">Desde</div>
+                                <div class="small text-muted fw-normal" style="line-height:1; font-size: 0.68rem;">Desde</div>
                                 ${{ (p.rango_precios[0])|cop }}<br>
-                                <div class="small text-muted fw-normal mt-1" style="line-height:1;">hasta</div>
+                                <div class="small text-muted fw-normal mt-1" style="line-height:1; font-size: 0.68rem;">hasta</div>
                                 ${{ (p.rango_precios[1])|cop }}
                             {% endif %}
                         {% else %}
                             ${{ (p.precio_sugerido)|cop }}
                         {% endif %}
                     </td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center align-items-center gap-2 text-nowrap">
-                            <button type="button" class="btn btn-sm btn-outline-dark rounded-pill fw-bold shadow-sm" title="Gestionar Subcategorías" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
-                                <i class="fa-solid fa-sitemap me-1"></i> Variantes
+                    <td class="text-center pe-3">
+                        <div class="d-flex justify-content-center align-items-center gap-1.5 text-nowrap">
+                            <button type="button" class="btn btn-variantes-pill shadow-2xs" title="Gestionar Subcategorías" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
+                                <i class="fa-solid fa-sitemap me-1 text-danger"></i> Variantes
                             </button>
-                            <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm flex-shrink-0" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Ver Detalle">
-                                <i class="fa-solid fa-eye"></i>
+                            <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn-table-action" title="Ver Detalle">
+                                <i class="fa-solid fa-eye" style="font-size: 0.78rem;"></i>
                             </a>
-                            <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm flex-shrink-0" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Editar Maestro">
-                                <i class="fa-solid fa-pen"></i>
+                            <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn-table-action" title="Editar Maestro">
+                                <i class="fa-solid fa-pen" style="font-size: 0.78rem;"></i>
                             </a>
                             <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" class="d-inline m-0 flex-shrink-0" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de que desea ELIMINAR PERMANENTEMENTE este producto del sistema en la Nube? Esto no se puede deshacer.');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm text-white bg-brand-pink rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0; line-height: 30px;" title="Eliminar Producto">
-                                    <i class="fa-solid fa-trash-can"></i>
+                                <button type="submit" class="btn-table-action-delete border-0" title="Eliminar Producto">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.78rem;"></i>
                                 </button>
                             </form>
                         </div>
@@ -139,32 +438,32 @@
                 </tr>
                 {% if p.variantes %}
                 <tr class="collapse bg-light" id="collapseVariantes{{ p.id }}">
-                    <td colspan="7" class="p-0 border-bottom border-dark border-opacity-10 shadow-inner">
-                        <div class="p-3 bg-white" style="border-left: 4px solid var(--brand-pink); border-radius: 0 0 8px 8px;">
+                    <td colspan="7" class="p-0 border-bottom border-secondary border-opacity-10 shadow-inner">
+                        <div class="p-3 bg-white" style="border-left: 4px solid #DC2626; border-radius: 0 0 14px 14px; background: #FAFAFA;">
                             <table class="table table-sm table-borderless mb-0">
-                                <thead class="text-muted" style="font-size: 0.8rem; border-bottom: 1px solid #eee;">
+                                <thead class="text-muted" style="font-size: 0.75rem; border-bottom: 1.5px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.4px;">
                                     <tr>
-                                        <th class="ps-3"><i class="fa-solid fa-arrow-turn-down me-2 text-black-50"></i>Subcategoría (Variante)</th>
+                                        <th class="ps-3"><i class="fa-solid fa-arrow-turn-down me-2 text-danger"></i>Subcategoría (Variante)</th>
                                         <th class="text-center">Stock Físico</th>
                                         <th class="text-end">Costo Unitario</th>
                                         <th class="text-end text-success">Valor Invertido (Costo)</th>
-                                        <th class="text-end">Sugerido</th>
+                                        <th class="text-end pe-3">Sugerido</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for v in p.variantes %}
                                     <tr class="align-middle">
-                                        <td class="ps-4 fw-semibold text-brand-black" style="font-size: 0.95rem;">{{ v.nombre_variante }}</td>
+                                        <td class="ps-4 fw-bold text-dark" style="font-size: 0.88rem;">{{ v.nombre_variante }}</td>
                                         <td class="text-center">
                                             {% if v.cantidad_stock <= 3 %}
-                                                <span class="badge bg-danger rounded-pill">{{ v.cantidad_stock }}</span>
+                                                <span class="stock-badge-low px-2 py-0.5" style="font-size: 0.72rem;">{{ v.cantidad_stock }}</span>
                                             {% else %}
-                                                <span class="badge bg-secondary rounded-pill text-white">{{ v.cantidad_stock }}</span>
+                                                <span class="stock-badge-normal px-2 py-0.5" style="font-size: 0.72rem;">{{ v.cantidad_stock }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end text-muted">${{ (v.precio_costo or p.precio_costo)|cop }}</td>
-                                        <td class="text-end fw-bold text-success">${{ ((v.precio_costo or p.precio_costo) * v.cantidad_stock)|cop }}</td>
-                                        <td class="text-end text-muted">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
+                                        <td class="text-end text-muted font-monospace">${{ (v.precio_costo or p.precio_costo)|cop }}</td>
+                                        <td class="text-end fw-bold text-success font-monospace">${{ ((v.precio_costo or p.precio_costo) * v.cantidad_stock)|cop }}</td>
+                                        <td class="text-end text-dark fw-bold pe-3 font-monospace">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

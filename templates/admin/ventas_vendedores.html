@@ -3,45 +3,65 @@
 {% block title %}Venta de Asesores - RedCover{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-0 text-brand-black">
-                <i class="fa-solid fa-chart-line text-brand-pink me-2"></i>Venta de Asesores
+<div class="container-fluid px-0 px-md-2 py-3">
+    <!-- Header Principal -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                    RENDIMIENTO & LIQUIDACIÓN
+                </span>
+            </div>
+            <h2 class="fw-bolder m-0 text-brand-black" style="font-size: 1.75rem; letter-spacing: -0.5px;">
+                <i class="fa-solid fa-chart-line me-2" style="color: #DC2626;"></i>Venta de Asesores
             </h2>
-            <p class="text-muted">Consulta de ventas por asesor y mes seleccionado.</p>
+            <p class="text-muted small mb-0 mt-1">Consulta de rendimiento mensual, liquidación de comisiones brutas, deducción de vales y balance neto.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('admin_bp.vales') }}" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-dark shadow-sm me-1" style="transition: all 0.2s ease;">
+                <i class="fa-solid fa-receipt text-warning me-2"></i>Gestión de Vales
+            </a>
+            <a href="/admin/dashboard" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-secondary shadow-sm" style="transition: all 0.2s ease;">
+                <i class="fa-solid fa-arrow-left me-2 text-muted"></i>Panel Principal
+            </a>
         </div>
     </div>
 
-    <!-- Filtros de Consulta -->
-    <div class="card card-custom border-0 shadow-sm mb-4">
+    <!-- Filtros de Consulta Avanzados -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
         <div class="card-body p-4">
             <form method="GET" action="{{ url_for('admin_bp.ventas_vendedores') }}" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Seleccionar Asesor <span class="text-danger">*</span></label>
-                    <select name="asesor_id" class="form-select bg-light" required>
-                        <option value="" disabled {% if not asesor_id %}selected{% endif %}>-- Elegir Asesor --</option>
-                        {% for a in asesores %}
-                            <option value="{{ a.id }}" {% if asesor_id == a.id %}selected{% endif %}>
-                                {{ a.nombre }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Seleccionar Mes <span class="text-danger">*</span></label>
-                    <input type="month" name="mes" class="form-control bg-light" value="{{ mes_seleccionado }}" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Comisión por Celular ($)</label>
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label text-dark fw-bold small mb-1">Seleccionar Asesor <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light">$</span>
-                        <input type="number" name="valor_comision" class="form-control bg-light fw-bold text-success" value="{{ valor_comision or 20000 }}" step="1000">
+                        <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-user-tie"></i></span>
+                        <select name="asesor_id" class="form-select bg-light border-0 py-2 fw-semibold" required style="border-radius: 0 10px 10px 0;">
+                            <option value="" disabled {% if not asesor_id %}selected{% endif %}>-- Elegir Asesor Comercial --</option>
+                            {% for a in asesores %}
+                                <option value="{{ a.id }}" {% if asesor_id == a.id %}selected{% endif %}>
+                                    {{ a.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Consultar
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label text-dark fw-bold small mb-1">Seleccionar Mes <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0 text-muted"><i class="fa-regular fa-calendar-days"></i></span>
+                        <input type="month" name="mes" class="form-control bg-light border-0 py-2 fw-semibold" value="{{ mes_seleccionado }}" required style="border-radius: 0 10px 10px 0;">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label text-dark fw-bold small mb-1">Comisión por Celular ($ COP)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0 text-success fw-bold">$</span>
+                        <input type="number" name="valor_comision" class="form-control bg-light border-0 py-2 fw-bold text-success" value="{{ valor_comision or 20000 }}" step="1000" style="border-radius: 0 10px 10px 0;">
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <button type="submit" class="btn text-white w-100 py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); transition: all 0.2s ease; border: none;">
+                        <i class="fa-solid fa-magnifying-glass"></i> Consultar
                     </button>
                 </div>
             </form>
@@ -50,126 +70,171 @@
 
     {% if asesor_id %}
         {% if asesor_filtro %}
-            <!-- Tarjetas de Resumen del Asesor enfocadas en Celulares y Comisión -->
+            <!-- Tarjetas KPI de Resumen del Asesor (Estilo SaaS Premium) -->
             <div class="row g-3 mb-4">
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-                        <div class="text-uppercase fw-bold text-muted small mb-1">Asesor</div>
-                        <h5 class="fw-bold text-brand-black mb-0 text-truncate" title="{{ asesor_filtro.nombre }}">{{ asesor_filtro.nombre }}</h5>
-                        <span class="badge bg-secondary mt-2 w-auto align-self-start">Ventas</span>
+                <!-- Asesor Seleccionado -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted extra-small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Asesor Titular</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(15, 23, 42, 0.06); color: #0F172A;">
+                                <i class="fa-solid fa-user-check"></i>
+                            </div>
+                        </div>
+                        <h4 class="fw-bolder text-brand-black mb-1 text-truncate" title="{{ asesor_filtro.nombre }}">{{ asesor_filtro.nombre }}</h4>
+                        <span class="badge rounded-pill px-3 py-1 fw-bold w-auto align-self-start mt-2" style="background: rgba(15, 23, 42, 0.08); color: #0F172A; font-size: 0.75rem;">
+                            <i class="fa-solid fa-calendar me-1"></i> Período: {{ mes_seleccionado }}
+                        </span>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-primary h-100">
-                        <div class="text-uppercase fw-bold text-primary small mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> Celulares</div>
-                        <h3 class="fw-bold text-primary mb-0">{{ total_celulares_mes }} <span class="fs-6 font-normal">uds</span></h3>
-                        <span class="text-muted extra-small mt-1 d-block">${{ total_monto_celulares|cop }}</span>
+
+                <!-- Celulares Vendidos -->
+                <div class="col-xl-2 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important; border-left: 4px solid #2563EB !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted extra-small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Celulares Vendidos</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(37, 99, 235, 0.1); color: #2563EB;">
+                                <i class="fa-solid fa-mobile-screen-button"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-bolder text-brand-black mb-0">{{ total_celulares_mes }} <span class="fs-6 text-muted fw-normal">uds</span></h3>
+                        <small class="text-muted extra-small mt-2 d-block fw-semibold">Facturado: ${{ total_monto_celulares|cop }}</small>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-success h-100">
-                        <div class="text-uppercase fw-bold text-success small mb-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i> Comisión Bruta</div>
-                        <h3 class="fw-bold text-success mb-0">${{ total_comision_mes|cop }}</h3>
-                        <span class="text-muted extra-small mt-1 d-block">${{ valor_comision|cop }} / celular</span>
+
+                <!-- Comisión Bruta Ganada -->
+                <div class="col-xl-2 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important; border-left: 4px solid #16A34A !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted extra-small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Comisión Bruta</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(22, 163, 74, 0.1); color: #16A34A;">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-bolder text-success mb-0">${{ total_comision_mes|cop }}</h3>
+                        <small class="text-muted extra-small mt-2 d-block fw-semibold">${{ valor_comision|cop }} / celular</small>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-warning h-100">
-                        <div class="text-uppercase fw-bold text-warning small mb-1"><i class="fa-solid fa-receipt me-1"></i> Vales Mes</div>
-                        <h3 class="fw-bold text-warning mb-0">${{ total_vales_mes|cop }}</h3>
-                        <a href="{{ url_for('admin_bp.vales', asesor_id=asesor_filtro.id, estado='aprobado') }}" class="extra-small text-decoration-none mt-1 d-block fw-bold text-muted">Ver vales <i class="fa-solid fa-arrow-right"></i></a>
+
+                <!-- Vales Deducidos del Mes -->
+                <div class="col-xl-2 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important; border-left: 4px solid #D97706 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted extra-small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Vales del Mes</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(217, 119, 6, 0.1); color: #D97706;">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-bolder text-warning mb-0">${{ total_vales_mes|cop }}</h3>
+                        <a href="{{ url_for('admin_bp.vales', asesor_id=asesor_filtro.id, estado='aprobado') }}" class="extra-small text-decoration-none mt-2 d-inline-flex align-items-center gap-1 fw-bold text-muted" style="font-size: 0.75rem;">
+                            Ver vales <i class="fa-solid fa-arrow-right extra-small"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-5 border-dark h-100">
-                        <div class="text-uppercase fw-bold text-dark small mb-1"><i class="fa-solid fa-calculator me-1"></i> Neto a Pagar</div>
-                        {% set neto_comision = total_comision_mes - total_vales_mes %}
-                        <h3 class="fw-bold {% if neto_comision >= 0 %}text-brand-black{% else %}text-danger{% endif %} mb-0">${{ neto_comision|cop }}</h3>
-                        <span class="text-muted extra-small mt-1 d-block">Comisión - Vales</span>
+
+                <!-- Neto a Pagar Final -->
+                <div class="col-xl-3 col-md-6">
+                    {% set neto_comision = total_comision_mes - total_vales_mes %}
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important; border-left: 4px solid {% if neto_comision >= 0 %}#0F172A{% else %}#DC2626{% endif %} !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted extra-small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Neto a Liquidar</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: {% if neto_comision >= 0 %}rgba(15, 23, 42, 0.08){% else %}rgba(220, 38, 38, 0.1){% endif %}; color: {% if neto_comision >= 0 %}#0F172A{% else %}#DC2626{% endif %};">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                        </div>
+                        <h3 class="fw-bolder mb-0 {% if neto_comision >= 0 %}text-brand-black{% else %}text-danger{% endif %}">${{ neto_comision|cop }}</h3>
+                        <small class="text-muted extra-small mt-2 d-block fw-semibold">Fórmula: (Comisión Bruta - Vales)</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Listado de Ventas -->
-            <div class="card card-custom border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3 ps-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold m-0 text-brand-black">
-                        <i class="fa-solid fa-list me-2 text-brand-blue"></i>Detalle de Ventas del Período
-                    </h5>
-                    <span class="badge bg-light text-dark border px-3 py-2">
-                        Comisión unitaria: <strong>${{ valor_comision|cop }}</strong> / celular
+            <!-- Listado Detallado de Ventas -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">Detalle de Ventas Registradas</h5>
+                        <p class="text-muted extra-small mb-0">Comprobantes asociados a este asesor en el mes en curso</p>
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(220, 38, 38, 0.08); color: #DC2626; font-size: 0.8rem;">
+                        <i class="fa-solid fa-tag me-1"></i> Comisión: <strong>${{ valor_comision|cop }}</strong> / celular
                     </span>
                 </div>
+                
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
-                            <thead class="table-light text-uppercase" style="font-size: 0.78rem;">
-                                <tr>
-                                    <th class="ps-4" width="8%">Factura</th>
-                                    <th width="12%">Fecha y Hora</th>
-                                    <th width="12%">Cajero</th>
-                                    <th width="32%">Celulares Vendidos en Factura</th>
-                                    <th class="text-center" width="12%">Comisión Venta</th>
-                                    <th class="text-end" width="12%">Total Facturado</th>
-                                    <th class="text-center pe-4" width="12%">Acciones</th>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light border-bottom border-light">
+                                <tr style="font-size: 0.78rem; letter-spacing: 0.5px; color: #64748B;">
+                                    <th class="ps-4 py-3 fw-bold text-uppercase" width="10%">Factura</th>
+                                    <th class="py-3 fw-bold text-uppercase" width="14%">Fecha y Hora</th>
+                                    <th class="py-3 fw-bold text-uppercase" width="14%">Cajero</th>
+                                    <th class="py-3 fw-bold text-uppercase" width="30%">Celulares Vendidos</th>
+                                    <th class="py-3 text-center fw-bold text-uppercase" width="12%">Comisión</th>
+                                    <th class="py-3 text-end fw-bold text-uppercase" width="12%">Total Factura</th>
+                                    <th class="pe-4 py-3 text-center fw-bold text-uppercase" width="8%">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="border-top-0">
                                 {% for item in ventas_procesadas %}
                                 {% set venta = item.sale %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <span class="badge bg-primary rounded-pill">#{{ venta.id }}</span>
+                                <tr style="transition: background 0.15s ease;">
+                                    <td class="ps-4 py-3">
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(15, 23, 42, 0.08); color: #0F172A; font-size: 0.82rem;">
+                                            #{{ venta.id }}
+                                        </span>
                                     </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark">{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
-                                        <div class="small text-muted">{{ venta.fecha_venta.strftime('%I:%M %p') }}</div>
+                                    <td class="py-3">
+                                        <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted extra-small">{{ venta.fecha_venta.strftime('%I:%M %p') }}</small>
                                     </td>
-                                    <td class="fw-semibold text-secondary">
-                                        {{ venta.vendedor.nombre if venta.vendedor else 'N/A' }}
+                                    <td class="py-3 fw-semibold text-secondary" style="font-size: 0.9rem;">
+                                        <i class="fa-regular fa-user me-1 text-muted"></i>{{ venta.vendedor.nombre if venta.vendedor else 'Cajero Central' }}
                                     </td>
-                                    <td>
+                                    <td class="py-3">
                                         {% if item.cant_celulares > 0 %}
                                             <div class="d-flex align-items-center gap-2 mb-1">
-                                                <span class="badge bg-success rounded-pill px-2 py-1">
+                                                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(34, 197, 94, 0.12); color: #16A34A; font-size: 0.78rem;">
                                                     <i class="fa-solid fa-mobile-screen me-1"></i> {{ item.cant_celulares }} Celular{% if item.cant_celulares > 1 %}es{% endif %}
                                                 </span>
-                                                <span class="small fw-bold text-success">${{ item.monto_celulares|cop }}</span>
+                                                <span class="extra-small fw-bold text-success">${{ item.monto_celulares|cop }}</span>
                                             </div>
                                             <ul class="list-unstyled mb-0 extra-small text-muted ps-1">
                                                 {% for cel in item.celulares_list %}
-                                                <li>• <strong>{{ cel.nombre }}</strong> (IMEI: {{ cel.imei }})</li>
+                                                <li>• <strong class="text-dark">{{ cel.nombre }}</strong> <span class="text-muted">(IMEI: {{ cel.imei }})</span></li>
                                                 {% endfor %}
                                             </ul>
                                         {% else %}
-                                            <span class="badge bg-secondary bg-opacity-20 text-muted border px-2 py-1">
+                                            <span class="badge rounded-pill px-3 py-1 fw-semibold text-muted" style="background: rgba(15, 23, 42, 0.04); font-size: 0.78rem;">
                                                 <i class="fa-solid fa-headphones me-1"></i> Solo Accesorios / Sin Celulares
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td class="text-center fw-bold text-primary">
+                                    <td class="py-3 text-center">
                                         {% if item.cant_celulares > 0 %}
-                                            +${{ item.comision_venta|cop }}
+                                            <span class="fw-bolder text-success fs-6">+${{ item.comision_venta|cop }}</span>
                                         {% else %}
-                                            <span class="text-muted fw-normal">$0</span>
+                                            <span class="text-muted fw-medium">$0</span>
                                         {% endif %}
                                     </td>
-                                    <td class="text-end fw-bold text-dark">
+                                    <td class="py-3 text-end fw-bold text-dark" style="font-size: 0.95rem;">
                                         ${{ venta.monto_total|cop }}
                                     </td>
-                                    <td class="text-center">
+                                    <td class="pe-4 py-3 text-center">
                                         <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}"
                                            target="_blank"
-                                           class="btn btn-sm btn-outline-dark rounded-pill px-3">
-                                            <i class="fa-solid fa-receipt me-1"></i> Ticket
+                                           class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-secondary shadow-sm"
+                                           style="font-size: 0.8rem;">
+                                            <i class="fa-solid fa-receipt me-1 text-primary"></i> Ticket
                                         </a>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
                                     <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="fa-solid fa-folder-open fs-2 mb-2 d-block opacity-50"></i>
-                                        No se encontraron ventas para este asesor en el mes seleccionado.
+                                        <div class="py-4">
+                                            <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-25"></i>
+                                            <p class="mb-0 fw-bold">No se encontraron ventas para este asesor en el mes seleccionado.</p>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -179,13 +244,22 @@
                 </div>
             </div>
         {% else %}
-            <div class="alert alert-warning border-0">Asesor no encontrado.</div>
+            <div class="alert alert-warning border-0 rounded-4 shadow-sm p-4 text-center">
+                <i class="fa-solid fa-triangle-exclamation fs-3 mb-2 d-block"></i>
+                <h6 class="fw-bold mb-1">Asesor no encontrado</h6>
+                <p class="mb-0 small text-muted">El asesor seleccionado no existe o no tiene registros en la base de datos.</p>
+            </div>
         {% endif %}
     {% else %}
-        <div class="card border-0 shadow-sm p-5 text-center rounded-4 bg-white">
-            <i class="fa-solid fa-chart-pie fs-1 text-muted mb-3 opacity-50"></i>
-            <h5 class="fw-bold text-secondary">Consulta de Rendimiento Contable</h5>
-            <p class="text-muted mb-0">Selecciona un asesor y un período mensual para visualizar su reporte de ventas.</p>
+        <!-- Estado Vacío Inicial -->
+        <div class="card border-0 shadow-sm p-5 text-center rounded-4 bg-white" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+            <div class="py-4">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background: rgba(220, 38, 38, 0.08); color: #DC2626;">
+                    <i class="fa-solid fa-chart-pie fs-2"></i>
+                </div>
+                <h5 class="fw-bold text-brand-black mb-2">Consulta de Rendimiento Contable</h5>
+                <p class="text-muted mb-0 mx-auto" style="max-width: 480px; font-size: 0.95rem;">Selecciona un asesor comercial y el período mensual en los filtros superiores para generar la liquidación contable y el desglose de ventas.</p>
+            </div>
         </div>
     {% endif %}
 </div>

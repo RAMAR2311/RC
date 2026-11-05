@@ -1,116 +1,151 @@
 {% extends "base.html" %}
 
+{% block title %}Informe Contable de Arqueo de Caja - RedCover{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <!-- Navbar y Filtros: Ocultos en Impresión -->
-    <div class="col-12 d-print-none mb-4">
-        <div class="card card-custom p-4 border-0 shadow-sm d-flex justify-content-between align-items-center flex-row">
-            <h4 class="fw-bold m-0 text-brand-pink">
-                <i class="fa-solid fa-file-invoice me-1"></i> Reporte Arqueo Caja
-            </h4>
-            
-            {% if current_user.rol == 'admin' %}
-            <form action="{{ url_for('arqueo_bp.reporte') }}" method="GET" class="d-flex align-items-center justify-content-end gap-3 flex-grow-1 mx-4">
-                <label for="fecha_inicio" class="fw-bold text-brand-black m-0">Desde:</label>
-                <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control w-auto">
-
-                <label for="fecha_fin" class="fw-bold text-brand-black m-0 ms-2">Hasta:</label>
-                <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control w-auto">
+    <div class="col-12 col-xl-11 d-print-none mb-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                            INFORME CONTABLE
+                        </span>
+                    </div>
+                    <h4 class="fw-bolder m-0 text-brand-black" style="font-size: 1.5rem; letter-spacing: -0.4px;">
+                        <i class="fa-solid fa-file-invoice-dollar me-2" style="color: #DC2626;"></i>Reporte de Arqueos de Caja
+                    </h4>
+                    <p class="text-muted small mb-0 mt-1">Consolidado general de ingresos, gastos, recaudación y sobrantes por período.</p>
+                </div>
                 
-                <button type="submit" class="btn btn-outline-secondary rounded-pill px-4">Filtrar</button>
-            </form>
-            {% else %}
-            <div class="flex-grow-1 mx-4 text-center">
-                <span class="badge bg-light text-secondary border px-3 py-2">
-                    <i class="fa-solid fa-calendar-day me-1"></i> Mostrando Arqueo de Hoy ({{ fecha_inicio }})
-                </span>
-            </div>
-            {% endif %}
+                {% if current_user.rol == 'admin' %}
+                <form action="{{ url_for('arqueo_bp.reporte') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2 bg-light p-2 rounded-4 border-0">
+                    <div class="d-flex align-items-center px-2">
+                        <label for="fecha_inicio" class="fw-bold text-dark small m-0 me-2">Desde:</label>
+                        <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control form-control-sm border-0 bg-white fw-bold shadow-sm" style="border-radius: 8px;">
+                    </div>
 
-            <button onclick="window.print()" class="btn btn-pink px-4 rounded-pill fw-bold">
-                <i class="fa-solid fa-print me-1"></i> Imprimir Tirilla
-            </button>
+                    <div class="d-flex align-items-center px-2">
+                        <label for="fecha_fin" class="fw-bold text-dark small m-0 me-2">Hasta:</label>
+                        <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control form-control-sm border-0 bg-white fw-bold shadow-sm" style="border-radius: 8px;">
+                    </div>
+                    
+                    <button type="submit" class="btn text-white rounded-pill px-4 py-1 fw-bold shadow-sm" style="background: #0F172A; font-size: 0.85rem;">
+                        <i class="fa-solid fa-filter me-1"></i> Filtrar
+                    </button>
+                </form>
+                {% else %}
+                <div class="text-center">
+                    <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(15, 23, 42, 0.06); color: #0F172A; font-size: 0.85rem;">
+                        <i class="fa-solid fa-calendar-day me-1 text-danger"></i> Arqueo de Hoy: {{ fecha_inicio }}
+                    </span>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    <button onclick="window.print()" class="btn text-white px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); transition: all 0.2s ease; border: none;">
+                        <i class="fa-solid fa-print"></i> Imprimir Tirilla
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Contenido del Reporte EN PANTALLA e IMPRESIÓN A4 -->
-    <div class="col-12 col-xl-10">
-        <div class="card bg-white p-5 border-0 shadow-sm rounded-4 printable-document">
+    <div class="col-12 col-xl-11">
+        <div class="card bg-white p-4 p-md-5 border-0 shadow-sm rounded-4 printable-document" style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;">
             
-            <!-- Encabezado Ticket / Documento Contable -->
-            <div class="text-center mb-5 pb-3 border-bottom">
-                <img src="{{ url_for('static', filename='img/logo_ticket.png') }}?v=2" alt="Logo RC" style="max-height: 50px; width: auto;" class="mb-2">
-                <h1 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-calculator me-2"></i> RedCover</h1>
-                <p class="fw-bold text-brand-black mb-2" style="margin-top: 2px;">NIT: 1013679035-0</p>
-                <h4 class="text-muted fw-semibold">INFORME CONTABLE DE CIERRE DE CAJA (ARQUEO)</h4>
-                <p class="mb-0 text-secondary">
-                    Período: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong>
-                    <br>
-                    Generado el: <strong>{{ fecha_generacion }}</strong>
+            <!-- Encabezado Ticket / Documento Contable Formal -->
+            <div class="text-center mb-5 pb-4 border-bottom">
+                <img src="{{ url_for('static', filename='img/redcover.png') }}" alt="Logo RedCover" style="height: 52px; width: auto;" class="mb-3">
+                <h2 class="fw-bolder text-brand-black mb-1" style="letter-spacing: -0.5px;">RedCover &bull; Telefonía y Accesorios</h2>
+                <p class="fw-bold text-muted small mb-2">NIT: 1013679035-0 &bull; Sistema Contable Integrado</p>
+                <div class="d-inline-block px-4 py-1 rounded-pill mb-3" style="background: rgba(220, 38, 38, 0.08); color: #DC2626; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px;">
+                    INFORME CONTABLE DE CIERRE DE CAJA (ARQUEO)
+                </div>
+                <p class="mb-0 text-secondary small">
+                    Período: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong> &bull; Generado el: <strong>{{ fecha_generacion }}</strong>
                 </p>
                 {% if current_user.rol != 'admin' %}
-                    <p class="mb-0 text-brand-black fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
+                    <p class="mb-0 text-dark fw-bold small mt-1">Usuario Solicitante: {{ current_user.nombre }}</p>
                 {% endif %}
             </div>
 
-            <!-- Resumen Consolidado de Totales -->
-            <h5 class="fw-bold text-brand-black mb-3">📍 Resumen General del Período Recaudado</h5>
+            <!-- Resumen General del Período Recaudado (Tarjetas KPI Simétricas) -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">
+                    <i class="fa-solid fa-chart-pie me-2 text-danger"></i>Resumen General del Período Recaudado
+                </h5>
+                <span class="text-muted extra-small">Cálculo consolidado de entradas, salidas y sobrantes</span>
+            </div>
+
             <div class="row g-3 mb-4 resumen-totales">
+                <!-- Venta + Banco Neto -->
                 <div class="col-12 col-md-3">
-                    <div class="card p-3 border rounded shadow-sm text-center h-100" style="border-left: 4px solid var(--brand-red) !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1 text-muted">Venta + Banco Neto</small>
-                        <h4 class="mb-0 fw-bold text-brand-black">
+                    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important; border-left: 4px solid #16A34A !important;">
+                        <small class="fw-bold text-uppercase d-block mb-1 text-muted extra-small" style="letter-spacing: 0.5px;">Venta + Banco Neto</small>
+                        <h3 class="mb-0 fw-bolder text-success" style="font-size: 1.7rem;">
                             ${{ (resumen.total_recaudado_neto)|cop }}
-                        </h4>
-                        <small class="d-block mt-1 text-muted" style="font-size:0.7rem;">Total - Gastos</small>
+                        </h3>
+                        <small class="d-block mt-2 text-muted fw-semibold" style="font-size:0.75rem;">Fórmula: (Total Venta - Gastos)</small>
                     </div>
                 </div>
+
+                <!-- Total Gastos Operativos -->
                 <div class="col-12 col-md-3">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #dc3545 !important;">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Total Gastos Operativos</small>
-                        <h4 class="mb-0 text-danger fw-bold">$-{{ (resumen.total_gastos)|cop }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">(Efectivo: ${{ (resumen.total_gastos_efectivo)|cop }})</small>
+                    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important; border-left: 4px solid #DC2626 !important;">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1 extra-small" style="letter-spacing: 0.5px;">Gastos Operativos</small>
+                        <h3 class="mb-0 text-danger fw-bolder" style="font-size: 1.7rem;">-${{ (resumen.total_gastos)|cop }}</h3>
+                        <small class="text-muted d-block mt-2 fw-semibold" style="font-size:0.75rem;">(Efectivo: ${{ (resumen.total_gastos_efectivo)|cop }})</small>
                     </div>
                 </div>
+
+                <!-- Venta Total Bruta -->
                 <div class="col-12 col-md-3">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid var(--brand-black) !important;">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Venta Total</small>
-                        <h4 class="mb-0 text-dark fw-bold" style="font-size: 1.6rem;">${{ (resumen.total_recaudado_bruto)|cop }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">Suma de Cash + Bancos</small>
+                    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important; border-left: 4px solid #0F172A !important;">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1 extra-small" style="letter-spacing: 0.5px;">Venta Total Bruta</small>
+                        <h3 class="mb-0 text-brand-black fw-bolder" style="font-size: 1.7rem;">${{ (resumen.total_recaudado_bruto)|cop }}</h3>
+                        <small class="text-muted d-block mt-2 fw-semibold" style="font-size:0.75rem;">Suma de Efectivo + Digital</small>
                     </div>
                 </div>
+
+                <!-- Sobrantes Acumulados -->
                 <div class="col-12 col-md-3">
-                    <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #ffc107 !important;">
-                        <small class="text-warning text-dark fw-bold d-block mb-1">SOBRANTES ACUMULADOS</small>
-                        <h4 class="mb-0 text-dark fw-bold">${{ (resumen.total_sobrantes)|cop }}</h4>
-                        <small class="text-muted d-block mt-1" style="font-size:0.7rem;">Acumulado a favor en cierres</small>
+                    <div class="card p-4 border-0 rounded-4 shadow-sm bg-white h-100" style="box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important; border-left: 4px solid #D97706 !important;">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1 extra-small" style="letter-spacing: 0.5px;">Sobrantes Acumulados</small>
+                        <h3 class="mb-0 text-warning text-dark fw-bolder" style="font-size: 1.7rem;">+${{ (resumen.total_sobrantes)|cop }}</h3>
+                        <small class="text-muted d-block mt-2 fw-semibold" style="font-size:0.75rem;">Acumulado a favor en cierres</small>
                     </div>
                 </div>
             </div>
 
             {% if resumen_por_sucursal %}
             <!-- Consolidado por Locales -->
-            <h6 class="fw-bold text-brand-black mb-2"><i class="fa-solid fa-store me-1"></i> Desglose de Cierres por Local / Sucursal:</h6>
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                <h6 class="fw-bold text-brand-black mb-0"><i class="fa-solid fa-store me-1 text-danger"></i> Desglose de Cierres por Local / Sucursal:</h6>
+            </div>
             <div class="row g-3 mb-4">
                 {% for suc, data in resumen_por_sucursal.items() %}
                 <div class="col-md-6">
-                    <div class="card border shadow-sm p-3 rounded-3 bg-white">
-                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                            <span class="fw-bold fs-6 text-dark"><i class="fa-solid fa-location-dot text-brand-pink me-1"></i> {{ suc }}</span>
-                            <span class="badge bg-secondary">{{ data.cierres }} Cierre(s)</span>
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <span class="fw-bold fs-6 text-brand-black"><i class="fa-solid fa-location-dot text-danger me-2"></i>{{ suc }}</span>
+                            <span class="badge rounded-pill px-3 py-1 bg-white text-dark border fw-bold">{{ data.cierres }} Cierre(s)</span>
                         </div>
-                        <div class="row g-2 text-center small">
+                        <div class="row g-2 text-center">
                             <div class="col-4">
-                                <span class="text-muted d-block">Ventas Efec</span>
-                                <strong class="text-success">${{ data.total_efectivo|cop }}</strong>
+                                <span class="text-muted extra-small fw-semibold d-block mb-1">Ventas Efectivo</span>
+                                <strong class="text-success fs-6">${{ data.total_efectivo|cop }}</strong>
                             </div>
                             <div class="col-4">
-                                <span class="text-muted d-block">Bancos</span>
-                                <strong class="text-info">${{ data.total_transferencia|cop }}</strong>
+                                <span class="text-muted extra-small fw-semibold d-block mb-1">Bancos / Digital</span>
+                                <strong class="text-info fs-6">${{ data.total_transferencia|cop }}</strong>
                             </div>
                             <div class="col-4">
-                                <span class="text-muted d-block">Sobrantes</span>
-                                <strong class="text-warning text-dark">+${{ data.total_sobrantes|cop }}</strong>
+                                <span class="text-muted extra-small fw-semibold d-block mb-1">Sobrantes</span>
+                                <strong class="text-warning text-dark fs-6">+${{ data.total_sobrantes|cop }}</strong>
                             </div>
                         </div>
                     </div>
@@ -120,65 +155,75 @@
             {% endif %}
 
             <!-- Tabla Desglosada Registro a Registro -->
-            <h5 class="fw-bold text-brand-black mb-3 border-bottom pb-2">📋 Desglose Analítico por Cierres de Día</h5>
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm fw-semibold mb-0 table-hover align-middle">
-                    <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">
+                    <i class="fa-solid fa-table-list me-2 text-danger"></i>Desglose Analítico por Cierres de Día
+                </h5>
+                <span class="badge rounded-pill px-3 py-1 bg-light text-muted border small">{{ arqueos|length }} Registro(s)</span>
+            </div>
+
+            <div class="table-responsive rounded-4 border-0 mb-5">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom border-light text-center text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.5px; color: #64748B;">
                         <tr>
-                            <th width="8%">Fecha</th>
-                            <th width="10%">Cajero(a)</th>
-                            <th width="10%" class="text-secondary">Sucursal</th>
-                            <th width="10%" class="text-primary">Base Inicial</th>
-                            <th width="10%" class="text-dark bg-light border-start border-end">Venta Total</th>
-                            <th width="9%" class="text-success">Ventas Efec</th>
-                            <th width="9%" class="text-info">Bancos</th>
-                            <th width="9%" class="text-danger">Gastos</th>
-                            <th width="10%">Físico Contado</th>
-                            <th width="12%">Diferencia / Sobrante</th>
+                            <th class="ps-3 py-3" width="9%">Fecha</th>
+                            <th class="py-3" width="11%">Cajero(a)</th>
+                            <th class="py-3" width="10%">Sucursal</th>
+                            <th class="py-3 text-end" width="9%">Base Inicial</th>
+                            <th class="py-3 text-end fw-bold text-dark" width="10%">Venta Total</th>
+                            <th class="py-3 text-end text-success" width="9%">Venta Efec</th>
+                            <th class="py-3 text-end text-info" width="9%">Bancos</th>
+                            <th class="py-3 text-end text-danger" width="9%">Gastos</th>
+                            <th class="py-3 text-end" width="10%">Físico Contado</th>
+                            <th class="py-3 text-center" width="12%">Diferencia</th>
                             {% if current_user.rol == 'admin' %}
-                            <th width="8%" class="d-print-none">Acciones</th>
+                            <th class="pe-3 py-3 text-center d-print-none" width="8%">Acciones</th>
                             {% endif %}
                         </tr>
                     </thead>
-                    <tbody style="font-size: 0.9rem;">
+                    <tbody class="border-top-0" style="font-size: 0.88rem;">
                         {% for arqueo in arqueos %}
-                        <tr>
-                            <td class="text-center text-secondary">{{ arqueo.fecha_arqueo }}</td>
-                            <td class="text-truncate" style="max-width:110px;" title="{{ arqueo.cajero.nombre }}">{{ arqueo.cajero.nombre }}</td>
-                            <td class="text-center fw-bold text-secondary">{{ arqueo.sucursal }}</td>
-                            <td class="text-end text-primary fw-bold">${{ (arqueo.base_inicial)|cop }}</td>
-                            <td class="text-end text-dark fw-bolder bg-light border-start border-end">${{ (arqueo.total_efectivo_sistema + arqueo.total_transferencia_sistema)|cop }}</td>
-                            <td class="text-end text-success fw-bold">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
-                            <td class="text-end text-info fw-bold">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
-                            <td class="text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
+                        <tr style="transition: background 0.15s ease;">
+                            <td class="ps-3 py-3 text-center text-secondary fw-semibold">{{ arqueo.fecha_arqueo }}</td>
+                            <td class="py-3 text-truncate fw-medium text-dark" style="max-width:120px;" title="{{ arqueo.cajero.nombre }}">
+                                <i class="fa-regular fa-user me-1 text-muted"></i>{{ arqueo.cajero.nombre }}
+                            </td>
+                            <td class="py-3 text-center">
+                                <span class="badge rounded-pill px-2 py-1 bg-light text-dark border fw-bold" style="font-size: 0.75rem;">{{ arqueo.sucursal }}</span>
+                            </td>
+                            <td class="py-3 text-end text-secondary fw-semibold">${{ (arqueo.base_inicial)|cop }}</td>
+                            <td class="py-3 text-end text-dark fw-bolder">${{ (arqueo.total_efectivo_sistema + arqueo.total_transferencia_sistema)|cop }}</td>
+                            <td class="py-3 text-end text-success fw-bold">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
+                            <td class="py-3 text-end text-info fw-bold">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
+                            <td class="py-3 text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-muted{% endif %} fw-bold">
                                 ${{ (arqueo.gastos_del_dia)|cop }}
                             </td>
-                            <td class="text-end text-dark fw-bold">
+                            <td class="py-3 text-end text-dark fw-bold">
                                 ${{ (arqueo.efectivo_fisico or 0)|cop }}
                             </td>
-                            <td class="text-center">
+                            <td class="py-3 text-center">
                                 {% if arqueo.diferencia and arqueo.diferencia > 0 %}
-                                    <span class="badge bg-warning bg-opacity-20 text-dark border border-warning fw-bold" title="{{ arqueo.observacion_diferencia or 'Sobrante en caja' }}">
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(245, 158, 11, 0.12); color: #D97706; font-size: 0.78rem;" title="{{ arqueo.observacion_diferencia or 'Sobrante en caja' }}">
                                         +${{ arqueo.diferencia|cop }} (Sobrante)
                                     </span>
                                 {% elif arqueo.diferencia and arqueo.diferencia < 0 %}
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger fw-bold" title="{{ arqueo.observacion_diferencia or 'Faltante en caja' }}">
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(239, 68, 68, 0.12); color: #DC2626; font-size: 0.78rem;" title="{{ arqueo.observacion_diferencia or 'Faltante en caja' }}">
                                         -${{ arqueo.diferencia|abs|cop }} (Faltante)
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-light text-secondary border fw-normal">Cuadrada ($0)</span>
+                                    <span class="badge rounded-pill px-3 py-1 bg-light text-muted border fw-semibold" style="font-size: 0.78rem;">Cuadrada ($0)</span>
                                 {% endif %}
                             </td>
                             {% if current_user.rol == 'admin' %}
-                            <td class="text-center d-print-none">
+                            <td class="pe-3 py-3 text-center d-print-none">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ url_for('arqueo_bp.imprimir_ticket_arqueo', fecha=arqueo.fecha_arqueo, sucursal=arqueo.sucursal, autoprint=1) }}" target="_blank" class="btn btn-sm btn-outline-dark py-1 px-2 rounded-3 text-nowrap" title="Imprimir Ticket Térmico 80mm">
-                                        <i class="fa-solid fa-receipt"></i>
+                                    <a href="{{ url_for('arqueo_bp.imprimir_ticket_arqueo', fecha=arqueo.fecha_arqueo, sucursal=arqueo.sucursal, autoprint=1) }}" target="_blank" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-dark" style="width: 30px; height: 30px;" title="Imprimir Ticket 80mm">
+                                        <i class="fa-solid fa-receipt extra-small"></i>
                                     </a>
-                                    <form action="{{ url_for('arqueo_bp.revertir_arqueo', id=arqueo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas revertir este arqueo de caja? Esto eliminará el cierre y permitirá volver a crear/modificar el arqueo para esta fecha y local.');" class="d-inline">
+                                    <form action="{{ url_for('arqueo_bp.revertir_arqueo', id=arqueo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas revertir este arqueo de caja? Esto eliminará el cierre y permitirá volver a crear/modificar el arqueo para esta fecha y local.');" class="d-inline m-0">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-3 text-nowrap" title="Revertir Cierre">
-                                            <i class="fa-solid fa-rotate-left"></i>
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-danger" style="width: 30px; height: 30px;" title="Revertir Cierre">
+                                            <i class="fa-solid fa-rotate-left extra-small"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -187,74 +232,83 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="10" class="text-center text-muted p-4">No hay datos encontrados en estas fechas.</td>
+                            <td colspan="11" class="text-center py-5 text-muted">
+                                <div class="py-4">
+                                    <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-25"></i>
+                                    <p class="mb-0 fw-bold">No se encontraron cierres de arqueo en el rango de fechas seleccionado.</p>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
 
-    <!-- TABLA DE VENTAS DETALLADAS (Pantalla Completa A4) -->
-    <div class="col-12 col-xl-10 mt-4">
-        <div class="card bg-white p-5 border-0 shadow-sm rounded-4 printable-document">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                <h5 class="fw-bold text-brand-black m-0">
-                    <i class="fa-solid fa-list-check me-2"></i> Detalle de Ventas y Productos Involucrados
-                </h5>
-                <a href="{{ url_for('arqueo_bp.imprimir_ticket_arqueo', fecha=fecha_inicio, autoprint=1) }}" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold shadow-sm d-print-none">
-                    <i class="fa-solid fa-print me-1"></i> Imprimir Ticket (80mm)
+            <!-- DETALLE DE VENTAS Y PRODUCTOS INVOLUCRADOS -->
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-4 pt-3 border-top">
+                <div>
+                    <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">
+                        <i class="fa-solid fa-list-check me-2 text-danger"></i>Detalle de Ventas y Productos Involucrados
+                    </h5>
+                    <p class="text-muted extra-small mb-0">Listado íntegro de comprobantes y artículos comercializados</p>
+                </div>
+                <a href="{{ url_for('arqueo_bp.imprimir_ticket_arqueo', fecha=fecha_inicio, autoprint=1) }}" target="_blank" class="btn btn-sm text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-print-none d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); border: none;">
+                    <i class="fa-solid fa-print"></i> Imprimir Ticket (80mm)
                 </a>
             </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm fw-semibold mb-0 table-hover align-middle">
-                    <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
+
+            <div class="table-responsive rounded-4 border-0 mb-4">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom border-light text-center text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.5px; color: #64748B;">
                         <tr>
-                            <th width="10%">Ticket ID</th>
-                            <th width="12%">Hora</th>
-                            <th width="15%">Método Pago</th>
-                            <th width="35%">Productos y Cantidades</th>
-                            <th width="15%" class="text-end">Total Ticket</th>
+                            <th class="ps-3 py-3" width="10%">Ticket ID</th>
+                            <th class="py-3" width="12%">Hora</th>
+                            <th class="py-3" width="16%">Método de Pago</th>
+                            <th class="py-3 text-start" width="46%">Productos y Cantidades</th>
+                            <th class="pe-3 py-3 text-end" width="16%">Total Ticket</th>
                         </tr>
                     </thead>
-                    <tbody style="font-size: 0.9rem;">
+                    <tbody class="border-top-0" style="font-size: 0.88rem;">
                         {% for v in ventas_periodo %}
-                        <tr>
-                            <td class="text-center text-secondary fw-bold">
-                                #{{ "%05d"|format(v.id) }}
-                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=v.id) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 ms-1 rounded-pill d-print-none" title="Ver / Imprimir Factura #{{ v.id }}">
-                                    <i class="fa-solid fa-file-invoice"></i>
-                                </a>
+                        <tr style="transition: background 0.15s ease;">
+                            <td class="ps-3 py-3 text-center">
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(15, 23, 42, 0.08); color: #0F172A; font-size: 0.82rem;">
+                                        #{{ "%05d"|format(v.id) }}
+                                    </span>
+                                    <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=v.id) }}" target="_blank" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-muted d-print-none" style="width: 28px; height: 28px;" title="Ver Factura">
+                                        <i class="fa-solid fa-file-invoice extra-small text-primary"></i>
+                                    </a>
+                                </div>
                             </td>
-                            <td class="text-center text-muted">{{ v.fecha_venta.strftime('%H:%M') }}</td>
-                            <td class="text-center">
+                            <td class="py-3 text-center text-muted fw-medium">{{ v.fecha_venta.strftime('%H:%M') }}</td>
+                            <td class="py-3 text-center">
                                 {% if v.pagos|length > 1 %}
-                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1" style="border-color: #fd7e14 !important;">
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(245, 158, 11, 0.12); color: #D97706; font-size: 0.78rem;">
                                         Mixto
                                     </span>
-                                    <div style="font-size: 0.7rem; margin-top: 3px; color: #888;">
+                                    <div class="mt-1 extra-small text-muted">
                                         {% for p in v.pagos %}
                                             {{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}<br>{% endif %}
                                         {% endfor %}
                                     </div>
                                 {% elif v.pagos|length == 1 %}
-                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                    <span class="badge rounded-pill px-3 py-1 bg-light text-dark border fw-bold" style="font-size: 0.78rem;">
                                         {{ v.pagos[0].metodo_pago|capitalize }}
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                    <span class="badge rounded-pill px-3 py-1 bg-light text-dark border fw-bold" style="font-size: 0.78rem;">
                                         {{ v.metodo_pago|capitalize }}
                                     </span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="py-3 text-start">
                                 <ul class="mb-0 ps-3" style="font-size: 0.85rem;">
                                     {% for detalle in v.detalles %}
                                     <li>
                                         <strong>{{ detalle.cantidad_vendida }}x</strong> 
                                         {% if detalle.nombre_manual %}
-                                            {{ detalle.nombre_manual }} <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill px-1" style="font-size: 0.65rem;">Externo</span>
+                                            {{ detalle.nombre_manual }} <span class="badge rounded-pill px-2 py-0 fw-bold" style="background: rgba(59, 130, 246, 0.12); color: #2563EB; font-size: 0.65rem;">Externo</span>
                                         {% elif detalle.producto %}
                                             {{ detalle.producto.nombre }} 
                                             {% if detalle.variant_id and detalle.variante %}
@@ -267,56 +321,63 @@
                                     {% endfor %}
                                 </ul>
                             </td>
-                            <td class="text-end fw-bold text-brand-black fs-6">${{ (v.monto_total)|cop }}</td>
+                            <td class="pe-3 py-3 text-end fw-bold text-dark fs-6">${{ (v.monto_total)|cop }}</td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted p-4">No se registraron ventas en este período.</td>
+                            <td colspan="5" class="text-center py-4 text-muted">No se registraron ventas en este período.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
-            <!-- DETALLE DE GASTOS DEL PERIODO -->
+            <!-- DETALLE DE GASTOS DEL PERÍODO -->
             {% if gastos_periodo %}
             <div class="mt-5 pt-4 border-top">
-                <h4 class="fw-bold text-brand-black mb-3">
-                    <i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i> Detalle de Gastos Registrados
-                </h4>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle table-hover">
-                        <thead class="table-light text-center text-uppercase" style="font-size: 0.8rem;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-brand-black mb-0" style="font-size: 1.15rem;">
+                        <i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i>Detalle de Gastos Registrados
+                    </h5>
+                    <span class="badge rounded-pill px-3 py-1 bg-light text-danger border fw-bold">{{ gastos_periodo|length }} Gasto(s)</span>
+                </div>
+                <div class="table-responsive rounded-4 border-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light border-bottom border-light text-center text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.5px; color: #64748B;">
                             <tr>
-                                <th width="12%">Fecha</th>
-                                <th width="15%">Tipo</th>
-                                <th width="15%">Categoría</th>
-                                <th>Descripción</th>
-                                <th width="12%">Método</th>
-                                <th width="15%">Monto</th>
+                                <th class="ps-3 py-3" width="14%">Fecha y Hora</th>
+                                <th class="py-3" width="12%">Tipo</th>
+                                <th class="py-3 text-start" width="18%">Categoría</th>
+                                <th class="py-3 text-start">Descripción</th>
+                                <th class="py-3" width="14%">Método</th>
+                                <th class="pe-3 py-3 text-end" width="15%">Monto</th>
                             </tr>
                         </thead>
-                        <tbody style="font-size: 0.85rem;">
+                        <tbody class="border-top-0" style="font-size: 0.88rem;">
                             {% for gasto in gastos_periodo %}
-                            <tr>
-                                <td class="text-center text-muted">{{ gasto.fecha_gasto.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td class="text-center">
+                            <tr style="transition: background 0.15s ease;">
+                                <td class="ps-3 py-3 text-center text-muted fw-medium">{{ gasto.fecha_gasto.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td class="py-3 text-center">
                                     {% if gasto.tipo_gasto == 'Gasto Diario' %}
-                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Diario</span>
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(220, 38, 38, 0.12); color: #DC2626; font-size: 0.78rem;">Diario</span>
                                     {% else %}
-                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Indirecto</span>
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(245, 158, 11, 0.12); color: #D97706; font-size: 0.78rem;">Indirecto</span>
                                     {% endif %}
                                 </td>
-                                <td class="fw-bold">{{ gasto.categoria }}</td>
-                                <td class="text-muted fst-italic">{{ gasto.descripcion or '—' }}</td>
-                                <td class="text-center">
+                                <td class="py-3 text-start fw-bold text-dark">{{ gasto.categoria }}</td>
+                                <td class="py-3 text-start text-muted fst-italic">{{ gasto.descripcion or '—' }}</td>
+                                <td class="py-3 text-center">
                                     {% if gasto.metodo_pago == 'efectivo' %}
-                                        <span class="text-success fw-bold"><i class="fa-solid fa-money-bill-wave me-1"></i> Efectivo</span>
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(34, 197, 94, 0.12); color: #16A34A; font-size: 0.78rem;">
+                                            <i class="fa-solid fa-money-bill-wave me-1"></i>Efectivo
+                                        </span>
                                     {% else %}
-                                        <span class="text-info fw-bold"><i class="fa-solid fa-building-columns me-1"></i> {{ gasto.metodo_pago|capitalize }}</span>
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(6, 182, 212, 0.12); color: #0891B2; font-size: 0.78rem;">
+                                            <i class="fa-solid fa-building-columns me-1"></i>{{ gasto.metodo_pago|capitalize }}
+                                        </span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end fw-bold {% if gasto.metodo_pago == 'efectivo' %}text-danger{% endif %}">
+                                <td class="pe-3 py-3 text-end fw-bolder {% if gasto.metodo_pago == 'efectivo' %}text-danger{% else %}text-dark{% endif %}" style="font-size: 0.95rem;">
                                     ${{ (gasto.monto)|cop }}
                                 </td>
                             </tr>
@@ -327,9 +388,7 @@
             </div>
             {% endif %}
 
-
-
-            <!-- Firmas Contables (Solo visibles al imprimir el PDF de tamaño carta) -->
+            <!-- Firmas Contables (Solo visibles al imprimir tamaño carta) -->
             <div class="row mt-5 pt-5 d-none d-print-flex">
                 <div class="col-6 text-center">
                     <hr class="w-75 mx-auto border-dark border-1 opacity-100">
@@ -355,12 +414,10 @@
         font-size: 11pt;
     }
     
-    /* Ocultar barra de navegación superior si existe en el layout general, y cualquier otro elemento innecesario */
     main > nav, header, footer, .sidebar, .d-print-none {
         display: none !important;
     }
 
-    /* Quitar sombras y reestablecer contenedores principales a 100% de ancho */
     .printable-document {
         box-shadow: none !important;
         border: none !important;
@@ -369,13 +426,11 @@
         page-break-inside: avoid;
     }
     
-    /* Forzar los colores de Bootstrap/Custom para que la impresora los dibuje literalmente */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    /* Mostrar las firmas explícitamente solo al imprimir */
     .d-print-flex {
         display: flex !important;
     }

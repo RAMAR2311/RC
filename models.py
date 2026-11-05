@@ -640,3 +640,30 @@ class Vale(db.Model):
     def __init__(self, **kwargs):
         super(Vale, self).__init__(**kwargs)
 
+class ZenicDataAgreementAudit(db.Model):
+    __tablename__ = 'zenic_data_agreements_audit'
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, nullable=False, default=1, index=True) # ID o referencia del comercio
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) # Usuario que ejecutó la firma
+    business_name = db.Column(db.String(255), nullable=False) # Razón social digitada
+    business_nit = db.Column(db.String(50), nullable=False, index=True) # NIT digitado
+    legal_representative = db.Column(db.String(255), nullable=False) # Representante Legal digitado
+    legal_rep_id = db.Column(db.String(100), nullable=False) # Cédula y lugar expedición
+    business_city = db.Column(db.String(150), nullable=True) # Ciudad y Dpto
+    business_email = db.Column(db.String(150), nullable=True) # Correo de notificaciones
+    accepted_terms = db.Column(db.SmallInteger, nullable=False, default=1)
+    accepted_dpa = db.Column(db.SmallInteger, nullable=False, default=1)
+    terms_version = db.Column(db.String(20), nullable=False, default='v2026.1')
+    document_sha256 = db.Column(db.String(64), nullable=False) # Hash criptográfico SHA-256
+    ip_address = db.Column(db.String(45), nullable=False) # IP remota real
+    user_agent = db.Column(db.Text, nullable=False) # Agente de usuario/navegador
+    signature_data = db.Column(db.Text, nullable=True) # Base64 del trazo de firma
+    timestamp_utc5 = db.Column(db.DateTime, default=obtener_hora_bogota, nullable=False) # Hora legal Colombia
+
+    user = db.relationship('User', foreign_keys=[user_id])
+
+    def __init__(self, **kwargs):
+        super(ZenicDataAgreementAudit, self).__init__(**kwargs)
+
+

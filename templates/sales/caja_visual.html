@@ -1,11 +1,128 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Estilos SaaS Corporativos - Panel Balance RedCover (Limpio, Blanco y Negro con Acentos Rojos) */
+    .cart-clean-card {
+        background: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(220, 38, 38, 0.08) !important;
+    }
+    
+    /* Píldoras de Métodos de Pago: Fondo Blanco Puro, Iconos Vivos y Contorno Rojo al Activar */
+    .btn-payment-method {
+        background: #FFFFFF !important;
+        border: 1.5px solid #E2E8F0 !important;
+        color: #0F172A !important;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-payment-method:hover {
+        border-color: #DC2626 !important;
+        background: #FEF2F2 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08) !important;
+    }
+    .btn-payment-method.active {
+        border-color: #DC2626 !important;
+        background: #FEF2F2 !important;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+    .btn-payment-method.active .fw-bold {
+        color: #DC2626 !important;
+    }
+
+    /* Iconos Coloridos y Vivos de Métodos de Pago */
+    .payment-icon-box {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+    /* Inputs y Selectores */
+    .cart-clean-card .form-control,
+    .cart-clean-card .form-select {
+        background: #F8FAFC !important;
+        border: 1.5px solid #E2E8F0 !important;
+        color: #0F172A !important;
+        border-radius: 10px !important;
+    }
+    .cart-clean-card .form-control:focus,
+    .cart-clean-card .form-select:focus {
+        border-color: #DC2626 !important;
+        background: #FFFFFF !important;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+
+    /* Botón de Procesar Cobro en Rojo Corporativo Fuerte */
+    #btn_process_sale {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        transition: all 0.25s ease;
+        box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35) !important;
+        border-radius: 12px !important;
+    }
+    #btn_process_sale:hover {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(220, 38, 38, 0.45) !important;
+    }
+
+    /* Botón Limpiar Venta */
+    #btn_clear_cart {
+        background: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        color: #64748B !important;
+        transition: all 0.2s ease;
+        border-radius: 12px !important;
+    }
+    #btn_clear_cart:hover {
+        background: #FEF2F2 !important;
+        border-color: #FECACA !important;
+        color: #DC2626 !important;
+    }
+
+    /* Botón Retoma */
+    .btn-retoma-pill {
+        background: #FFFFFF !important;
+        border: 1.5px solid #0F172A !important;
+        color: #0F172A !important;
+        transition: all 0.2s ease;
+    }
+    .btn-retoma-pill:hover {
+        background: #0F172A !important;
+        color: #FFFFFF !important;
+        transform: translateY(-1px);
+    }
+
+    /* Tarjetas de Producto con Borde y Sombra Pulidos */
+    .product-card {
+        border: 1.5px solid #EEF2F6 !important;
+        border-radius: 16px !important;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        overflow: hidden;
+    }
+    .product-card:hover {
+        border-color: rgba(220, 38, 38, 0.4) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.12) !important;
+    }
+</style>
+
 <div class="row h-100 g-4">
     <!-- Panel Izquierdo: Catálogo de Productos -->
     <div class="col-lg-8 d-flex flex-column h-100">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-store text-brand-pink me-2"></i> Caja Rápida Visual</h2>
+            <h2 class="fw-bold text-dark m-0"><i class="fa-solid fa-store text-danger me-2"></i> Caja Rápida Visual</h2>
             <button class="btn btn-outline-success rounded-3 px-3 shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalProductoExterno" title="Ingresar Producto Externo">
                 <i class="fa-solid fa-mobile-screen-button me-1"></i> Externo
             </button>
@@ -70,59 +187,66 @@
         </div>
     </div>
 
-    <!-- Panel Derecho: Carrito -->
+    <!-- Panel Derecho: Carrito con Identidad RedCover (Tarjeta Blanca Limpia, Encabezado Negro y Acentos Rojos) -->
     <div class="col-lg-4">
-        <div class="card card-custom p-4 position-sticky" style="top: 100px; height: 100%;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0"><i class="fa-solid fa-cart-shopping text-brand-blue me-2"></i> Balance</h5>
-                <span class="badge bg-secondary rounded-pill" id="total_items">0 items</span>
+        <div class="card cart-clean-card p-4 position-sticky" style="top: 100px; height: 100%;">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bolder m-0 text-dark d-flex align-items-center gap-2">
+                    <span class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: rgba(220, 38, 38, 0.1); color: #DC2626;">
+                        <i class="fa-solid fa-cart-shopping" style="font-size: 0.95rem;"></i>
+                    </span>
+                    <span>Balance</span>
+                </h5>
+                <span class="badge rounded-pill px-3 py-1.5 fw-bold" id="total_items" style="background: #0F172A; color: #FFFFFF;">0 items</span>
             </div>
             
-            <div class="card-body p-0 overflow-auto mb-3" style="max-height: 40vh;" id="cartContainer">
+            <div class="card-body p-0 overflow-auto mb-3" style="max-height: 38vh;" id="cartContainer">
                 <ul class="list-group list-group-flush" id="cart_body">
                     <!-- Javascript inyectará items aquí -->
-                    <li class="list-group-item text-center py-5 text-muted" id="empty_cart_msg">
-                        <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-black-50"></i><br>Tu carrito está vacío.
+                    <li class="list-group-item text-center py-5 text-muted border-0" id="empty_cart_msg">
+                        <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-black-50"></i><br>
+                        <span class="fw-semibold text-secondary">Tu carrito está vacío.</span>
                     </li>
                 </ul>
             </div>
 
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted fw-bold align-self-center">Subtotal:</span>
-                <span class="fw-bold fs-4 text-dark" id="subtotal_amount">$0</span>
+                <span class="fw-bolder fs-4 text-dark" id="subtotal_amount">$0</span>
             </div>
 
             <div class="mb-2 text-danger" id="retoma_discount_row" style="display: none !important;">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold align-self-center"><i class="fa-solid fa-recycle me-1"></i> Retomas (<span id="retomas_count">0</span>):</span>
-                    <span class="fw-bold fs-5" id="retoma_amount">-$0</span>
+                    <span class="fw-bold align-self-center text-danger"><i class="fa-solid fa-recycle me-1"></i> Retomas (<span id="retomas_count">0</span>):</span>
+                    <span class="fw-bold fs-5 text-danger" id="retoma_amount">-$0</span>
                 </div>
                 <div id="retomas_list_container" class="ps-2 border-start border-2 border-danger ms-1 mb-2 bg-light rounded p-2" style="font-size: 0.85rem;">
                     <!-- Lista dinámica de retomas -->
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between mb-4 border-top pt-2">
-                <span class="text-muted fw-bold align-self-center">Total a Cobrar:</span>
-                <span class="fw-bolder fs-1 text-brand-black" id="total_amount">$0</span>
+            <div class="d-flex justify-content-between mb-4 border-top pt-3">
+                <span class="text-dark fw-bold align-self-center fs-5">Total a Cobrar:</span>
+                <span class="fw-bolder fs-1 text-dark" id="total_amount" style="letter-spacing: -0.5px;">$0</span>
             </div>
 
-            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill fw-bold w-100 mb-4" onclick="abrirModalRetoma()">
-                <i class="fa-solid fa-recycle me-1"></i> Añadir Equipo en Retoma
+            <button type="button" class="btn btn-retoma-pill btn-sm rounded-pill fw-bold w-100 mb-4 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="abrirModalRetoma()">
+                <i class="fa-solid fa-recycle text-danger"></i> Añadir Equipo en Retoma
             </button>
 
             {% if current_user.rol == 'admin' %}
             <div class="mb-3">
-                <label class="form-label text-muted fw-semibold small">Fecha de Venta:</label>
-                <input type="date" id="fecha_venta_input" class="form-control form-control-sm bg-light border-0 shadow-sm" value="{{ hoy }}">
+                <label class="form-label text-muted fw-bold small mb-1">Fecha de Venta:</label>
+                <input type="date" id="fecha_venta_input" class="form-control form-control-sm border shadow-sm" value="{{ hoy }}">
             </div>
             {% endif %}
 
-            <!-- Toggle: Pago Único vs Pago Dividido -->
             <!-- Selector de Asesor (Obligatorio) -->
             <div class="mb-3">
-                <label class="form-label fw-bold text-brand-black small text-uppercase mb-2"><i class="fa-solid fa-user-tie me-1"></i> Asesor de Venta</label>
-                <select id="asesor-vendedor" class="form-select form-select-lg border-0 shadow-sm bg-light" required style="cursor: pointer;">
+                <label class="form-label fw-bold text-dark small text-uppercase mb-2 d-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-user-tie text-danger"></i> Asesor de Venta
+                </label>
+                <select id="asesor-vendedor" class="form-select border shadow-sm" required style="cursor: pointer;">
                     <option value="" disabled selected>-- Seleccionar Asesor --</option>
                     {% for a in asesores %}
                         <option value="{{ a.id }}">{{ a.nombre }}</option>
@@ -130,42 +254,103 @@
                 </select>
             </div>
 
-            <!-- Selector de Proveedor removido -->
-
             <!-- Método de Pago -->
             <div class="mb-3">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <label class="form-label fw-bold text-brand-black small text-uppercase m-0">Método de Pago</label>
-                    <div class="form-check form-switch ms-auto">
-                        <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 3rem; height: 1.5rem;">
-                        <label class="form-check-label fw-bold small text-muted" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <label class="form-label fw-bold text-dark small text-uppercase m-0">Método de Pago</label>
+                    <div class="form-check form-switch ms-auto d-flex align-items-center gap-2">
+                        <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 2.8rem; height: 1.4rem;">
+                        <label class="form-check-label fw-bold small text-muted m-0" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
                     </div>
                 </div>
             </div>
 
-            <!-- Modo 1: Pago Único (por defecto) -->
+            <!-- Modo 1: Pago Único con Selector Visual de Píldoras -->
             <div id="pago_unico_section">
-                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-light mb-3" style="cursor: pointer;">
-                    <option value="efectivo">💵 Efectivo</option>
-                    <option value="bancolombia">🏦 Bancolombia</option>
-                    <option value="daviplata">📲 Daviplata</option>
-                    <option value="tarjeta_credito">💳 T. Crédito</option>
-                    <option value="addi">🛒 Addi</option>
-                    <option value="sitecredito">💳 Sitecredito</option>
-                </select>
+                <!-- Input oculto preservado estrictamente para que document.getElementById('metodo-pago').value siga funcionando -->
+                <input type="hidden" id="metodo-pago" value="efectivo">
+                
+                <div class="row g-2 mb-3" id="payment-methods-grid">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method active w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="efectivo" onclick="seleccionarMetodoPagoVisual('efectivo', this)">
+                            <span class="payment-icon-box" style="background: rgba(34, 197, 94, 0.15); color: #16A34A;">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">Efectivo</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Caja / Billetes</div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="bancolombia" onclick="seleccionarMetodoPagoVisual('bancolombia', this)">
+                            <span class="payment-icon-box" style="background: rgba(234, 179, 8, 0.18); color: #D97706;">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">Bancolombia</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Transferencia / QR</div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="daviplata" onclick="seleccionarMetodoPagoVisual('daviplata', this)">
+                            <span class="payment-icon-box" style="background: rgba(239, 68, 68, 0.15); color: #DC2626;">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">Daviplata</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Billetera Móvil</div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="tarjeta_credito" onclick="seleccionarMetodoPagoVisual('tarjeta_credito', this)">
+                            <span class="payment-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #2563EB;">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">T. Crédito</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Datáfono / POS</div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="addi" onclick="seleccionarMetodoPagoVisual('addi', this)">
+                            <span class="payment-icon-box" style="background: rgba(6, 182, 212, 0.15); color: #0891B2;">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">Addi</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Crédito en cuotas</div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-payment-method w-100 p-2.5 text-start d-flex align-items-center gap-2.5 rounded-3 shadow-sm" data-method="sitecredito" onclick="seleccionarMetodoPagoVisual('sitecredito', this)">
+                            <span class="payment-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
+                                <i class="fa-solid fa-id-card"></i>
+                            </span>
+                            <div>
+                                <div class="fw-bold small text-dark">Sistecredito</div>
+                                <div class="text-muted extra-small" style="font-size: 0.68rem;">Libranza / Cupo</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Modo 2: Pago Dividido/Mixto (oculto por defecto) -->
             <div id="pago_mixto_section" style="display: none;">
                 <!-- Indicador visual del saldo restante -->
-                <div class="alert border-0 shadow-sm py-2 px-3 mb-3" id="saldo_restante_alert" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="alert border-0 shadow-sm py-2 px-3 mb-3 rounded-3" id="saldo_restante_alert" style="background: #1E293B; border: 1px solid #334155 !important;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="fw-bold text-muted text-uppercase"><i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:</small>
-                        <span class="fw-bolder fs-5" id="saldo_restante" style="color: var(--brand-blue);">$0</span>
+                        <small class="fw-bold text-muted text-uppercase" style="font-size: 0.72rem;"><i class="fa-solid fa-scale-balanced me-1 text-danger"></i> Saldo por cubrir:</small>
+                        <span class="fw-bolder fs-5 text-white" id="saldo_restante">$0</span>
                     </div>
                     <!-- Barra de progreso visual -->
-                    <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
-                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #A3D8DE, #7BC8D0); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress mt-2" style="height: 6px; border-radius: 10px; background: #0F172A;">
+                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #DC2626, #EF4444); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
 
@@ -174,7 +359,7 @@
                     <!-- Se inyecta dinámicamente -->
                 </div>
 
-                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold w-100" id="btn_agregar_pago">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold w-100 py-1.5" id="btn_agregar_pago" style="border-style: dashed;">
                     <i class="fa-solid fa-plus me-1"></i> Agregar otro método de pago
                 </button>
             </div>
@@ -709,7 +894,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="fw-bold text-dark text-truncate" style="max-width: 70%;">
                         ${item.nombre}
-                        <small class="text-muted d-block fw-normal" style="font-size: 0.75rem;">${item.sku}</small>
+                        <small class="d-block fw-normal text-muted" style="font-size: 0.75rem;">${item.sku}</small>
                         ${imeiHtml}
                         ${item.es_obsequio ? '<span class="badge bg-success bg-opacity-10 text-success mt-1"><i class="fa-solid fa-gift me-1"></i>Obsequio</span>' : ''}
                     </div>
@@ -726,12 +911,12 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="input-group input-group-sm flex-grow-1 me-2" style="max-width: 110px;">
-                        <span class="input-group-text bg-light text-muted border-0 px-2">Cant</span>
-                        <input type="number" class="form-control text-center fw-bold border-0 bg-light px-1" value="${item.cantidad}" onchange="updateCartItem(${index}, this.value)">
+                        <span class="input-group-text bg-light text-muted border px-2">Cant</span>
+                        <input type="number" class="form-control text-center fw-bold border bg-light px-1 text-dark" value="${item.cantidad}" onchange="updateCartItem(${index}, this.value)">
                     </div>
                     <div class="input-group input-group-sm flex-grow-1" style="max-width: 140px;">
-                        <span class="input-group-text bg-light text-muted border-0 px-2">$</span>
-                        <input type="number" class="form-control text-end fw-bold border-0 bg-light px-2 text-brand-black" value="${Math.round(item.precio_final)}" onchange="updateCartItemPrice(${index}, this.value)" ${precioInputState}>
+                        <span class="input-group-text bg-light text-danger fw-bold border px-2">$</span>
+                        <input type="number" class="form-control text-end fw-bold border bg-light px-2 text-dark" value="${Math.round(item.precio_final)}" onchange="updateCartItemPrice(${index}, this.value)" ${precioInputState}>
                     </div>
                 </div>
             `;
@@ -1430,6 +1615,18 @@
             });
         });
     }
+
+    // Función para seleccionar método de pago visual mediante botones
+    window.seleccionarMetodoPagoVisual = function(metodo, btnElement) {
+        const inputMetodo = document.getElementById('metodo-pago');
+        if (inputMetodo) {
+            inputMetodo.value = metodo;
+        }
+        document.querySelectorAll('.btn-payment-method').forEach(b => b.classList.remove('active'));
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+    };
 </script>
 
 {% endblock %}

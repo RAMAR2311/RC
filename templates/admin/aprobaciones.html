@@ -1,112 +1,179 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="row mb-5">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
-            <i class="fa-solid fa-tags me-2"></i>Gestión de Aprobaciones de Precios
-        </h2>
-        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i> Panel Principal
-        </a>
-    </div>
-</div>
+{% block title %}Aprobaciones de Precios - RedCover{% endblock %}
 
-<div class="row g-4 mb-5">
-    <div class="col-md-12">
-        <div class="card card-custom p-0 overflow-hidden h-100 table-custom">
-            <div class="bg-light p-4 border-bottom">
-                 <h5 class="fw-bold text-brand-black m-0 mt-2">Historial de Solicitudes</h5>
+{% block content %}
+<div class="container-fluid px-0 px-md-2 py-3">
+    <!-- Header Principal -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                    CONTROL DE DESCUENTOS
+                </span>
             </div>
-            <div class="table-responsive p-0">
-                <table class="table table-hover align-middle m-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">FECHA Y HORA</th>
-                            <th>VENDEDOR</th>
-                            <th>PRODUCTO</th>
-                            <th class="text-end">PRECIO MÍNIMO</th>
-                            <th class="text-end text-danger">PRECIO SOLICITADO</th>
-                            <th class="text-center">ESTADO</th>
-                            <th class="text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for a in aprobaciones.items %}
-                        <tr>
-                            <td class="text-muted ps-4">{{ a.fecha_solicitud.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td class="fw-bold text-brand-black">{{ a.vendedor.nombre if a.vendedor else 'Desconocido' }}</td>
-                            <td>{{ a.product.nombre if a.product else 'N/A' }}</td>
-                            <td class="text-end text-muted">${{ a.precio_original | cop }}</td>
-                            <td class="text-end fw-bold text-danger">${{ a.precio_solicitado | cop }}</td>
-                            <td class="text-center">
-                                {% if a.estado == 'pendiente' %}
-                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3 py-2 w-100">Pendiente</span>
-                                {% elif a.estado == 'aprobado' %}
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 w-100">Aprobado</span>
-                                {% elif a.estado == 'rechazado' %}
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2 w-100">Rechazado</span>
-                                {% else %}
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3 py-2 w-100">Cancelada</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if a.estado == 'pendiente' %}
-                                <div class="d-flex justify-content-center gap-2">
-                                    <button class="btn btn-sm btn-success rounded-circle shadow-sm" onclick="aprobarDesdeTabla({{ a.id }})" title="Aprobar">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger rounded-circle shadow-sm" onclick="rechazarDesdeTabla({{ a.id }})" title="Rechazar">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </div>
-                                {% else %}
-                                <span class="text-muted"><i class="fa-solid fa-minus"></i></span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-tags fs-1 mb-3 opacity-25"></i>
-                                <p class="mb-0">No hay solicitudes de aprobación registradas.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            {% if aprobaciones.pages > 1 %}
-            <div class="card-footer bg-white border-0 py-3">
-                <nav aria-label="Navegación de páginas">
-                    <ul class="pagination justify-content-center m-0">
-                        <!-- Anterior -->
-                        <li class="page-item {% if not aprobaciones.has_prev %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('admin_bp.aprobaciones', page=aprobaciones.prev_num) if aprobaciones.has_prev else '#' }}" tabindex="-1">Anterior</a>
-                        </li>
-                        
-                        <!-- Números de página -->
-                        {% for page_num in aprobaciones.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                            {% if page_num %}
-                                <li class="page-item {% if page_num == aprobaciones.page %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('admin_bp.aprobaciones', page=page_num) }}">{{ page_num }}</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <!-- Siguiente -->
-                        <li class="page-item {% if not aprobaciones.has_next %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('admin_bp.aprobaciones', page=aprobaciones.next_num) if aprobaciones.has_next else '#' }}">Siguiente</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
-            
+            <h2 class="fw-bolder m-0 text-brand-black" style="font-size: 1.75rem; letter-spacing: -0.5px;">
+                <i class="fa-solid fa-tags me-2" style="color: #DC2626;"></i>Gestión de Aprobaciones de Precios
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Autorización en tiempo real de precios especiales y descuentos solicitados por cajeros.</p>
         </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/admin/dashboard" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-secondary shadow-sm" style="transition: all 0.2s ease;">
+                <i class="fa-solid fa-arrow-left me-2 text-muted"></i>Panel Principal
+            </a>
+        </div>
+    </div>
+
+    <!-- Historial de Solicitudes (Tabla Moderna SaaS con Relieve y Profundidad) -->
+    <div class="table-container-card">
+        <div class="bg-white pt-4 px-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom" style="border-color: #F1F5F9 !important;">
+            <div>
+                <h5 class="fw-bolder text-dark mb-0" style="font-size: 1.15rem; letter-spacing: -0.02em;">Historial de Solicitudes de Descuento</h5>
+                <p class="text-muted extra-small mb-0">Total: <strong>{{ aprobaciones.total }}</strong> solicitudes procesadas</p>
+            </div>
+            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(220, 38, 38, 0.08); color: #DC2626; font-size: 0.8rem; border: 1px solid rgba(220, 38, 38, 0.15);">
+                <i class="fa-solid fa-percent me-1"></i> Validación de Precios
+            </span>
+        </div>
+        
+        <div class="table-responsive p-0">
+            <table class="table-custom align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4" width="16%">Fecha y Hora</th>
+                        <th width="18%">Vendedor / Cajero</th>
+                        <th width="24%">Producto / Dispositivo</th>
+                        <th class="text-end" width="13%">Precio Mínimo</th>
+                        <th class="text-end" width="15%">Precio Solicitado</th>
+                        <th class="text-center" width="12%">Estado</th>
+                        <th class="pe-4 text-center" width="10%">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in aprobaciones.items %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-3 d-flex align-items-center justify-content-center text-secondary border" style="width: 32px; height: 32px; background: #F8FAFC; border-color: #E2E8F0 !important; flex-shrink: 0;">
+                                    <i class="fa-regular fa-clock text-danger" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ a.fecha_solicitud.strftime('%d/%m/%Y') }}</div>
+                                    <span class="text-muted extra-small font-monospace">{{ a.fecha_solicitud.strftime('%I:%M %p') }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 0.78rem; background: linear-gradient(135deg, #0F172A, #334155); flex-shrink: 0;">
+                                    {{ (a.vendedor.nombre[:2] if a.vendedor else 'US')|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">
+                                        {{ a.vendedor.nombre if a.vendedor else 'Desconocido' }}
+                                    </div>
+                                    <span class="text-muted extra-small">Caja / Ventas</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bolder text-dark text-truncate" style="max-width: 250px; font-size: 0.92rem;" title="{{ a.product.nombre if a.product else 'N/A' }}">
+                                {{ a.product.nombre if a.product else 'N/A' }}
+                            </div>
+                            {% if a.product and a.product.sku %}
+                            <span class="badge rounded-2 px-2 py-0.5 text-secondary font-monospace border mt-1" style="background: #F8FAFC; border-color: #E2E8F0 !important; font-size: 0.72rem;">
+                                SKU: {{ a.product.sku }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <span class="badge rounded-2 px-2.5 py-1.5 fw-bold border text-secondary" style="background: #F8FAFC; border-color: #E2E8F0 !important; font-size: 0.85rem;">
+                                ${{ a.precio_original | cop }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge rounded-2 px-2.5 py-1.5 fw-bolder border" style="background: #FEF2F2; color: #DC2626; border-color: #FECACA !important; font-size: 0.92rem; letter-spacing: -0.3px;">
+                                <i class="fa-solid fa-tag me-1"></i>${{ a.precio_solicitado | cop }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            {% if a.estado == 'pendiente' %}
+                                <span class="badge-soft-amber">
+                                    <span class="status-dot status-dot-amber"></span>
+                                    <span>Pendiente</span>
+                                </span>
+                            {% elif a.estado == 'aprobado' %}
+                                <span class="badge-soft-green">
+                                    <span class="status-dot status-dot-green"></span>
+                                    <span>Aprobado</span>
+                                </span>
+                            {% elif a.estado == 'rechazado' %}
+                                <span class="badge-soft-red">
+                                    <span class="status-dot status-dot-red"></span>
+                                    <span>Rechazado</span>
+                                </span>
+                            {% else %}
+                                <span class="badge-soft-slate">
+                                    <span class="status-dot status-dot-slate"></span>
+                                    <span>Cancelada</span>
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-center">
+                            {% if a.estado == 'pendiente' %}
+                            <div class="d-flex justify-content-center align-items-center gap-1.5">
+                                <button class="btn btn-sm btn-white bg-white border border-success-subtle rounded-3 shadow-sm d-flex align-items-center justify-content-center text-success" style="width: 32px; height: 32px; transition: all 0.15s ease;" onclick="aprobarDesdeTabla({{ a.id }})" title="Aprobar Precio">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-white bg-white border border-danger-subtle rounded-3 shadow-sm d-flex align-items-center justify-content-center text-danger" style="width: 32px; height: 32px; transition: all 0.15s ease;" onclick="rechazarDesdeTabla({{ a.id }})" title="Rechazar Precio">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            <span class="badge rounded-pill px-2.5 py-1 text-muted border small" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+                                <i class="fa-solid fa-circle-check text-success me-1"></i>Procesado
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="py-4">
+                                <i class="fa-solid fa-tags fs-1 mb-3 opacity-25"></i>
+                                <h6 class="fw-bold text-secondary mb-1">No hay solicitudes de aprobación registradas</h6>
+                                <p class="small text-muted mb-0">Cuando un cajero intente vender por debajo del precio mínimo, la solicitud aparecerá aquí.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if aprobaciones.pages > 1 %}
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination pagination-sm m-0 gap-1">
+                    <li class="page-item {% if not aprobaciones.has_prev %}disabled{% endif %}">
+                        <a class="page-link rounded-pill border-0 px-3 fw-semibold text-secondary" href="{{ url_for('admin_bp.aprobaciones', page=aprobaciones.prev_num) if aprobaciones.has_prev else '#' }}">Anterior</a>
+                    </li>
+                    {% for page_num in aprobaciones.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == aprobaciones.page %}active{% endif %}">
+                                <a class="page-link rounded-circle border-0 d-flex align-items-center justify-content-center fw-bold {% if page_num == aprobaciones.page %}text-white bg-dark{% else %}text-secondary{% endif %}" style="width: 32px; height: 32px;" href="{{ url_for('admin_bp.aprobaciones', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link border-0 text-muted">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not aprobaciones.has_next %}disabled{% endif %}">
+                        <a class="page-link rounded-pill border-0 px-3 fw-semibold text-secondary" href="{{ url_for('admin_bp.aprobaciones', page=aprobaciones.next_num) if aprobaciones.has_next else '#' }}">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -125,13 +192,13 @@
                 alert(data.error || 'Error al aprobar');
             }
         } catch(e) {
-            alert('Error de red');
+            alert('Error de red al procesar la aprobación.');
         }
     }
 
     async function rechazarDesdeTabla(id) {
         const motivo = prompt('¿Motivo del rechazo? (Opcional)');
-        if(motivo === null) return; // Canceló el prompt
+        if(motivo === null) return;
         try {
             const res = await fetch(`/api/aprobaciones/${id}/rechazar`, {
                 method: 'POST',
@@ -148,7 +215,7 @@
                 alert(data.error || 'Error al rechazar');
             }
         } catch(e) {
-            alert('Error de red');
+            alert('Error de red al procesar el rechazo.');
         }
     }
 </script>

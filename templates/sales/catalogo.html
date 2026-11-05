@@ -1,113 +1,206 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-5">
-    <div class="col-12">
-        <!-- Titular Simple y Limpio, el color de marca A3D8DE acentúa el Logo -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
-            <i class="fa-solid fa-book-open me-2"></i>Catálogo de Stock General
-        </h2>
+<style>
+    /* Estilos SaaS Corporativo - Catálogo de Stock General */
+    .catalogo-search-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+    }
+    .catalogo-search-pill {
+        background: #F8FAFC;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.28rem 0.6rem;
+        transition: all 0.25s ease;
+    }
+    .catalogo-search-pill:focus-within {
+        background: #ffffff;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+    .catalogo-search-pill input {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 0.92rem;
+        font-weight: 500;
+    }
+
+    .btn-catalogo-search {
+        background: #DC2626;
+        border: 1px solid #DC2626;
+        color: #ffffff;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.45rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-catalogo-search:hover {
+        background: #B91C1C;
+        border-color: #B91C1C;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(220, 38, 38, 0.35);
+    }
+
+    /* Tarjetas de Producto */
+    .catalogo-card {
+        background: #FFFFFF;
+        border-radius: 18px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.04);
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        overflow: hidden;
+    }
+    .catalogo-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(220, 38, 38, 0.35);
+        box-shadow: 0 16px 32px -8px rgba(220, 38, 38, 0.12);
+    }
+
+    .sku-badge-pill {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #475569;
+        background: #F1F5F9;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+
+    @media print {
+        .btn, form, footer, header, nav, .sidebar, .sidebar-wrapper { display: none !important; }
+        body, .container-fluid, .main-content { padding: 0 !important; margin: 0 !important; background: white !important; }
+        .card { page-break-inside: avoid; border: 1px solid #e0e0e0 !important; box-shadow: none !important; }
+        .print-friendly-row { gap: 1rem !important; }
+        .col-md-4, .col-xl-3 { flex: 0 0 auto !important; width: 33.333% !important; } 
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                <i class="fa-solid fa-book-open text-danger me-2"></i>Catálogo de Stock General
+            </h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Vitrina Comercial</span>
+        </div>
+        <p class="text-muted small m-0">Consulta visual rápida de existencias, precios sugeridos y disponibilidad por variante</p>
     </div>
 </div>
 
-<div class="card card-custom p-4 border mt-2 bg-white shadow-sm mb-4">
-    <!-- El Formulario usa Método GET Nativo para enviar 'q' por barra de direcciones URL -->
-    <form method="GET" action="{{ url_for('sales_bp.catalogo') }}" class="row align-items-end g-3">
+<div class="catalogo-search-card mb-4">
+    <form method="GET" action="{{ url_for('sales_bp.catalogo') }}" class="row align-items-center g-3">
         <div class="col-md-9">
-            <label class="form-label fw-bold text-brand-black small"><i class="fa-solid fa-magnifying-glass me-1"></i> Búsqueda de Artículos</label>
-            <!-- Permite filtrado profundo en la BD por Substraer Coincidencias (ILIKE) -->
-            <input type="text" name="q" class="form-control bg-light border-0 py-2 shadow-sm" value="{{ q }}" placeholder="Busca escribiendo el SKU Oficial o el Nombre del accesorio..." autocomplete="off">
+            <div class="catalogo-search-pill d-flex align-items-center">
+                <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+                <input type="text" name="q" class="form-control" value="{{ q }}" placeholder="Busca escribiendo el SKU oficial, marca o nombre del accesorio..." autocomplete="off">
+                {% if q %}
+                <a href="{{ url_for('sales_bp.catalogo') }}" class="btn btn-link text-muted p-0 me-2" title="Limpiar"><i class="fa-solid fa-xmark"></i></a>
+                {% endif %}
+            </div>
         </div>
         <div class="col-md-3">
-            <!-- Botón Dominante en Turquesa (Azul de Redcover.com '#A3D8DE') -->
-            <button type="submit" class="btn btn-blue w-100 py-2 rounded-3 shadow-sm fw-bold">
-                Buscar Existencias
+            <button type="submit" class="btn btn-catalogo-search w-100">
+                <i class="fa-solid fa-boxes-stacked me-1.5"></i> Buscar Existencias
             </button>
         </div>
     </form>
 </div>
 
-<style>
-@media print {
-    /* Ocultar elementos de navegación y búsqueda al imprimir el catálogo */
-    .btn, form, footer, header, nav, .sidebar, .sidebar-wrapper { display: none !important; }
-    body, .container-fluid, .main-content { padding: 0 !important; margin: 0 !important; background: white !important; }
-    .card { page-break-inside: avoid; border: 1px solid #e0e0e0 !important; box-shadow: none !important; }
-    .print-friendly-row { gap: 1rem !important; }
-    .col-md-4, .col-xl-3 { flex: 0 0 auto !important; width: 33.333% !important; } 
-    /* Force 3 columns in print */
-}
-</style>
-
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 print-friendly-row">
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 print-friendly-row mb-4">
     {% for p in productos %}
     <div class="col">
-        <div class="card h-100 border-0 shadow-sm {% if p.total_stock <= 0 %}opacity-50{% endif %}" style="border-radius: 12px; overflow: hidden;">
-            {% if p.imagen %}
-                <img src="{{ url_for('static', filename='uploads/' ~ p.imagen) }}" class="card-img-top bg-light" alt="{{ p.nombre }}" style="height: 220px; object-fit: contain; padding: 1.5rem;">
-            {% else %}
-                <div class="card-img-top bg-light d-flex align-items-center justify-content-center border-bottom border-light" style="height: 220px;">
-                    <i class="fa-solid fa-image fa-3x text-muted opacity-25"></i>
-                </div>
-            {% endif %}
+        <div class="catalogo-card h-100 d-flex flex-column {% if p.total_stock <= 0 %}opacity-75{% endif %}">
+            <div class="position-relative bg-light border-bottom d-flex align-items-center justify-content-center" style="height: 220px; overflow: hidden;">
+                {% if p.imagen %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ p.imagen) }}" class="card-img-top" alt="{{ p.nombre }}" style="height: 100%; width: 100%; object-fit: contain; padding: 1.25rem;">
+                {% else %}
+                    <div class="text-center">
+                        <i class="fa-solid fa-image fa-3x text-secondary opacity-25 d-block mb-1"></i>
+                        <span class="text-muted extra-small">Sin imagen asignada</span>
+                    </div>
+                {% endif %}
+                
+                {% if p.total_stock <= 0 %}
+                    <span class="badge bg-danger rounded-pill px-2.5 py-1 position-absolute top-0 end-0 m-3 shadow-sm font-monospace" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-ban me-1"></i> Agotado
+                    </span>
+                {% else %}
+                    <span class="badge bg-dark rounded-pill px-2.5 py-1 position-absolute top-0 end-0 m-3 shadow-2xs font-monospace" style="font-size: 0.72rem;">
+                        {{ p.total_stock }} en stock
+                    </span>
+                {% endif %}
+            </div>
             
-            <div class="card-body d-flex flex-column p-4">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <p class="text-muted small mb-0 fw-bold"><i class="fa-solid fa-barcode me-1"></i>{{ p.sku }}</p>
-                    {% if p.total_stock <= 0 %}
-                        <span class="badge bg-danger rounded-pill px-2"><i class="fa-solid fa-ban"></i> Agotado</span>
+            <div class="card-body d-flex flex-column p-4 flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="sku-badge-pill"><i class="fa-solid fa-barcode me-1 text-danger"></i>{{ p.sku }}</span>
+                    {% if p.variantes %}
+                        <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">{{ p.variantes|length }} variantes</span>
                     {% endif %}
                 </div>
-                <h5 class="card-title fw-bolder text-brand-black mb-3">{{ p.nombre }}</h5>
+                <h5 class="card-title fw-bold text-dark mb-3" style="letter-spacing: -0.3px;">{{ p.nombre }}</h5>
                 
                 {% if p.variantes %}
-                    <h6 class="fw-bold text-muted mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">SUBCATEGORÍAS DISPONIBLES:</h6>
+                    <h6 class="fw-bold text-muted mb-2 text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.5px;">Subcategorías Disponibles:</h6>
                     <div class="table-responsive mb-auto">
                         <table class="table table-sm table-borderless align-middle mb-0">
-                            <tbody style="font-size: 0.9rem;">
+                            <tbody style="font-size: 0.86rem;">
                                 {% set ns = namespace(active_variants=0) %}
                                 {% for v in p.variantes %}
                                     {% if v.cantidad_stock > 0 %}
                                         {% set ns.active_variants = ns.active_variants + 1 %}
                                         <tr class="border-bottom border-light">
-                                            <td class="ps-0 text-secondary"><i class="fa-solid fa-caret-right text-brand-pink me-1" style="font-size: 0.7rem;"></i> {{ v.nombre_variante }}</td>
-                                            <td class="text-end fw-bold text-brand-black pe-0">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
+                                            <td class="ps-0 text-secondary fw-semibold">
+                                                <i class="fa-solid fa-circle-dot text-danger me-1.5" style="font-size: 0.55rem;"></i> {{ v.nombre_variante }}
+                                            </td>
+                                            <td class="text-end fw-bold text-dark pe-0 font-monospace">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
                                         </tr>
                                     {% endif %}
                                 {% endfor %}
                                 {% if ns.active_variants == 0 %}
-                                    <tr><td colspan="2" class="text-danger ps-0 small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Todas las opciones están agotadas.</td></tr>
+                                    <tr><td colspan="2" class="text-danger ps-0 small fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i>Opciones temporalmente agotadas.</td></tr>
                                 {% endif %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
                     <div class="mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-end">
-                        <span class="text-muted fw-bold" style="font-size: 0.8rem; letter-spacing: 0.5px;">PRECIO GENERAL</span>
-                        <h4 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ (p.precio_sugerido)|cop }}</h4>
+                        <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Precio General</span>
+                        <h4 class="fw-bolder m-0 font-monospace" style="color: #DC2626; font-weight: 850;">${{ (p.precio_sugerido)|cop }}</h4>
                     </div>
                 {% endif %}
             </div>
             
             <!-- Franja Rango de Precio -->
             {% if p.variantes and p.rango_precios %}
-            <div class="card-footer bg-white border-top border-light pt-2 pb-3 px-4 text-end">
-                <span class="text-muted fw-bold me-1" style="font-size: 0.75rem;">VALORES:</span>
+            <div class="card-footer bg-white border-top border-light pt-2.5 pb-3 px-4 text-end">
+                <span class="text-muted fw-bold me-1 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.4px;">Tarifa:</span>
                 {% if p.rango_precios is number %}
-                    <span class="fw-bolder fs-5 text-brand-black">${{ (p.rango_precios)|cop }}</span>
+                    <span class="fw-bolder fs-5 text-dark font-monospace">${{ (p.rango_precios)|cop }}</span>
                 {% else %}
-                    <span class="fw-bold" style="color: var(--brand-pink); font-size: 1.1rem;">Desde ${{ (p.rango_precios[0])|cop }}</span>
+                    <span class="fw-bold font-monospace" style="color: #DC2626; font-size: 1.05rem;">Desde ${{ (p.rango_precios[0])|cop }}</span>
                 {% endif %}
             </div>
             {% endif %}
-            
         </div>
     </div>
     {% else %}
-    <div class="col-12 text-center py-5 bg-white border rounded shadow-sm">
-        <i class="fa-solid fa-box-open fs-1 mb-3 text-muted opacity-25"></i>
-        <h4 class="text-brand-black fw-bold">No se hallaron resultados</h4>
-        <p class="text-muted mb-0">No pudimos localizar artículos físicos con esos atributos de búsqueda.</p>
+    <div class="col-12 text-center py-5 bg-white border rounded-4 shadow-sm">
+        <i class="fa-solid fa-box-open fs-1 mb-3 text-danger opacity-50"></i>
+        <h4 class="text-dark fw-bold">No se hallaron resultados</h4>
+        <p class="text-muted mb-0 small">No pudimos localizar artículos físicos con esos atributos de búsqueda.</p>
     </div>
     {% endfor %}
 </div>
@@ -139,5 +232,4 @@
     </ul>
 </nav>
 {% endif %}
-
 {% endblock %}

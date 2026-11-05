@@ -1,27 +1,187 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold text-brand-black m-0">Inventario de Productos Externos</h2>
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
-            <i class="fa-solid fa-file-excel me-1"></i> Importar Excel
+<style>
+    /* Estilos SaaS Corporativo - Inventario Externo */
+    .btn-saas-primary {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.45rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-saas-primary:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(217, 22, 22, 0.32);
+    }
+
+    .btn-saas-excel {
+        background-color: #ffffff;
+        color: #0F172A;
+        border: 1px solid #E2E8F0;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.35rem;
+        transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-saas-excel:hover {
+        background-color: #F8FAFC;
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #0F172A;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
+    }
+
+    .saas-search-pill {
+        background: #ffffff;
+        border-radius: 9999px;
+        border: 1.5px solid #E2E8F0;
+        padding: 0.28rem 0.6rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .saas-search-pill:focus-within {
+        border-color: #D91616;
+        box-shadow: 0 0 0 4px rgba(217, 22, 22, 0.12);
+    }
+    .saas-search-pill input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.88rem;
+    }
+
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 1200px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1500px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid rgba(217, 22, 22, 0.6);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 0.95rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    .spec-pill {
+        background: #F1F5F9;
+        color: #334155;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 8px;
+        display: inline-block;
+    }
+    .imei-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.77rem;
+        color: #64748B;
+        background: #F8FAFC;
+        padding: 0.2rem 0.45rem;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .btn-table-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background: #ffffff;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .btn-table-action:hover {
+        transform: translateY(-2px);
+        border-color: #D91616;
+        color: #D91616;
+        box-shadow: 0 4px 10px rgba(217, 22, 22, 0.18);
+    }
+    .btn-table-action-delete:hover {
+        background: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(217, 22, 22, 0.3);
+    }
+    .form-check-input:checked {
+        background-color: #D91616 !important;
+        border-color: #D91616 !important;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">Inventario de Productos Externos</h2>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Externos / Retomas</span>
+        </div>
+        <p class="text-muted small mb-0">Dispositivos adquiridos por retomas o proveedores externos pendientes de pase a inventario</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-saas-excel" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+            <i class="fa-solid fa-file-excel text-success me-2"></i> Importar Excel
         </button>
-        <a href="{{ url_for('externos_bp.nuevo_externo') }}" class="btn btn-blue rounded-pill px-4 fw-bold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Ingresar Externo
+        <a href="{{ url_for('externos_bp.nuevo_externo') }}" class="btn btn-saas-primary">
+            <i class="fa-solid fa-plus me-1.5"></i> Ingresar Externo
         </a>
     </div>
 </div>
 
 <!-- Barra de Búsqueda Server-Side -->
 <form method="GET" action="{{ url_for('externos_bp.inventario') }}" id="searchForm" class="mb-4">
-    <div class="input-group shadow-sm" style="max-width: 480px;">
-        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-        <input type="text" id="searchInput" name="q" class="form-control border-start-0 ps-0"
+    <div class="saas-search-pill d-flex align-items-center" style="max-width: 520px;">
+        <i class="fa-solid fa-magnifying-glass text-muted ms-2 me-2"></i>
+        <input type="text" id="searchInput" name="q" class="form-control ps-1"
                placeholder="Buscar por IMEI, Marca, Modelo o Proveedor..."
                value="{{ q }}">
         {% if q %}
-        <a href="{{ url_for('externos_bp.inventario') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
+        <a href="{{ url_for('externos_bp.inventario') }}" class="btn btn-sm btn-link text-muted p-0 me-2" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></a>
         {% endif %}
     </div>
 </form>
@@ -29,73 +189,78 @@
 <!-- Modal Importar Excel -->
 <div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-labelledby="modalImportarExcelLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-success text-white border-0">
-                <h5 class="modal-title fw-bold" id="modalImportarExcelLabel"><i class="fa-solid fa-file-excel me-2"></i> Subida Masiva de Externos por Excel</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 60px rgba(0,0,0,0.25);">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-3 p-2 bg-black border border-secondary" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-file-excel text-success"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold m-0" id="modalImportarExcelLabel">Subida Masiva de Externos</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('externos_bp.importar_excel') }}" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4 text-center">
-                    <p class="mb-4 text-muted">Sube tu archivo de Excel con el inventario de celulares externos. Asegúrate de usar el formato correcto.</p>
+                    <p class="mb-4 text-muted small">Carga tu archivo de Excel con el inventario de celulares externos.</p>
                     
-                    <a href="{{ url_for('externos_bp.descargar_plantilla') }}" class="btn btn-outline-success fw-bold mb-4 rounded-pill">
-                        <i class="fa-solid fa-download me-1"></i> Descargar Plantilla de Ejemplo
+                    <a href="{{ url_for('externos_bp.descargar_plantilla') }}" class="btn btn-outline-dark fw-bold mb-4 rounded-pill px-4 py-2 small shadow-sm">
+                        <i class="fa-solid fa-download text-success me-2"></i> Descargar Plantilla Oficial (.xlsx)
                     </a>
                     
-                    <div class="mb-3 text-start">
-                        <label for="archivo_excel" class="form-label fw-bold">Archivo Excel (.xlsx, .xls)</label>
-                        <input class="form-control" type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
+                    <div class="mb-2 text-start bg-light p-3 rounded-3 border">
+                        <label for="archivo_excel" class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Archivo Excel (.xlsx, .xls)</label>
+                        <input class="form-control bg-white rounded-3 border" type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold"><i class="fa-solid fa-upload me-1"></i> Subir Inventario</button>
+                <div class="modal-footer bg-light border-0 py-3 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-saas-primary px-4"><i class="fa-solid fa-upload me-1.5"></i> Subir Inventario</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div class="card card-custom p-0 shadow-sm border-0">
+<div class="saas-table-card mb-4 position-relative">
     <form id="formMasivoExternos" method="POST" action="{{ url_for('externos_bp.enviar_inventario_masivo') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
         <!-- Barra de Acciones Masivas (visible cuando se seleccionan filas) -->
-        <div id="barraAccionesMasivas" class="bg-dark text-white p-2 px-3 d-none align-items-center justify-content-between rounded-top" style="transition: all 0.3s ease;">
+        <div id="barraAccionesMasivas" class="bg-dark text-white p-2.5 px-4 d-none align-items-center justify-content-between" style="border-bottom: 2px solid #D91616; transition: all 0.3s ease;">
             <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-check-double text-success"></i>
-                <span class="fw-semibold small"><span id="contadorSeleccionados" class="badge bg-primary rounded-pill me-1">0</span> seleccionados</span>
+                <i class="fa-solid fa-check-double text-danger"></i>
+                <span class="fw-bold small"><span id="contadorSeleccionados" class="badge bg-danger rounded-pill me-1 px-2.5 py-1">0</span> seleccionados</span>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="deseleccionarTodos()">
                     Cancelar
                 </button>
-                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="return confirm('¿Confirmas enviar los productos seleccionados al inventario principal de celulares?');">
-                    <i class="fa-solid fa-truck-fast me-1"></i> Enviar Seleccionados al Inventario
+                <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3.5 fw-bold shadow-sm" onclick="return confirm('¿Confirmas enviar los productos seleccionados al inventario principal de celulares?');">
+                    <i class="fa-solid fa-truck-fast me-1.5"></i> Enviar al Inventario Principal
                 </button>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0 align-middle text-center w-100" style="font-size: 0.85rem;">
-                <thead class="bg-dark text-white text-nowrap" style="font-size: 0.8rem;">
+            <table class="table saas-table table-sm mb-0 align-middle text-center w-100">
+                <thead class="text-nowrap">
                     <tr>
-                        <th class="ps-3 py-2 text-center" style="width: 40px;">
+                        <th class="ps-3 text-center" style="width: 40px;">
                             <input type="checkbox" id="checkAll" class="form-check-input" title="Seleccionar todos los disponibles">
                         </th>
-                        <th class="py-2 text-start fw-bold">MARCA</th>
-                        <th class="py-2 text-start fw-bold">REFERENCIA</th>
-                        <th class="py-2 fw-bold">CAP.</th>
-                        <th class="py-2 fw-bold">BAT.</th>
-                        <th class="py-2 fw-bold">COLOR</th>
-                        <th class="py-2 fw-bold">IMEI</th>
-                        <th class="py-2 fw-bold">IMEI 2</th>
-                        <th class="py-2 fw-bold">PROVEEDOR</th>
-                        <th class="py-2 fw-bold">FECHA</th>
-                        <th class="py-2 fw-bold">COSTO</th>
-                        <th class="py-2 fw-bold">SUGERIDO</th>
-                        <th class="pe-3 py-2 text-center fw-bold">ACCIONES</th>
+                        <th class="text-start" style="width: 90px;">MARCA</th>
+                        <th class="text-start" style="min-width: 150px;">REFERENCIA</th>
+                        <th style="width: 65px;">CAP.</th>
+                        <th style="width: 55px;">BAT.</th>
+                        <th style="width: 85px;">COLOR</th>
+                        <th style="min-width: 130px;">IMEI</th>
+                        <th style="min-width: 130px;">IMEI 2</th>
+                        <th style="min-width: 120px;">PROVEEDOR</th>
+                        <th style="width: 105px;">FECHA</th>
+                        <th class="text-end" style="width: 100px;">COSTO</th>
+                        <th class="text-end" style="width: 105px;">SUGERIDO</th>
+                        <th class="pe-3 text-center" style="width: 120px;">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody class="text-nowrap">
@@ -109,47 +274,51 @@
                             {% endif %}
                         </td>
                         <td class="fw-bold text-dark text-start">{{ c.marca or '-' }}</td>
-                        <td class="fw-semibold text-start">{{ c.modelo_celular or '-' }}</td>
-                        <td>{{ c.memoria or '-' }}</td>
-                        <td>{{ c.bateria or '-' }}</td>
-                        <td>{{ c.color or '-' }}</td>
-                        <td class="text-muted">{{ (c.imei or '').replace('-EXT', '') or '-' }}</td>
-                        <td class="text-muted">{{ c.imei2 or '-' }}</td>
-                        <td class="text-truncate" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
-                        <td>{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                        <td class="fw-bold text-start text-truncate" style="max-width: 190px;" title="{{ c.modelo_celular or '-' }}">
+                            <span class="text-dark">{{ c.modelo_celular or '-' }}</span>
+                        </td>
+                        <td><span class="spec-pill">{{ c.memoria or '-' }}</span></td>
+                        <td>
+                            {% if c.bateria and c.bateria != 'N/A' and c.bateria != '-' %}
+                                <span class="spec-pill text-dark fw-bold"><i class="fa-solid fa-battery-half text-success me-1"></i>{{ c.bateria }}</span>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="text-muted small fw-medium">{{ c.color or '-' }}</span></td>
+                        <td><span class="imei-badge">{{ (c.imei or '').replace('-EXT', '') or '-' }}</span></td>
+                        <td><span class="imei-badge">{{ c.imei2 or '-' }}</span></td>
+                        <td class="text-truncate small text-muted" style="max-width: 120px;" title="{{ c.proveedor or '-' }}">{{ c.proveedor or '-' }}</td>
+                        <td><span class="text-muted small">{{ c.fecha_creacion.strftime('%d/%m/%Y') }}</span></td>
                         
-                        <td class="text-brand-black fw-bold">${{ c.precio_costo|cop }}</td>
-                        <td class="text-brand-black fw-bolder">${{ c.precio_sugerido|cop }}</td>
+                        <td class="fw-bold text-dark text-end">${{ c.precio_costo|cop }}</td>
+                        <td class="text-danger fw-bolder text-end" style="font-size: 0.9rem;">${{ c.precio_sugerido|cop }}</td>
                         
                         <td class="pe-3 text-center">
-                            <div class="d-flex justify-content-center align-items-center gap-1">
+                            <div class="d-flex justify-content-center align-items-center gap-1.5">
                                 {% if c.estado_celular == 'Enviado' %}
-                                    <span class="badge bg-dark rounded-pill shadow-sm me-1"><i class="fa-solid fa-check me-1"></i> Al Inventario</span>
+                                    <span class="badge bg-dark rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-check me-1 text-success"></i> Al Inventario</span>
                                 {% else %}
-                                    <button type="button" class="btn btn-sm btn-outline-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Enviar a Inventario Principal" onclick="enviarIndividual({{ c.id }})">
+                                    <button type="button" class="btn-table-action" style="color: #2563eb;" title="Enviar a Inventario Principal" onclick="enviarIndividual({{ c.id }})">
                                         <i class="fa-solid fa-truck-fast" style="font-size: 0.75rem;"></i>
                                     </button>
-                                    <a href="{{ url_for('externos_bp.editar_externo', id=c.id) }}" class="btn btn-sm text-brand-black bg-light border border-dark rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Editar">
+                                    <a href="{{ url_for('externos_bp.editar_externo', id=c.id) }}" class="btn-table-action" title="Editar">
                                         <i class="fa-solid fa-pen" style="font-size: 0.75rem;"></i>
                                     </a>
                                 {% endif %}
 
                                 {% if c.detalles_venta %}
-                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Factura de Venta (#{{ c.detalles_venta[0].sale_id }})">
+                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.detalles_venta[0].sale_id) }}" target="_blank" class="btn-table-action" style="color: #059669;" title="Ver Factura de Venta (#{{ c.detalles_venta[0].sale_id }})">
                                     <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
                                 </a>
                                 {% elif c.retoma_origen %}
-                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.retoma_origen.sale_id) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Ver Factura de Origen (#{{ c.retoma_origen.sale_id }})">
+                                <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=c.retoma_origen.sale_id) }}" target="_blank" class="btn-table-action" style="color: #0284c7;" title="Ver Factura de Origen (#{{ c.retoma_origen.sale_id }})">
                                     <i class="fa-solid fa-receipt" style="font-size: 0.75rem;"></i>
                                 </a>
-                                {% else %}
-                                <button type="button" class="btn btn-sm text-muted bg-light border rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px; opacity: 0.4;" disabled title="Sin factura asociada (En Inventario)">
-                                    <i class="fa-solid fa-file-invoice-dollar" style="font-size: 0.75rem;"></i>
-                                </button>
                                 {% endif %}
 
                                 {% if c.estado_celular != 'Enviado' %}
-                                <button type="button" class="btn btn-sm text-white bg-brand-pink border-0 rounded-circle shadow-sm" style="width: 28px; height: 28px; padding: 0; line-height: 26px;" title="Eliminar" onclick="eliminarIndividual({{ c.id }})">
+                                <button type="button" class="btn-table-action btn-table-action-delete" title="Eliminar" onclick="eliminarIndividual({{ c.id }})">
                                     <i class="fa-solid fa-trash-can" style="font-size: 0.75rem;"></i>
                                 </button>
                                 {% endif %}
@@ -158,9 +327,9 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="13" class="text-center py-4 text-muted">
-                            <i class="fa-solid fa-box-open fs-3 mb-2 opacity-50"></i>
-                            <p class="mb-0">No hay productos externos registrados.</p>
+                        <td colspan="13" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-box-open fs-2 mb-2 opacity-50 d-block"></i>
+                            <p class="mb-0 fw-semibold">No hay productos externos registrados.</p>
                         </td>
                     </tr>
                     {% endfor %}

@@ -1,147 +1,285 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* Estilos SaaS Corporativo - Historial de Operaciones con Relieve y Volumen */
+    .saas-kpi-mini {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1.5px solid #CBD5E1;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+        padding: 1.25rem 1.2rem;
+        transition: all 0.28s cubic-bezier(0.165, 0.84, 0.44, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .saas-kpi-mini:hover {
+        transform: translateY(-5px);
+        border-color: #DC2626;
+        box-shadow: 0 18px 36px -8px rgba(15, 23, 42, 0.12), 0 8px 18px rgba(220, 38, 38, 0.15);
+    }
+    .saas-kpi-mini::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: linear-gradient(90deg, #DC2626 0%, rgba(220, 38, 38, 0.3) 100%);
+    }
+
+    .btn-hist-excel {
+        background-color: #ffffff;
+        color: #0F172A;
+        border: 1px solid #E2E8F0;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.35rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .btn-hist-excel:hover {
+        background-color: #F8FAFC;
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #0F172A;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
+    }
+
+    .btn-hist-print {
+        background-color: #0F172A;
+        color: #ffffff;
+        border: 1px solid #0F172A;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1.35rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-hist-print:hover {
+        background-color: #D91616;
+        border-color: #D91616;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(217, 22, 22, 0.32);
+    }
+
+    .saas-table-card {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+    .saas-table {
+        min-width: 1050px;
+        width: 100%;
+        table-layout: auto;
+    }
+    @media (min-width: 1400px) {
+        .saas-table {
+            min-width: 100%;
+        }
+    }
+    .saas-table thead th {
+        background: #0F172A;
+        color: #E2E8F0;
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        padding: 1rem 0.85rem;
+        border-bottom: 2px solid rgba(217, 22, 22, 0.6);
+        vertical-align: middle;
+    }
+    .saas-table tbody td {
+        padding: 0.95rem 0.85rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+        transition: background-color 0.18s ease;
+    }
+    .saas-table tbody tr:hover td {
+        background-color: #FAFCFF !important;
+    }
+
+    .filter-card-saas {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        padding: 1.35rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    }
+</style>
+
 <div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center mb-4">
-        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-brand-blue es #A3D8DE) -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
-            <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de Operaciones
-        </h2>
+    <div class="col-12 d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bolder text-dark mb-0" style="letter-spacing: -0.6px; font-weight: 850;">
+                    <i class="fa-solid fa-clock-rotate-left text-danger me-2"></i>Historial de Operaciones
+                </h2>
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">Ventas & Auditoría</span>
+            </div>
+            <p class="text-muted small mb-0">Consolidado cronológico de tickets cerrados, métodos de pago y márgenes</p>
+        </div>
         <div class="d-flex align-items-center gap-2 d-print-none flex-wrap">
-            <a href="{{ url_for('sales_bp.exportar_excel', fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm">
-                <i class="fa-solid fa-file-excel me-1"></i> Exportar a Excel con Costos
+            <a href="{{ url_for('sales_bp.exportar_excel', fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}" class="btn btn-hist-excel">
+                <i class="fa-solid fa-file-excel text-success me-2"></i> Exportar a Excel
             </a>
-            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-dark border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
-                <i class="fa-solid fa-print me-1"></i> Imprimir a PDF
+            <button onclick="window.print()" class="btn btn-hist-print">
+                <i class="fa-solid fa-print me-2"></i> Imprimir a PDF
             </button>
-            <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
-                <i class="fa-solid fa-arrow-left me-1"></i> Panel 
+            <a href="/admin/dashboard" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold small shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1.5"></i> Panel 
             </a>
         </div>
     </div>
 
     <!-- Encabezado de Impresión / PDF -->
     <div class="col-12 d-none d-print-block text-center mb-4 pb-3 border-bottom">
-        <h1 class="fw-bold text-brand-black mb-1"><i class="fa-solid fa-chart-line me-2"></i> RedCover</h1>
+        <h1 class="fw-bold text-dark mb-1"><i class="fa-solid fa-chart-line me-2 text-danger"></i> RedCover</h1>
         <h4 class="text-muted fw-semibold">REPORTE CONSOLIDADO DE VENTAS</h4>
         <p class="mb-0 text-secondary">
             Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
         </p>
         {% if current_user.rol != 'admin' %}
-            <p class="mb-0 text-brand-black fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
+            <p class="mb-0 text-dark fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
         {% endif %}
     </div>
 
-    <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
+    <!-- UI: Resumen Financiero Dinámico (Tarjetas SaaS con Volumen y Relieve) -->
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid var(--brand-blue) !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
-                    <h5 class="fw-bolder m-0" style="color: var(--brand-blue); font-size: 1.1rem;">${{ (total_efectivo)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">Efectivo</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #DCFCE7; color: #16A34A;">
+                        <i class="fa-solid fa-money-bills" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: var(--brand-blue);" onclick="filtrarTabla('efectivo')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_efectivo)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('efectivo')">Filtrar canal &raquo;</button>
         </div>
     </div>
     
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid #fd7e14 !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
-                    <h5 class="fw-bolder m-0" style="color: #fd7e14; font-size: 1.1rem;">${{ (total_bancolombia)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">Bancolombia</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #FEF3C7; color: #D97706;">
+                        <i class="fa-solid fa-building-columns" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #fd7e14;" onclick="filtrarTabla('bancolombia')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_bancolombia)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('bancolombia')">Filtrar canal &raquo;</button>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid #dc3545 !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
-                    <h5 class="fw-bolder m-0" style="color: #dc3545; font-size: 1.1rem;">${{ (total_daviplata)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">Daviplata</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #FEE2E2; color: #DC2626;">
+                        <i class="fa-solid fa-mobile-screen" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #dc3545;" onclick="filtrarTabla('daviplata')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_daviplata)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('daviplata')">Filtrar canal &raquo;</button>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid #20c997 !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-credit-card me-1"></i> T. Crédito</p>
-                    <h5 class="fw-bolder m-0" style="color: #20c997; font-size: 1.1rem;">${{ (total_tarjeta_credito)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">T. Crédito</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #E0F2FE; color: #0284C7;">
+                        <i class="fa-solid fa-credit-card" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #20c997;" onclick="filtrarTabla('tarjeta_credito')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_tarjeta_credito)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('tarjeta_credito')">Filtrar canal &raquo;</button>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid #6f42c1 !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-cart-shopping me-1"></i> Addi</p>
-                    <h5 class="fw-bolder m-0" style="color: #6f42c1; font-size: 1.1rem;">${{ (total_addi)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">Addi</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #FCE7F3; color: #DB2777;">
+                        <i class="fa-solid fa-cart-shopping" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #6f42c1;" onclick="filtrarTabla('addi')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_addi)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('addi')">Filtrar canal &raquo;</button>
         </div>
     </div>
 
     <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid #198754 !important;">
-            <div class="card-body py-2 ps-2 d-flex flex-column justify-content-between">
-                <div>
-                    <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-id-card me-1"></i> Sitecredito</p>
-                    <h5 class="fw-bolder m-0" style="color: #198754; font-size: 1.1rem;">${{ (total_sitecredito)|cop }}</h5>
+        <div class="saas-kpi-mini h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.4px;">Sistecredito</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #D1FAE5; color: #059669;">
+                        <i class="fa-solid fa-id-card" style="font-size: 0.8rem;"></i>
+                    </div>
                 </div>
-                <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-1 fw-semibold d-print-none" style="font-size: 0.75rem; color: #198754;" onclick="filtrarTabla('sitecredito')">Ver operaciones &raquo;</button>
+                <h5 class="fw-bolder m-0 text-dark" style="font-weight: 850; font-size: 1.25rem; letter-spacing: -0.5px;">${{ (total_sitecredito)|cop }}</h5>
             </div>
+            <button class="btn btn-link btn-sm p-0 text-start text-decoration-none mt-2 fw-bold text-danger d-print-none" style="font-size: 0.72rem;" onclick="filtrarTabla('sitecredito')">Filtrar canal &raquo;</button>
         </div>
     </div>
 
     {% if total_otros > 0 %}
     <div class="col-12 mb-3">
-        <div class="card card-custom h-100" style="border-left: 4px solid var(--brand-pink) !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.65rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Otros / Históricos</p>
-                <h5 class="fw-bolder m-0" style="color: var(--brand-pink); font-size: 1.1rem;">${{ (total_otros)|cop }}</h5>
-            </div>
+        <div class="saas-kpi-mini h-100">
+            <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.68rem;">
+                <i class="fa-solid fa-clock-rotate-left me-1 text-danger"></i> Otros Canales / Mixtos
+            </p>
+            <h5 class="fw-bolder m-0 text-dark" style="font-size: 1.15rem;">${{ (total_otros)|cop }}</h5>
         </div>
     </div>
     {% endif %}
     
     <!-- UI: Filtro de Fechas Oculto (Collapsible Bootstrap) -->
     <div class="col-12 mt-1 mb-3 d-print-none text-end">
-        <a href="#" class="text-muted small text-decoration-none opacity-50 text-hover-primary" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
-            <i class="fa-solid fa-filter me-1"></i> Mostrar filtros avanzados
+        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
+            <i class="fa-solid fa-sliders text-danger me-1.5"></i> Filtros de Rango
         </a>
         
-        <div class="collapse show mt-3" id="filtrosCollapse">
-            <div class="card card-custom p-4 bg-light">
+        <div class="collapse show mt-3 text-start" id="filtrosCollapse">
+            <div class="filter-card-saas">
                 <form method="GET" action="{{ url_for('sales_bp.historial') }}" class="row align-items-end g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-brand-black small">Desde (Día)</label>
-                        <input type="date" name="fecha_inicio" class="form-control border-0 shadow-sm" value="{{ fecha_inicio or '' }}">
+                        <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Desde (Día)</label>
+                        <input type="date" name="fecha_inicio" class="form-control rounded-3 border bg-light" value="{{ fecha_inicio or '' }}">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-brand-black small">Hasta (Límite)</label>
-                        <input type="date" name="fecha_fin" class="form-control border-0 shadow-sm" value="{{ fecha_fin or '' }}">
+                        <label class="form-label fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.4px;">Hasta (Límite)</label>
+                        <input type="date" name="fecha_fin" class="form-control rounded-3 border bg-light" value="{{ fecha_fin or '' }}">
                     </div>
-                    <div class="col-md-4">
-                        <!-- El botón manda la alerta GET en color predominante Turquesa -->
-                        <button type="submit" class="btn btn-blue w-100 rounded-3 shadow-sm fw-bold">
-                            <i class="fa-solid fa-magnifying-glass me-2"></i>Aplicar Filtros
+                    <div class="col-md-4 d-flex gap-2 align-items-center">
+                        <button type="submit" class="btn btn-hist-print w-100 justify-content-center">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i> Aplicar Rango
                         </button>
                         {% if fecha_inicio or fecha_fin %}
-                        <div class="text-center mt-2">
-                            <a href="{{ url_for('sales_bp.historial') }}" class="text-muted small text-decoration-none border-bottom border-secondary">Borrar Rango Analítico</a>
-                        </div>
+                        <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-outline-danger rounded-pill px-3" title="Limpiar"><i class="fa-solid fa-xmark"></i></a>
                         {% endif %}
                     </div>
                 </form>
@@ -150,18 +288,18 @@
     </div>
 </div>
 
-<div class="card card-custom p-0 overflow-hidden">
+<div class="saas-table-card mb-4 position-relative">
     <div class="table-responsive">
-        <table class="table table-hover table-striped table-custom mb-0">
-            <thead class="bg-light">
+        <table class="table saas-table table-sm mb-0 align-middle w-100">
+            <thead class="text-nowrap">
                 <tr>
-                    <th width="120">N° TIPO</th>
-                    <th>FECHA DE COBRO</th>
-                    <th>VENDEDOR RESPONSABLE</th>
-                    <th>ASESOR</th>
-                    <th class="text-center">VÍA DE PAGO</th>
-                    <th class="text-end">IMPORTE CERRADO</th>
-                    <th class="text-center" width="160">AUDITAR</th>
+                    <th class="ps-3" style="width: 130px;">N° TICKET</th>
+                    <th style="min-width: 170px;">FECHA DE COBRO</th>
+                    <th style="min-width: 160px;">VENDEDOR RESPONSABLE</th>
+                    <th style="min-width: 140px;">ASESOR</th>
+                    <th class="text-center" style="min-width: 150px;">VÍA DE PAGO</th>
+                    <th class="text-end" style="width: 140px;">IMPORTE CERRADO</th>
+                    <th class="text-center pe-3" style="width: 160px;">AUDITAR</th>
                 </tr>
             </thead>
             <tbody>
