@@ -36,6 +36,52 @@ def ver_acuerdo():
     acuerdo = ZenicDataAgreementAudit.query.order_by(ZenicDataAgreementAudit.id.desc()).first()
     return render_template('legal/acuerdo_datos.html', acuerdo=acuerdo, zenic=ZENIC_CORP_DATA)
 
+@legal_bp.route('/contrato-anualidad')
+@login_required
+def ver_contrato_anualidad():
+    """Vista completa e imprimible del Contrato de Licenciamiento y Custodia de Servidor en Modalidad Anualidad."""
+    acuerdo = ZenicDataAgreementAudit.query.order_by(ZenicDataAgreementAudit.id.desc()).first()
+    return render_template('legal/contrato_anualidad.html', acuerdo=acuerdo, zenic=ZENIC_CORP_DATA)
+
+@legal_bp.route('/confirmar-pago-servidor/<token>', methods=['GET'])
+@login_required
+@admin_required
+def confirmar_pago_servidor(token):
+    """Endpoint con token criptográfico para registrar pago y extender corte de servidor."""
+    from itsdangerous import URLSafeTimedSerializer
+    from flask import current_app
+    from models import ServerPayment, obtener_hora_bogota
+    
+    secret_key = current_app.config.get('SECRET_KEY', 'zenic_server_sec_2026')
+    s = URLSafeTimedSerializer(secret_key)
+    try:
+        data = s.loads(token, salt='pago-servidor-zenic', max_age=86400 * 7) # Validez 7 días
+        periodo = data.get('periodo')
+        monto = data.get('monto', 180000.0)
+        
+        # Validar si ya existe pago registrado para el periodo
+        existente = ServerPayment.query.filter_by(periodo_mes=periodo, estado='PAGADO').first()
+        if not existente:
+            nuevo_pago = ServerPayment(
+                periodo_mes=periodo,
+                monto=monto,
+                referencia=f"CONF-TOKEN-{periodo}",
+                metodo='Bre-B',
+                estado='PAGADO',
+                fecha_pago=obtener_hora_bogota(),
+                registrado_por_id=current_user.id
+            )
+            db.session.add(nuevo_pago)
+            db.session.commit()
+            flash(f'¡Pago de servidor para el periodo {periodo} confirmado y certificado con éxito!', 'success')
+        else:
+            flash(f'El periodo {periodo} ya contaba con pago registrado.', 'info')
+    except Exception as e:
+        flash(f'El enlace o token de confirmación de pago no es válido o ha expirado: {str(e)}', 'danger')
+
+    return redirect(url_for('admin_bp.dashboard') if hasattr(current_user, 'rol') and current_user.rol == 'admin' else url_for('index'))
+
+
 @legal_bp.route('/firmar-acuerdo', methods=['POST'])
 @login_required
 @admin_required

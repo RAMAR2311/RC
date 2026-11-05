@@ -667,4 +667,22 @@ class ZenicDataAgreementAudit(db.Model):
     def __init__(self, **kwargs):
         super(ZenicDataAgreementAudit, self).__init__(**kwargs)
 
+class ServerPayment(db.Model):
+    __tablename__ = 'server_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    periodo_mes = db.Column(db.String(7), nullable=False, index=True) # Formato YYYY-MM
+    monto = db.Column(db.Numeric(12, 2), nullable=False, default=0.00)
+    referencia = db.Column(db.String(100), nullable=True)
+    metodo = db.Column(db.String(50), default='Bre-B') # Bre-B, Nequi, Bancolombia, etc.
+    estado = db.Column(db.String(20), default='PAGADO') # PAGADO, PENDIENTE
+    fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota, nullable=False)
+    registrado_por_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    registrador = db.relationship('User', foreign_keys=[registrado_por_id])
+
+    def __init__(self, **kwargs):
+        super(ServerPayment, self).__init__(**kwargs)
+
+
 

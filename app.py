@@ -127,6 +127,90 @@ def create_app():
             'acuerdo_sic_data': acuerdo
         }
 
+    @app.context_processor
+    def inject_pago_servidor():
+        """
+        Lógica de control y vigencia de servidor Zenic para RED COVER COMUNICACIONES S.A.S.
+        Modalidad: Anualidad Prepagada (2026-07-30 al 2027-07-30). Corte día 30.
+        """
+        from datetime import datetime, date, timedelta
+        import os
+        from itsdangerous import URLSafeTimedSerializer
+        from models import obtener_hora_bogota, ServerPayment
+
+        fecha_inicio_str = os.getenv("FECHA_INICIO_ANUALIDAD", "2026-07-30")
+        fecha_fin_str = os.getenv("FECHA_FIN_ANUALIDAD", "2027-07-30")
+        dia_corte = int(os.getenv("DIA_VENCIMIENTO_SERVIDOR", "30"))
+
+        now_bogota = obtener_hora_bogota()
+        hoy = now_bogota.date()
+
+        f_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d").date()
+        f_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d").date()
+
+        # Generador de Token Criptográfico de Pago para renovación o confirmación
+        secret_key = app.config.get('SECRET_KEY', 'zenic_server_sec_2026')
+        s = URLSafeTimedSerializer(secret_key)
+        periodo_actual = hoy.strftime("%Y-%m")
+        token_pago = s.dumps({'periodo': periodo_actual, 'monto': 180000.0}, salt='pago-servidor-zenic')
+
+        es_anualidad_activa = False
+        estado = 'pagado'
+        dias_restantes = 0
+        mensaje_estado = 'Plan Anual Corporativo Activo (Paz y Salvo)'
+
+        if hoy <= (f_fin - timedelta(days=8)):
+            # Si hoy <= 2027-07-22: Paz y salvo anual total
+            es_anualidad_activa = True
+            estado = 'pagado'
+            dias_restantes = (f_fin - hoy).days
+            mensaje_estado = 'Plan Anual Corporativo Activo (Paz y Salvo)'
+        elif (f_fin - timedelta(days=7)) <= hoy < f_fin:
+            # Entre 2027-07-23 y 2027-07-29: Preventivo por vencer
+            es_anualidad_activa = True
+            estado = 'preventivo'
+            dias_restantes = (f_fin - hoy).days
+            mensaje_estado = f'Por Vencer Anualidad en {dias_restantes} días'
+        elif hoy == f_fin:
+            # El 2027-07-30: Vence hoy
+            es_anualidad_activa = True
+            estado = 'hoy'
+            dias_restantes = 0
+            mensaje_estado = '¡La Anualidad Vence Hoy!'
+        else:
+            # Posterior a 2027-07-30: Evaluar si ya tiene ServerPayment registrado
+            ultimo_pago = None
+            try:
+                ultimo_pago = ServerPayment.query.filter_by(periodo_mes=periodo_actual, estado='PAGADO').first()
+            except Exception:
+                pass
+
+            if ultimo_pago:
+                estado = 'pagado'
+                es_anualidad_activa = False
+                mensaje_estado = f'Mensualidad {periodo_actual} Al Día'
+            else:
+                # Lógica de gabela de 5 días posterior al corte día 30
+                dia_actual = hoy.day
+                if dia_actual <= 5: # Primeros 5 días del mes de gracia
+                    estado = 'gabela'
+                    dias_gracia = 5 - dia_actual
+                    mensaje_estado = f'Periodo de Gracia ({dias_gracia} días restantes)'
+                else:
+                    estado = 'vencido'
+                    mensaje_estado = 'Servidor con Pago Pendiente'
+
+        return {
+            'servidor_estado': estado,
+            'servidor_es_anualidad': es_anualidad_activa,
+            'servidor_fecha_inicio': f_inicio.strftime("%d/%m/%Y"),
+            'servidor_fecha_fin': f_fin.strftime("%d/%m/%Y"),
+            'servidor_dias_restantes': dias_restantes,
+            'servidor_mensaje': mensaje_estado,
+            'servidor_token_pago': token_pago,
+            'servidor_dia_corte': dia_corte
+        }
+
     @app.template_filter('cop')
     def cop_filter(value):
         if value is None:

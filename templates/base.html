@@ -582,8 +582,35 @@
                 RedCover
             </a>
 
+            <!-- Estado de Servidor Zenic (Derecha del Navbar) -->
+            {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+            <div class="d-flex align-items-center">
+                {% if servidor_estado == 'pagado' %}
+                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <span>✓ Zenic: Al día</span>
+                </button>
+                {% elif servidor_estado == 'preventivo' %}
+                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.78rem;">
+                    <i class="fa-solid fa-clock text-warning"></i>
+                    <span>🕒 Por Vencer</span>
+                </button>
+                {% elif servidor_estado == 'hoy' %}
+                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm animate-pulse" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.78rem;">
+                    <i class="fa-solid fa-bell text-danger"></i>
+                    <span>🔔 Vence Hoy</span>
+                </button>
+                {% else %}
+                <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: #dc2626; color: #ffffff; font-size: 0.78rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>⚠️ Servidor Pendiente</span>
+                </button>
+                {% endif %}
+            </div>
+            {% else %}
             <!-- Spacer derecho para equilibrar flex -->
             <div style="width: 40px;"></div>
+            {% endif %}
         </div>
     </nav>
 
@@ -988,6 +1015,167 @@
         // Initial poll
         setTimeout(pollApprovals, 2000);
     </script>
+    {% endif %}
+
+    <!-- ======================================================== -->
+    <!-- MODAL PAGO Y VIGENCIA DE SERVIDOR ZENIC (#modalPagoServidor) -->
+    <!-- ======================================================== -->
+    {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+    <div class="modal fade" id="modalPagoServidor" tabindex="-1" aria-labelledby="modalPagoServidorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden" style="box-shadow: 0 25px 70px rgba(0,0,0,0.35);">
+                
+                <!-- Encabezado con branding Zenic -->
+                <div class="modal-header bg-dark text-white border-bottom border-secondary py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-1 bg-white border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <img src="{{ url_for('static', filename='img/zenic_brain.png') }}" alt="Zenic S.A.S." style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold m-0" id="modalPagoServidorLabel">Zenic S.A.S. &bull; Infraestructura Cloud y Licencia</h5>
+                            <span class="small text-muted" style="font-size: 0.72rem;">Gestión de Servidor, Custodia de Datos y Respaldo Jurídico</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4" style="font-size: 0.88rem;">
+                    
+                    {% if servidor_es_anualidad %}
+                    <!-- Tarjeta Destacada en Verde Esmeralda (Anualidad Prepagada Activa) -->
+                    <div class="rounded-4 p-4 mb-4 text-white position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%);">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div>
+                                <span class="badge bg-white text-success fw-black text-uppercase px-3 py-1 rounded-pill mb-2 shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.6px;">
+                                    <i class="fa-solid fa-certificate me-1"></i> PAZ Y SALVO CORPORATIVO
+                                </span>
+                                <h4 class="fw-bold mb-1">Plan Anual Corporativo Activo</h4>
+                                <p class="small mb-0 opacity-90">Licencia SaaS, Alojamiento Cloud Dedicado y Soporte Técnico ZENIC S.A.S.</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-black bg-opacity-25 text-white border border-white border-opacity-25 px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Vigencia 12 Meses
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 pt-2 border-top border-white border-opacity-25 mt-2" style="font-size: 0.82rem;">
+                            <div class="col-sm-4">
+                                <span class="opacity-75 d-block" style="font-size: 0.72rem;">FECHA DE INICIO</span>
+                                <strong>{{ servidor_fecha_inicio }}</strong>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="opacity-75 d-block" style="font-size: 0.72rem;">VENCIMIENTO ANUAL</span>
+                                <strong class="text-warning">{{ servidor_fecha_fin }}</strong>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="opacity-75 d-block" style="font-size: 0.72rem;">PRÓXIMO CORTE DE RENOVACIÓN</span>
+                                <strong>30 de Julio de 2027</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Estado Mensual Regular -->
+                    <div class="alert {% if servidor_estado == 'pagado' %}alert-success{% elif servidor_estado in ['preventivo', 'gabela'] %}alert-warning{% else %}alert-danger{% endif %} border-0 rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-1">{{ servidor_mensaje }}</h5>
+                        <p class="small mb-0">Corte los días {{ servidor_dia_corte }} de cada mes.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- SECCIÓN DE RESPALDO CONTRACTUAL -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark text-uppercase small mb-3 d-flex align-items-center gap-2" style="letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-scale-balanced text-primary"></i> Documentación Legal y Contratos Suscritos
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between hover-shadow transition">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="p-2 rounded-3 bg-white border text-primary"><i class="fa-solid fa-file-contract"></i></span>
+                                            <strong class="text-dark">Contrato de Licenciamiento</strong>
+                                        </div>
+                                        <p class="text-muted small mb-3">
+                                            Modalidad Anualidad Prepago (2026-2027), cláusulas de propiedad de datos, SLA 99.5% y paz y salvo formal.
+                                        </p>
+                                    </div>
+                                    <a href="{{ url_for('legal_bp.ver_contrato_anualidad') }}" class="btn btn-outline-dark rounded-pill fw-bold w-100 btn-sm">
+                                        <i class="fa-solid fa-file-lines me-1 text-danger"></i> Ver Contrato de Licenciamiento (2026-2027)
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between hover-shadow transition">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="p-2 rounded-3 bg-white border text-primary"><i class="fa-solid fa-shield-halved"></i></span>
+                                            <strong class="text-dark">Acuerdo DPA (Ley 1581)</strong>
+                                        </div>
+                                        <p class="text-muted small mb-3">
+                                            Custodia técnica, prohibición de explotación comercial y autorización audiovisual suscrita ante la SIC.
+                                        </p>
+                                    </div>
+                                    <a href="{{ url_for('legal_bp.ver_acuerdo') }}" class="btn btn-outline-primary rounded-pill fw-bold w-100 btn-sm">
+                                        <i class="fa-solid fa-file-shield me-1"></i> Ver Acuerdo de Transmisión (DPA v2026.1)
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACORDEÓN DE CANALES DE PAGO ANTICIPADO / RENOVACIÓN -->
+                    <div class="accordion border rounded-4 overflow-hidden shadow-sm" id="accordionRenovacionServidor">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="headingCanalesPago">
+                                <button class="accordion-button collapsed bg-light text-dark fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCanalesPago" aria-expanded="false" aria-controls="collapseCanalesPago" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-wallet text-brand-pink me-2"></i> Ver canales de pago anticipado / Renovación
+                                </button>
+                            </h2>
+                            <div id="collapseCanalesPago" class="accordion-collapse collapse" aria-labelledby="headingCanalesPago" data-bs-parent="#accordionRenovacionServidor">
+                                <div class="accordion-body p-4 bg-white" style="font-size: 0.82rem;">
+                                    <p class="text-muted mb-3">
+                                        Si deseas renovar anticipadamente tu servicio o registrar un soporte con el equipo técnico de Zenic S.A.S.:
+                                    </p>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-sm-6">
+                                            <div class="p-3 rounded-3 border bg-light">
+                                                <span class="badge bg-primary text-white fw-bold px-2 py-1 mb-2">LLAVE BRE-B</span>
+                                                <div class="fw-bold font-monospace fs-6 text-dark">@QEI910</div>
+                                                <div class="text-muted small" style="font-size: 0.72rem;">Titular: ZENIC S.A.S. (NIT 902067639-6)</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="p-3 rounded-3 border bg-light">
+                                                <span class="badge bg-dark text-white fw-bold px-2 py-1 mb-2">NEQUI / DAVIPLATA</span>
+                                                <div class="fw-bold font-monospace fs-6 text-dark">350 542 2186</div>
+                                                <div class="text-muted small" style="font-size: 0.72rem;">Atención y Tesorería Corporativa</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Botón WhatsApp Directo con Token -->
+                                    <a href="https://wa.me/573505422186?text=Hola%20Zenic%20S.A.S.,%20solicito%20renovaci%C3%B3n%20anticipada%20de%20servidor%20para%20RED%20COVER%20(Token:%20{{ servidor_token_pago }})" target="_blank" class="btn btn-success rounded-pill fw-bold w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-brands fa-whatsapp fs-5"></i>
+                                        <span>Notificar Soporte de Pago a WhatsApp Oficial</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer bg-light border-top py-2 px-4 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-lock text-primary me-1"></i> Certificado de Servidor emitido bajo serial <code>ZEN-902067639-6-AUTH</code>
+                    </span>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold btn-sm" data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <!-- ======================================================== -->

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .page-sheet {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+    }
+    .font-brand {
+        font-family: 'Space Grotesk', 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    }
+    .gradient-zenic {
+        background: linear-gradient(135deg, #7b38d8 0%, #3b82f6 50%, #06b6d4 100%);
+    }
+    .text-gradient-zenic {
+        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #06b6d4 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .badge-zenic {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.35);
+    }
+    @media print {
+        body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .no-print, nav, footer, .navbar, .offcanvas {
+            display: none !important;
+        }
+        main.container, main {
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .page-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 8mm 12mm !important;
+        }
+    }
+</style>
+
+<!-- Barra Superior con Botón Imprimir / PDF y Volver -->
+<div class="no-print d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ url_for('admin_bp.dashboard') if current_user.rol == 'admin' else url_for('index') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver al Panel
+        </a>
+        <div>
+            <h3 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                <span class="p-2 rounded-3 bg-dark text-white d-inline-flex"><i class="fa-solid fa-file-contract text-warning"></i></span>
+                Contrato de Licenciamiento y Anualidad Prepago (2026-2027)
+            </h3>
+            <p class="text-muted small m-0">ZENIC S.A.S. &bull; Custodia Técnica de Servidor y Licencia de Software SaaS</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold d-flex align-items-center">
+            <i class="fa-solid fa-circle-check me-1"></i> Anualidad Vigente (Paz y Salvo)
+        </span>
+        <button type="button" onclick="window.print()" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fa-solid fa-print text-danger me-1"></i> Descargar / Imprimir Contrato en PDF
+        </button>
+    </div>
+</div>
+
+<!-- HOJA FORMAL DEL CONTRATO / PDF -->
+<div class="page-sheet p-4 p-md-5 mb-5 mx-auto" style="max-width: 950px; font-size: 0.88rem; color: #334155;">
+
+    <!-- ENCABEZADO INSTITUCIONAL CON BRANDING ZENIC -->
+    <header class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center border-bottom pb-4 mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-1 bg-white shadow-sm border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                <img src="{{ url_for('static', filename='img/zenic_brain.png') }}" alt="Zenic S.A.S." style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div>
+                <h4 class="fw-black font-brand m-0 text-gradient-zenic" style="letter-spacing: -0.5px; font-weight: 800;">ZENIC S.A.S.</h4>
+                <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.8px;">Arquitectura de Software &bull; Soluciones Tecnológicas Empresariales</div>
+                <div class="text-muted small" style="font-size: 0.72rem;">NIT: {{ zenic.nit }} &bull; Domicilio: {{ zenic.domicilio }}</div>
+            </div>
+        </div>
+        <div class="text-sm-end">
+            <span class="badge badge-zenic text-dark fw-bold px-3 py-1 rounded-pill">
+                MODALIDAD ANUALIDAD PREPAGO
+            </span>
+            <div class="text-success fw-bold small mt-1" style="font-size: 0.75rem;">
+                <i class="fa-solid fa-calendar-check me-1"></i> Periodo: 30/07/2026 al 30/07/2027
+            </div>
+        </div>
+    </header>
+
+    <!-- TÍTULO PRINCIPAL -->
+    <div class="text-center my-4">
+        <h4 class="fw-bold text-dark text-uppercase font-brand mb-1">
+            CONTRATO DE LICENCIAMIENTO DE SOFTWARE (SaaS), CUSTODIA DE SERVIDOR Y SOPORTE TÉCNICO – MODALIDAD ANUALIDAD
+        </h4>
+        <p class="text-primary small fw-semibold">
+            Paz y Salvo de Alojamiento en la Nube, Mantenimiento Preventivo y Soporte Operativo
+        </p>
+    </div>
+
+    <!-- COMPARECIENTES -->
+    <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important; line-height: 1.65; text-align: justify;">
+        <p class="mb-0">
+            Entre los suscritos a saber: Por una parte, <strong>ZENIC S.A.S.</strong>, sociedad comercial legalmente constituida bajo las leyes de la República de Colombia, identificada con NIT <strong>{{ zenic.nit }}</strong>, domiciliada en {{ zenic.domicilio }}, representada legalmente por <strong>{{ zenic.representante_legal }}</strong>, identificado con C.C. <strong>{{ zenic.representante_id }}</strong>, quien en adelante se denominará <strong>EL PROVEEDOR (ZENIC S.A.S.)</strong>; y por la otra parte, <strong>{% if acuerdo %}{{ acuerdo.business_name }}{% else %}RED COVER COMUNICACIONES S.A.S.{% endif %}</strong>, identificada con NIT/C.C. <strong>{% if acuerdo %}{{ acuerdo.business_nit }}{% else %}901.888.777-1{% endif %}</strong>, con domicilio en <strong>{% if acuerdo %}{{ acuerdo.business_city }}{% else %}Bucaramanga, Santander{% endif %}</strong>, representada legalmente por <strong>{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}{{ current_user.nombre }}{% endif %}</strong>, identificado(a) con C.C. <strong>{% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Por certificar en DPA]{% endif %}</strong>, quien en adelante se denominará <strong>EL CLIENTE</strong>, hemos celebrado el presente Contrato de Licenciamiento y Custodia de Servidor en Modalidad Anual, regido por las siguientes cláusulas:
+        </p>
+    </div>
+
+    <!-- CLÁUSULAS CONTRACTUALES EXACTAS -->
+    <div class="mb-4" style="line-height: 1.7; text-align: justify;">
+        
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA PRIMERA – OBJETO</h6>
+        <p class="text-muted mb-3">
+            EL PROVEEDOR otorga a favor de EL CLIENTE una licencia de uso no exclusiva, intransferible y temporal sobre el sistema de gestión comercial y ERP/POS desarrollado por ZENIC S.A.S., incluyendo el aprovisionamiento de infraestructura de servidor cloud en producción, respaldos automatizados, mantenimiento correctivo y soporte técnico operativo.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA SEGUNDA – VIGENCIA Y MODALIDAD DE ANUALIDAD PAGADA</h6>
+        <p class="text-muted mb-3">
+            El presente contrato tiene una vigencia de <strong>UN (1) AÑO (12 meses)</strong> contados a partir del <strong>treinta (30) de julio de dos mil veintiséis (2026)</strong> y con fecha de vencimiento el <strong>treinta (30) de julio de dos mil veintisiete (2027)</strong>.
+            <br>• <strong>Parágrafo Primero (Paz y Salvo de Anualidad):</strong> ZENIC S.A.S. certifica que EL CLIENTE ha cancelado a satisfacción el valor correspondiente a la anualidad del servicio de servidor y licenciamiento para el periodo <strong>30/07/2026 – 30/07/2027</strong>, encontrándose en estado <strong>"AL DÍA"</strong> sin cobros mensuales adicionales por concepto de alojamiento estándar durante dicho periodo.
+            <br>• <strong>Parágrafo Segundo (Renovación):</strong> Vencido el plazo anual el <strong>30 de julio de 2027</strong>, EL CLIENTE podrá optar voluntariamente por renovar una nueva anualidad o pasar al esquema de facturación mensual recurrente con fecha de corte los días treinta (30) de cada mes, contando con cinco (5) días calendario de gracia antes de la suspensión preventiva del servicio.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA TERCERA – DISPONIBILIDAD, INFRAESTRUCTURA Y COPIAS DE SEGURIDAD</h6>
+        <p class="text-muted mb-3">
+            ZENIC S.A.S. garantiza una disponibilidad operativa del servicio (SLA) del 99.5% anual bajo arquitectura híbrida (servidores cloud con certificados SSL/TLS y respaldos encriptados bajo custodia técnica de ZENIC S.A.S.).
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA CUARTA – PROPIEDAD INTELECTUAL DEL SOFTWARE Y TITULARIDAD DE LOS DATOS</h6>
+        <p class="text-muted mb-3">
+            El código fuente, arquitectura, algoritmos, diseño de interfaz y motores de base de datos son propiedad intelectual exclusiva de <strong>ZENIC S.A.S.</strong> (Ley 23 de 1982 y Decisión Andina 351). Por su parte, la totalidad de los datos transaccionales, inventarios, clientes y registros contables ingresados son propiedad exclusiva de <strong>EL CLIENTE</strong>, rigiéndose su tratamiento por el Acuerdo de Transmisión de Datos (DPA v2026.1) suscrito de forma integrada entre las partes.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA QUINTA – AUSENCIA DE PENALIDADES Y PORTABILIDAD</h6>
+        <p class="text-muted mb-3">
+            El presente contrato no conlleva multas ni sanciones por no renovación al término del periodo anual. En caso de no continuidad posterior al 30 de julio de 2027, ZENIC S.A.S. garantiza la entrega y exportación íntegra de la base de datos en formatos abiertos (CSV, Excel o SQL) y un periodo de custodia preventiva de treinta (30) días calendario conforme al DPA.
+        </p>
+
+        <h6 class="fw-bold text-dark mb-1">CLÁUSULA SEXTA – FIRMA ELECTRÓNICA Y TRAZABILIDAD (LEY 527 DE 1999)</h6>
+        <p class="text-muted mb-0">
+            Este instrumento se suscribe y certifica electrónicamente junto con el registro criptográfico SHA-256, dirección IP, marca temporal oficial colombiana (UTC-5) y sello digital de emisión de ZENIC S.A.S. (<code>SERIAL: ZEN-902067639-6-AUTH</code>).
+        </p>
+    </div>
+
+    <!-- SECCIÓN DE FIRMAS BILATERALES -->
+    <div class="row g-4 mt-4 pt-3 border-top">
+        
+        <!-- FIRMA CLIENTE / RESPONSABLE -->
+        <div class="col-md-6">
+            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-dark text-white fw-bold px-2 py-1 rounded text-uppercase mb-2" style="font-size: 0.68rem;">
+                        EL CLIENTE / SUSCRIPTOR
+                    </span>
+                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; align-items: center; justify-content: center;">
+                        {% if acuerdo and acuerdo.signature_data %}
+                            <img src="{{ acuerdo.signature_data }}" alt="Firma Representante Legal" style="max-height: 85px; max-width: 100%;">
+                        {% else %}
+                            <span class="text-muted small fst-italic">[Firma vinculada mediante suscripción de acuerdo DPA]</span>
+                        {% endif %}
+                    </div>
+                    <div class="fw-bold text-dark">{% if acuerdo %}{{ acuerdo.legal_representative }}{% else %}{{ current_user.nombre }}{% endif %}</div>
+                    <div class="text-muted small">Representante Legal / Titular</div>
+                    <div class="fw-semibold text-primary small">{% if acuerdo %}{{ acuerdo.business_name }}{% else %}RED COVER COMUNICACIONES S.A.S.{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {% if acuerdo %}{{ acuerdo.business_nit }}{% else %}901.888.777-1{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {% if acuerdo %}{{ acuerdo.legal_rep_id }}{% else %}[Por certificar en DPA]{% endif %}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Correo: {% if acuerdo %}{{ acuerdo.business_email }}{% else %}{{ current_user.email }}{% endif %}</div>
+                </div>
+                {% if acuerdo %}
+                <div class="mt-2 pt-2 border-top text-success small fw-semibold" style="font-size: 0.72rem;">
+                    <i class="fa-solid fa-check-circle me-1"></i> Certificado y firmado electrónicamente
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- FIRMA ZENIC S.A.S. / PROVEEDOR -->
+        <div class="col-md-6">
+            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-primary text-white fw-bold px-2 py-1 rounded text-uppercase mb-2" style="font-size: 0.68rem;">
+                        EL PROVEEDOR (ZENIC S.A.S.)
+                    </span>
+                    <div class="my-2 border rounded-3 bg-white p-2 text-center" style="min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span class="badge bg-dark text-warning border border-warning px-3 py-1 rounded-pill fw-bold font-monospace" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-shield-halved me-1 text-warning"></i> ZEN-902067639-6-AUTH
+                        </span>
+                        <span class="text-muted small fst-italic mt-1" style="font-size: 0.7rem;">Sello Digital Certificado de Emisión de Licenciamiento</span>
+                    </div>
+                    <div class="fw-bold text-dark">{{ zenic.representante_legal }}</div>
+                    <div class="text-muted small">Representante Legal</div>
+                    <div class="fw-semibold text-primary small">{{ zenic.razon_social }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">NIT: {{ zenic.nit }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">C.C. {{ zenic.representante_id }}</div>
+                    <div class="text-muted small" style="font-size: 0.72rem;">Domicilio: {{ zenic.domicilio }}</div>
+                </div>
+                <div class="mt-2 pt-2 border-top text-primary small fw-semibold" style="font-size: 0.72rem;">
+                    <i class="fa-solid fa-certificate me-1"></i> Certificado y emitido por Zenic S.A.S. (v2026.1)
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CERTIFICADO DE AUDITORÍA Y EQUIVALENCIA FUNCIONAL LEY 527 / DECRETO 2364 -->
+    <div class="mt-4 pt-3 border-top border-2 border-dashed rounded-4 p-3 bg-light" style="font-size: 0.75rem;">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <span class="fw-bold text-dark text-uppercase d-flex align-items-center gap-1">
+                <i class="fa-solid fa-award text-primary"></i> CERTIFICADO DE AUDITORÍA Y EQUIVALENCIA FUNCIONAL (LEY 527 DE 1999 / DECRETO 2364 DE 2012)
+            </span>
+            <span class="badge bg-success px-2 py-1 rounded">
+                ANUALIDAD PREPAGO VIGENTE
+            </span>
+        </div>
+        <div class="row g-2 text-muted">
+            <div class="col-md-6">
+                <div><strong>Hash SHA-256 Inmutable:</strong> <code class="text-primary font-monospace fw-bold">{% if acuerdo %}{{ acuerdo.document_sha256 }}{% else %}e4d9b238f5a109c7162b78d30e5f...{% endif %}</code></div>
+                <div><strong>Vigencia de Contrato:</strong> <span class="fw-bold text-dark">2026-07-30 al 2027-07-30 (12 Meses)</span></div>
+                <div><strong>Dirección IP de Registro:</strong> <code class="font-monospace">{% if acuerdo %}{{ acuerdo.ip_address }}{% else %}127.0.0.1 (Local Verified){% endif %}</code></div>
+            </div>
+            <div class="col-md-6">
+                <div><strong>Correo Notificaciones Vinculado:</strong> <span class="fw-semibold text-dark">{% if acuerdo %}{{ acuerdo.business_email }}{% else %}{{ current_user.email }}{% endif %}</span></div>
+                <div><strong>Emisión Tecnológica:</strong> <span class="small font-monospace">ZENIC CLOUD HOSTING &bull; SSL/TLS CERTIFIED</span></div>
+                <div><strong>Estado de Anualidad:</strong> 
+                    <span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Paz y Salvo Total (Sin cobros recurrentes hasta 30/07/2027)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
