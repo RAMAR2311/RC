@@ -676,7 +676,7 @@ def exportar_excel():
     for p in productos:
         # Determinar estado
         maneo_pendiente = next((m for m in p.maneos if m.estado == 'PENDIENTE'), None)
-        if manejo_pendiente:
+        if maneo_pendiente:
             estado_desc = f"EN MANEO (Prestado a {maneo_pendiente.local_vecino})"
         elif p.cantidad_stock > 0:
             estado_desc = "ACTIVO / EN STOCK"
@@ -686,15 +686,18 @@ def exportar_excel():
         # Datos de venta si existe
         ultima_venta = None
         if p.detalles_venta:
-            ultima_venta = p.detalles_venta[0].venta
+            for det in p.detalles_venta:
+                if det and getattr(det, 'venta', None):
+                    ultima_venta = det.venta
+                    break
 
-        fecha_venta_str = ultima_venta.fecha.strftime('%d/%m/%Y %H:%M') if (ultima_venta and ultima_venta.fecha) else 'N/A'
-        ticket_id = f"#{ultima_venta.id}" if ultima_venta else 'N/A'
-        vendedor_nombre = ultima_venta.vendedor.nombre if (ultima_venta and ultima_venta.vendedor) else 'N/A'
-        asesor_nombre = ultima_venta.asesor.nombre if (ultima_venta and ultima_venta.asesor) else 'N/A'
-        cliente_nombre = ultima_venta.cliente.nombre if (ultima_venta and ultima_venta.cliente) else 'N/A'
-        cliente_doc = ultima_venta.cliente.documento if (ultima_venta and ultima_venta.cliente) else 'N/A'
-        cliente_tel = ultima_venta.cliente.telefono if (ultima_venta and ultima_venta.cliente) else 'N/A'
+        fecha_venta_str = ultima_venta.fecha.strftime('%d/%m/%Y %H:%M') if (ultima_venta and getattr(ultima_venta, 'fecha', None)) else 'N/A'
+        ticket_id = f"#{ultima_venta.id}" if (ultima_venta and getattr(ultima_venta, 'id', None)) else 'N/A'
+        vendedor_nombre = ultima_venta.vendedor.nombre if (ultima_venta and getattr(ultima_venta, 'vendedor', None) and getattr(ultima_venta.vendedor, 'nombre', None)) else 'N/A'
+        asesor_nombre = ultima_venta.asesor.nombre if (ultima_venta and getattr(ultima_venta, 'asesor', None) and getattr(ultima_venta.asesor, 'nombre', None)) else 'N/A'
+        cliente_nombre = ultima_venta.cliente.nombre if (ultima_venta and getattr(ultima_venta, 'cliente', None) and getattr(ultima_venta.cliente, 'nombre', None)) else 'N/A'
+        cliente_doc = ultima_venta.cliente.documento if (ultima_venta and getattr(ultima_venta, 'cliente', None) and getattr(ultima_venta.cliente, 'documento', None)) else 'N/A'
+        cliente_tel = ultima_venta.cliente.telefono if (ultima_venta and getattr(ultima_venta, 'cliente', None) and getattr(ultima_venta.cliente, 'telefono', None)) else 'N/A'
 
         filas.append({
             'ID Dispositivo': p.id,
