@@ -40,13 +40,30 @@ def inventario():
             costo_total += float(c.precio_costo) * c.cantidad_stock
             ventas_estimadas += float(c.precio_sugerido) * c.cantidad_stock
 
-    # Obtener lista única y ordenada de referencias para el filtro desplegable
-    referencias_query = db.session.query(Product.modelo_celular).filter(
+    # Obtener lista única y ordenada de referencias de acuerdo con el estado filtrado
+    # (Por defecto en 'activos', solo mostrar referencias que tengan stock > 0 para evitar nombres antiguos o en 0)
+    ref_filter = [
         Product.tipo_inventario == 'celulares',
         Product.modelo_celular != None,
         Product.modelo_celular != ''
-    ).distinct().order_by(Product.modelo_celular.asc()).all()
+    ]
+
+    if estado == 'activos':
+        ref_filter.append(Product.cantidad_stock > 0)
+    elif estado == 'maneo':
+        ref_filter.append(Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+    elif estado == 'vendidos':
+        ref_filter.append(Product.cantidad_stock == 0)
+        ref_filter.append(~Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+
+    referencias_query = db.session.query(Product.modelo_celular).filter(*ref_filter).distinct().order_by(Product.modelo_celular.asc()).all()
     referencias_disponibles = [r[0] for r in referencias_query if r[0]]
+
+    # Si el usuario ya tenía seleccionadas referencias en la URL, asegurarnos de que sigan visibles para desmarcarlas si lo desea
+    for r_sel in referencias_seleccionadas:
+        if r_sel and r_sel not in referencias_disponibles:
+            referencias_disponibles.append(r_sel)
+    referencias_disponibles.sort()
 
     # Celulares actualmente prestados a locales vecinos (Maneo pendiente)
     celulares_en_maneo = Product.query.filter(
