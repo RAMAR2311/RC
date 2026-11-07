@@ -220,10 +220,11 @@
                                     <a href="{{ url_for('arqueo_bp.imprimir_ticket_arqueo', fecha=arqueo.fecha_arqueo, sucursal=arqueo.sucursal, autoprint=1) }}" target="_blank" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-dark" style="width: 30px; height: 30px;" title="Imprimir Ticket 80mm">
                                         <i class="fa-solid fa-receipt extra-small"></i>
                                     </a>
-                                    <form action="{{ url_for('arqueo_bp.revertir_arqueo', id=arqueo.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas revertir este arqueo de caja? Esto eliminará el cierre y permitirá volver a crear/modificar el arqueo para esta fecha y local.');" class="d-inline m-0">
+                                    <form action="{{ url_for('arqueo_bp.revertir_arqueo', id=arqueo.id) }}" method="POST" onsubmit="return confirm('⚠️ ¿Estás seguro de que deseas REABRIR este arqueo de caja?\n\nSe eliminará el bloqueo de cierre actual y podrás ingresar a modificar la base inicial, gastos y conteo físico.');" class="d-inline m-0">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-danger" style="width: 30px; height: 30px;" title="Revertir Cierre">
-                                            <i class="fa-solid fa-rotate-left extra-small"></i>
+                                        <input type="hidden" name="redirect_to" value="nuevo">
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center text-danger" style="width: 30px; height: 30px;" title="Reabrir Arqueo">
+                                            <i class="fa-solid fa-lock-open extra-small"></i>
                                         </button>
                                     </form>
                                 </div>

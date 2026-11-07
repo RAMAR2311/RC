@@ -382,15 +382,20 @@ def reporte():
 def revertir_arqueo(id):
     arqueo = ArqueoCaja.query.get_or_404(id)
     fecha_str = arqueo.fecha_arqueo.strftime('%Y-%m-%d')
+    sucursal = arqueo.sucursal
+    redirect_target = request.form.get('redirect_to', 'reporte')
     try:
         SobranteLog.query.filter_by(arqueo_id=arqueo.id).delete()
         db.session.delete(arqueo)
         db.session.commit()
-        flash(f"El arqueo de caja del {fecha_str} en {arqueo.sucursal} ha sido revertido exitosamente.", "success")
+        flash(f"El arqueo de caja del {fecha_str} en {sucursal} ha sido reabierto exitosamente. Ahora puedes editar y cuadrar nuevamente.", "success")
     except Exception as e:
         db.session.rollback()
-        flash("Ocurrió un error al revertir el arqueo de caja.", "danger")
-    return redirect(url_for('arqueo_bp.reporte'))
+        flash("Ocurrió un error al reabrir el arqueo de caja.", "danger")
+    
+    if redirect_target == 'nuevo':
+        return redirect(url_for('arqueo_bp.nuevo', fecha=fecha_str, sucursal=sucursal))
+    return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
 
 @arqueo_bp.route('/sobrantes', methods=['GET'])
 @login_required
