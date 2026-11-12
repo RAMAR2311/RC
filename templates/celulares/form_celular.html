@@ -231,14 +231,7 @@
 
                     <div class="col-md-3 col-6">
                         <label class="form-label-saas">Inventario</label>
-                        <select name="inventario" class="form-select-saas">
-                            {% set cur_inv = celular.inventario if celular else 'Nuevo' %}
-                            <option value="Nuevo" {% if cur_inv == 'Nuevo' %}selected{% endif %}>Nuevo (Sellado)</option>
-                            <option value="Semi Nuevo" {% if cur_inv == 'Semi Nuevo' or cur_inv == 'Seminuevo' %}selected{% endif %}>Semi Nuevo (Excelente)</option>
-                            <option value="Usado" {% if cur_inv == 'Usado' %}selected{% endif %}>Usado</option>
-                            <option value="Vitrina" {% if cur_inv == 'Vitrina' %}selected{% endif %}>Vitrina / Exhibición</option>
-                            <option value="Retoma" {% if cur_inv == 'Retoma' %}selected{% endif %}>Retoma</option>
-                        </select>
+                        <input type="text" name="inventario" class="form-control-saas" value="{{ celular.inventario if celular else '' }}" placeholder="Ej: Nuevo, Semi Nuevo, Usado">
                     </div>
 
                     <div class="col-md-3 col-12">
