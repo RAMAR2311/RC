@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block title %}Cambios de Celulares - RedCover{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2 py-3">
+    <!-- Header Principal -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                    MÓDULO CELULARES · LISTA DE ESPERA
+                </span>
+            </div>
+            <h2 class="fw-bolder m-0 text-brand-black" style="font-size: 1.75rem; letter-spacing: -0.5px;">
+                <i class="fa-solid fa-right-left me-2" style="color: #DC2626;"></i>Cambios de Celulares
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Entrega equipos del inventario activo en cambio, mantén la lista de espera y devuelve o ingresa el equipo recibido.</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button type="button" class="btn text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalNuevoCambio" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); border: none;">
+                <i class="fa-solid fa-plus"></i> Registrar Cambio
+            </button>
+            {% if current_user.rol == 'admin' %}
+            <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-secondary shadow-sm">
+                <i class="fa-solid fa-mobile-screen-button me-2 text-muted"></i>Inventario Celulares
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- KPIs rápidos -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">En Lista de Espera</div>
+                        <div class="fs-3 fw-bolder text-warning">{{ en_espera|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning-subtle text-warning" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-hourglass-half fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">Resueltos en Historial</div>
+                        <div class="fs-3 fw-bolder text-dark">{{ historial|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-success-subtle text-success" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-check-double fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">Celulares Activos Disponibles</div>
+                        <div class="fs-3 fw-bolder text-primary">{{ celulares_activos|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle text-primary" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-mobile-screen-button fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas Lista de Espera / Historial -->
+    <ul class="nav nav-pills mb-3 gap-2" id="cambiosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-bold" id="tab-espera" data-bs-toggle="pill" data-bs-target="#pane-espera" type="button" role="tab">
+                <i class="fa-solid fa-clock me-1.5"></i>Lista de Espera ({{ en_espera|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" id="tab-historial" data-bs-toggle="pill" data-bs-target="#pane-historial" type="button" role="tab">
+                <i class="fa-solid fa-clock-rotate-left me-1.5"></i>Historial ({{ historial|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- TAB 1: EN ESPERA -->
+        <div class="tab-pane fade show active" id="pane-espera" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark text-nowrap" style="font-size: 0.82rem;">
+                            <tr>
+                                <th class="ps-4">Fecha</th>
+                                <th>Celular Entregado</th>
+                                <th>Persona que Recibe</th>
+                                <th>Registrado Por</th>
+                                <th>Observaciones</th>
+                                <th class="pe-4 text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in en_espera %}
+                            <tr>
+                                <td class="ps-4 text-nowrap">
+                                    <div class="fw-bold text-dark">{{ c.fecha_registro.strftime('%d/%m/%Y') }}</div>
+                                    <small class="text-muted">{{ c.fecha_registro.strftime('%I:%M %p') }}</small>
+                                    <div><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill mt-1" style="font-size: 0.68rem;">#{{ c.id }} · EN ESPERA</span></div>
+                                </td>
+                                <td>
+                                    <div class="fw-bolder text-dark">{{ c.producto.nombre if c.producto else 'N/A' }}</div>
+                                    {% if c.producto and c.producto.imei %}
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.74rem;">IMEI: {{ c.producto.imei }}</span>
+                                    {% endif %}
+                                    {% if c.producto and c.producto.color %}
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">{{ c.producto.color }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark"><i class="fa-regular fa-user me-1 text-danger"></i>{{ c.persona_nombre }}</div>
+                                    {% if c.persona_documento %}
+                                    <div class="small text-muted">Doc: {{ c.persona_documento }}</div>
+                                    {% endif %}
+                                    {% if c.persona_telefono %}
+                                    <div class="small text-muted">Tel: {{ c.persona_telefono }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">{{ c.usuario.nombre if c.usuario else 'N/A' }}</span>
+                                </td>
+                                <td style="max-width: 220px;">
+                                    <span class="small text-muted">{{ c.observaciones or '-' }}</span>
+                                </td>
+                                <td class="pe-4 text-end text-nowrap">
+                                    <div class="d-inline-flex gap-1.5">
+                                        <form method="POST" action="{{ url_for('celulares_bp.devolver_cambio', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Devolver este celular al inventario activo? Su stock volverá a 1.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                                <i class="fa-solid fa-rotate-left me-1"></i>Devolver al Inventario
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="abrirModalDarOtro({{ c.id }}, '{{ (c.producto.nombre if c.producto else '')|e }}', '{{ c.persona_nombre|e }}')">
+                                            <i class="fa-solid fa-mobile-screen-button me-1"></i>Dar otro celular
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-right-left fs-1 mb-3 opacity-25"></i>
+                                    <h6 class="fw-bold text-secondary mb-1">No hay celulares en lista de espera</h6>
+                                    <p class="small mb-0">Haz clic en "+ Registrar Cambio" para entregar un celular del inventario activo.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: HISTORIAL -->
+        <div class="tab-pane fade" id="pane-historial" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark text-nowrap" style="font-size: 0.82rem;">
+                            <tr>
+                                <th class="ps-4">Registro / Resolución</th>
+                                <th>Celular Entregado</th>
+                                <th>Persona</th>
+                                <th>Estado Final</th>
+                                <th>Celular Recibido / Resultado</th>
+                                <th class="pe-4">Resuelto Por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in historial %}
+                            <tr>
+                                <td class="ps-4 text-nowrap">
+                                    <div class="fw-bold text-dark">#{{ h.id }} · {{ h.fecha_registro.strftime('%d/%m/%Y') }}</div>
+                                    {% if h.fecha_resolucion %}
+                                    <small class="text-muted">Resuelto: {{ h.fecha_resolucion.strftime('%d/%m/%Y %I:%M %p') }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ h.producto.nombre if h.producto else 'N/A' }}</div>
+                                    {% if h.producto and h.producto.imei %}
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem;">IMEI: {{ h.producto.imei }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ h.persona_nombre }}</div>
+                                    {% if h.persona_telefono %}<small class="text-muted">{{ h.persona_telefono }}</small>{% endif %}
+                                </td>
+                                <td>
+                                    {% if h.estado == 'DEVUELTO' %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">DEVUELTO AL INVENTARIO</span>
+                                    {% else %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">COMPLETADO</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if h.nuevo_producto %}
+                                    <div class="fw-bold text-success">{{ h.nuevo_producto.nombre }}</div>
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem;">IMEI: {{ h.nuevo_producto.imei or 'N/A' }}</span>
+                                    {% else %}
+                                    <span class="small text-muted">El equipo original regresó al inventario activo.</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4">
+                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">{{ h.resuelto_por.nombre if h.resuelto_por else 'N/A' }}</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <p class="mb-0">Aún no hay cambios resueltos en el historial.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: REGISTRAR NUEVO CAMBIO -->
+<div class="modal fade" id="modalNuevoCambio" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-light py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-right-left text-danger fs-5"></i>
+                    <h5 class="modal-title fw-bold text-brand-black mb-0">Registrar Salida de Celular en Cambio</h5>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('celulares_bp.nuevo_cambio') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="product_id" id="nuevoCambioProductId" required>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark mb-1">1. Seleccionar Celular del Inventario Activo <span class="text-danger">*</span></label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="buscarCelularActivo" class="form-control bg-light border-0 py-2" placeholder="Filtrar por marca, modelo, IMEI o color..." oninput="filtrarCelularesActivos()">
+                        </div>
+                        <div id="listaCelularesActivos" class="border rounded-3 p-2 bg-light" style="max-height: 220px; overflow-y: auto;">
+                            {% for c in celulares_activos %}
+                            <button type="button"
+                                class="w-100 text-start btn mb-1.5 p-2.5 rounded-3 border bg-white d-flex justify-content-between align-items-center item-celular-activo"
+                                data-search="{{ (c.nombre ~ ' ' ~ (c.marca or '') ~ ' ' ~ (c.modelo_celular or '') ~ ' ' ~ (c.imei or '') ~ ' ' ~ (c.color or '') ~ ' ' ~ (c.memoria or ''))|lower }}"
+                                onclick="seleccionarCelularCambio(this, {{ c.id }}, '{{ c.nombre|e }}', '{{ (c.imei or 'Sin IMEI')|e }}')">
+                                <div>
+                                    <div class="fw-bold text-dark small">{{ c.nombre }}</div>
+                                    <div class="extra-small text-muted font-monospace">
+                                        IMEI: <strong>{{ c.imei or 'N/A' }}</strong> · {{ c.memoria or '-' }} · {{ c.color or '-' }} · <span class="badge bg-light text-dark border">{{ c.inventario or 'Tienda' }}</span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-dark-subtle text-dark rounded-pill px-2.5 py-1 fw-bold">${{ c.precio_sugerido|cop }}</span>
+                            </button>
+                            {% else %}
+                            <div class="text-center py-3 text-muted small">No hay celulares disponibles en inventario activo.</div>
+                            {% endfor %}
+                        </div>
+                        <div id="resumenCelularSeleccionado" class="alert alert-success border-0 rounded-3 mt-2 mb-0 py-2 px-3 small fw-bold" style="display: none;">
+                            <i class="fa-solid fa-circle-check me-1"></i> Seleccionado: <span id="textoCelularSeleccionado"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold small text-dark mb-1">2. Persona a quien se entrega <span class="text-danger">*</span></label>
+                            <input type="text" name="persona_nombre" class="form-control bg-light border-0 py-2 rounded-3" placeholder="Nombre completo de la persona" required>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-dark mb-1">Cédula / Doc.</label>
+                            <input type="text" name="persona_documento" class="form-control bg-light border-0 py-2 rounded-3" placeholder="Opcional">
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-dark mb-1">Teléfono</label>
+                            <input type="text" name="persona_telefono" class="form-control bg-light border-0 py-2 rounded-3" placeholder="Opcional">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-dark mb-1">Observaciones</label>
+                            <textarea name="observaciones" class="form-control bg-light border-0 py-2 rounded-3" rows="2" placeholder="Detalle del acuerdo o estado del cambio..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light py-3 px-4">
+                    <button type="button" class="btn btn-white bg-white border rounded-pill px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnGuardarNuevoCambio" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); border: none;" disabled>
+                        <i class="fa-solid fa-check me-1"></i> Enviar a Lista de Espera
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: DAR OTRO CELULAR (FORMULARIO IGUAL AL DE INGRESAR CELULAR) -->
+<div class="modal fade" id="modalDarOtroCelular" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-dark text-white py-3 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="fa-solid fa-mobile-screen-button text-danger me-2"></i>Ingresar Otro Celular por Cambio
+                    </h5>
+                    <small class="text-white-50" id="darOtroSubtitulo">Cambio #--</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="formDarOtroCelular" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                        <i class="fa-solid fa-mobile-screen-button text-danger me-2"></i>Datos Principales y Especificaciones
+                    </h6>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Tipo de Dispositivo</label>
+                            <select name="tipo_dispositivo" id="cambio_tipo_dispositivo" class="form-select fw-bold" required>
+                                <option value="Celular" selected>📱 Celular / Smartphone</option>
+                                <option value="Computador">💻 Computador / Laptop</option>
+                                <option value="Tablet">📟 Tablet / iPad</option>
+                                <option value="Gafas Inteligentes">👓 Gafas Inteligentes</option>
+                                <option value="Smartwatch">⌚ Smartwatch / Reloj</option>
+                                <option value="Audífonos">🎧 Audífonos / AirPods</option>
+                                <option value="Consola">🎮 Consola / Gadget</option>
+                                <option value="Otro">📦 Otro Dispositivo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Marca <span class="text-danger">*</span></label>
+                            <div class="btn-group w-100 mb-2" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-dark fw-bold cambio-btn-marca-preset" data-brand="APPLE">APPLE</button>
+                                <button type="button" class="btn btn-sm btn-outline-dark fw-bold cambio-btn-marca-preset" data-brand="SAMSUNG">SAMSUNG</button>
+                                <button type="button" class="btn btn-sm btn-outline-dark fw-bold cambio-btn-marca-preset" data-brand="RAYBAN">RAYBAN</button>
+                            </div>
+                            <select name="marca" id="cambio_marca_select" class="form-select fw-bold" required>
+                                <option value="">-- Seleccionar Marca --</option>
+                                <option value="APPLE">APPLE</option>
+                                <option value="SAMSUNG">SAMSUNG</option>
+                                <option value="RAYBAN">RAYBAN</option>
+                                <option value="__OTRA__">-- Otra Marca (Manual) --</option>
+                            </select>
+                            <input type="text" id="cambio_marca_custom" class="form-control fw-bold mt-2 d-none" placeholder="Escribir marca personalizada">
+                        </div>
+
+                        <div class="col-md-3 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Referencia (Modelo) <span class="text-danger">*</span></label>
+                            <select name="modelo_celular" id="cambio_modelo_select" class="form-select fw-bold" required>
+                                <option value="">-- Primero elige Marca --</option>
+                            </select>
+                            <input type="text" id="cambio_modelo_custom" class="form-control fw-bold mt-2 d-none" placeholder="Escribir referencia personalizada">
+                        </div>
+
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Capacidad / RAM</label>
+                            <select name="memoria" id="cambio_memoria_select" class="form-select fw-bold">
+                                <option value="">-- Seleccionar Capacidad --</option>
+                                <option value="64GB">64GB</option>
+                                <option value="128GB">128GB</option>
+                                <option value="256GB">256GB</option>
+                                <option value="512GB">512GB</option>
+                                <option value="1TB">1TB</option>
+                                <option value="2TB">2TB</option>
+                                <option value="N/A">N/A (Sin almacenamiento)</option>
+                                <option value="__OTRA__">-- Otra capacidad (Manual) --</option>
+                            </select>
+                            <input type="text" id="cambio_memoria_custom" class="form-control mt-2 d-none" placeholder="Ej: 32GB, 8GB RAM">
+                        </div>
+
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Color</label>
+                            <select name="color" id="cambio_color_select" class="form-select fw-bold">
+                                <option value="">-- Elige primero el Modelo --</option>
+                            </select>
+                            <input type="text" id="cambio_color_custom" class="form-control mt-2 d-none" placeholder="Escribir color personalizado">
+                        </div>
+
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Batería (%)</label>
+                            <input type="text" name="bateria" class="form-control" placeholder="Ej: 88% o N/A">
+                        </div>
+
+                        <div class="col-md-3 col-6">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Inventario</label>
+                            <input type="text" name="inventario" class="form-control" placeholder="Ej: Nuevo, Semi Nuevo, Usado">
+                        </div>
+
+                        <div class="col-md-3 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Proveedor / Origen</label>
+                            <input type="text" name="proveedor" class="form-control" placeholder="Ej: Mayorista Central, Cambio">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Fotografía del Dispositivo (Opcional)</label>
+                            <input type="file" name="imagen" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                        <i class="fa-solid fa-barcode text-danger me-2"></i>Identificación Técnica (IMEI / Serial)
+                    </h6>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">IMEI 1 (Obligatorio) <span class="text-danger">*</span></label>
+                            <input type="text" name="imei" class="form-control font-monospace fw-bold" style="letter-spacing: 1px;" placeholder="15 dígitos numéricos" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">IMEI 2 (Opcional - Dual SIM)</label>
+                            <input type="text" name="imei2" class="form-control font-monospace" style="letter-spacing: 1px;" placeholder="Segundo IMEI (si aplica)">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                        <i class="fa-solid fa-hand-holding-dollar text-danger me-2"></i>Esquema de Precios y Rentabilidad
+                    </h6>
+
+                    <div class="p-3 rounded-4 border bg-light">
+                        <div class="row g-3">
+                            <div class="col-md-4 col-12">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Costo Directo ($)</label>
+                                <input type="text" name="precio_costo" class="form-control format-price-cambio fw-bold" value="0" required>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label class="form-label fw-bold small text-danger text-uppercase">Precio Mínimo de Venta ($)</label>
+                                <input type="text" name="precio_minimo" class="form-control format-price-cambio fw-bold text-danger" value="0" required>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label class="form-label fw-bold small text-success text-uppercase">Precio Sugerido al Público ($)</label>
+                                <input type="text" name="precio_sugerido" class="form-control format-price-cambio fw-bold text-success fs-5" value="0" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light py-3 px-4">
+                    <button type="button" class="btn btn-white bg-white border rounded-pill px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="cleanPricesCambio(this.form)">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar en Inventario y Completar Cambio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/catalogo_celulares.js') }}"></script>
+<script>
+    // ---- Modal 1: Nuevo Cambio ----
+    function filtrarCelularesActivos() {
+        const q = document.getElementById('buscarCelularActivo').value.trim().toLowerCase();
+        document.querySelectorAll('.item-celular-activo').forEach(btn => {
+            const txt = btn.getAttribute('data-search') || '';
+            btn.classList.toggle('d-none', q && !txt.includes(q));
+        });
+    }
+
+    function seleccionarCelularCambio(btn, id, nombre, imei) {
+        document.getElementById('nuevoCambioProductId').value = id;
+        document.getElementById('textoCelularSeleccionado').innerText = `${nombre} (IMEI: ${imei})`;
+        document.getElementById('resumenCelularSeleccionado').style.display = 'block';
+        document.getElementById('btnGuardarNuevoCambio').disabled = false;
+
+        document.querySelectorAll('.item-celular-activo').forEach(b => b.classList.remove('border-success', 'bg-success-subtle'));
+        btn.classList.add('border-success', 'bg-success-subtle');
+    }
+
+    // ---- Modal 2: Dar Otro Celular (Catálogo inteligente) ----
+    const cMarcaSelect = document.getElementById('cambio_marca_select');
+    const cMarcaCustom = document.getElementById('cambio_marca_custom');
+    const cModeloSelect = document.getElementById('cambio_modelo_select');
+    const cModeloCustom = document.getElementById('cambio_modelo_custom');
+    const cColorSelect = document.getElementById('cambio_color_select');
+    const cColorCustom = document.getElementById('cambio_color_custom');
+    const cMemoriaSelect = document.getElementById('cambio_memoria_select');
+    const cMemoriaCustom = document.getElementById('cambio_memoria_custom');
+    const cTipoDispositivoSelect = document.getElementById('cambio_tipo_dispositivo');
+
+    function abrirModalDarOtro(cambioId, nombreOriginal, personaNombre) {
+        const form = document.getElementById('formDarOtroCelular');
+        form.reset();
+        form.action = `/celulares/cambios/dar-otro/${cambioId}`;
+        document.getElementById('darOtroSubtitulo').innerText = `Cambio #${cambioId} · Entregado: ${nombreOriginal} · Persona: ${personaNombre}`;
+
+        cMarcaCustom.classList.add('d-none');
+        cModeloCustom.classList.add('d-none');
+        cColorCustom.classList.add('d-none');
+        cMemoriaCustom.classList.add('d-none');
+        cModeloSelect.innerHTML = '<option value="">-- Primero elige Marca --</option>';
+        cColorSelect.innerHTML = '<option value="">-- Elige primero el Modelo --</option>';
+        actualizarBotonesMarcaCambio('');
+
+        const modal = new bootstrap.Modal(document.getElementById('modalDarOtroCelular'));
+        modal.show();
+    }
+
+    function actualizarBotonesMarcaCambio(marcaActiva) {
+        document.querySelectorAll('.cambio-btn-marca-preset').forEach(btn => {
+            if (btn.getAttribute('data-brand') === marcaActiva) {
+                btn.classList.remove('btn-outline-dark');
+                btn.classList.add('btn-danger', 'text-white');
+            } else {
+                btn.classList.remove('btn-danger', 'text-white');
+                btn.classList.add('btn-outline-dark');
+            }
+        });
+    }
+
+    function popularModelosCambio(marca) {
+        cModeloSelect.innerHTML = '<option value="">-- Seleccionar Referencia --</option>';
+        cColorSelect.innerHTML = '<option value="">-- Elige primero el Modelo --</option>';
+
+        if (CATALOGO_DISPOSITIVOS[marca]) {
+            Object.keys(CATALOGO_DISPOSITIVOS[marca]).forEach(mod => {
+                const opt = document.createElement('option');
+                opt.value = mod;
+                opt.textContent = mod;
+                cModeloSelect.appendChild(opt);
+            });
+            const optOtra = document.createElement('option');
+            optOtra.value = '__OTRA__';
+            optOtra.textContent = '-- Otra Referencia (Manual) --';
+            cModeloSelect.appendChild(optOtra);
+            cModeloCustom.classList.add('d-none');
+        } else {
+            const optManual = document.createElement('option');
+            optManual.value = '__OTRA__';
+            optManual.textContent = '-- Ingrese Referencia Manualmente --';
+            optManual.selected = true;
+            cModeloSelect.appendChild(optManual);
+            cModeloCustom.classList.remove('d-none');
+            popularColoresGenericosCambio();
+        }
+    }
+
+    function popularColoresCambio(marca, modelo) {
+        cColorSelect.innerHTML = '<option value="">-- Seleccionar Color --</option>';
+        const infoModelo = CATALOGO_DISPOSITIVOS[marca] && CATALOGO_DISPOSITIVOS[marca][modelo];
+        if (infoModelo) {
+            if (infoModelo.tipo && cTipoDispositivoSelect) {
+                cTipoDispositivoSelect.value = infoModelo.tipo;
+            }
+            infoModelo.colores.forEach(col => {
+                const opt = document.createElement('option');
+                opt.value = col;
+                opt.textContent = col;
+                cColorSelect.appendChild(opt);
+            });
+            const optOtro = document.createElement('option');
+            optOtro.value = '__OTRO__';
+            optOtro.textContent = '-- Otro Color (Manual) --';
+            cColorSelect.appendChild(optOtro);
+            cColorCustom.classList.add('d-none');
+        } else {
+            popularColoresGenericosCambio();
+        }
+    }
+
+    function popularColoresGenericosCambio() {
+        cColorSelect.innerHTML = '<option value="">-- Seleccionar Color --</option>';
+        ["Negro", "Blanco", "Plata", "Gris", "Azul", "Dorado", "Verde", "Titanio"].forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            cColorSelect.appendChild(opt);
+        });
+        const optOtro = document.createElement('option');
+        optOtro.value = '__OTRO__';
+        optOtro.textContent = '-- Otro Color (Manual) --';
+        cColorSelect.appendChild(optOtro);
+    }
+
+    document.querySelectorAll('.cambio-btn-marca-preset').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const brand = this.getAttribute('data-brand');
+            cMarcaSelect.value = brand;
+            cMarcaCustom.classList.add('d-none');
+            actualizarBotonesMarcaCambio(brand);
+            popularModelosCambio(brand);
+        });
+    });
+
+    cMarcaSelect.addEventListener('change', function () {
+        if (this.value === '__OTRA__') {
+            cMarcaCustom.classList.remove('d-none');
+            actualizarBotonesMarcaCambio('');
+            popularModelosCambio('__OTRA__');
+        } else {
+            cMarcaCustom.classList.add('d-none');
+            actualizarBotonesMarcaCambio(this.value);
+            popularModelosCambio(this.value);
+        }
+    });
+
+    cModeloSelect.addEventListener('change', function () {
+        if (this.value === '__OTRA__') {
+            cModeloCustom.classList.remove('d-none');
+            popularColoresGenericosCambio();
+        } else {
+            cModeloCustom.classList.add('d-none');
+            popularColoresCambio(cMarcaSelect.value, this.value);
+        }
+    });
+
+    cColorSelect.addEventListener('change', function () {
+        if (this.value === '__OTRO__') {
+            cColorCustom.classList.remove('d-none');
+            cColorCustom.focus();
+        } else {
+            cColorCustom.classList.add('d-none');
+        }
+    });
+
+    cMemoriaSelect.addEventListener('change', function () {
+        if (this.value === '__OTRA__') {
+            cMemoriaCustom.classList.remove('d-none');
+            cMemoriaCustom.focus();
+        } else {
+            cMemoriaCustom.classList.add('d-none');
+        }
+    });
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price-cambio')) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value !== '' ? parseInt(value, 10).toLocaleString('es-CO') : '';
+        }
+    });
+
+    function cleanPricesCambio(form) {
+        form.querySelectorAll('.format-price-cambio').forEach(input => {
+            input.value = input.value.replace(/\D/g, '');
+            if (input.value === '') input.value = '0';
+        });
+        if (cMarcaSelect.value === '__OTRA__' && cMarcaCustom.value.trim()) {
+            cMarcaSelect.options[cMarcaSelect.selectedIndex].value = cMarcaCustom.value.trim();
+        }
+        if (cModeloSelect.value === '__OTRA__' && cModeloCustom.value.trim()) {
+            cModeloSelect.options[cModeloSelect.selectedIndex].value = cModeloCustom.value.trim();
+        }
+        if (cColorSelect.value === '__OTRO__' && cColorCustom.value.trim()) {
+            cColorSelect.options[cColorSelect.selectedIndex].value = cColorCustom.value.trim();
+        }
+        if (cMemoriaSelect.value === '__OTRA__' && cMemoriaCustom.value.trim()) {
+            cMemoriaSelect.options[cMemoriaSelect.selectedIndex].value = cMemoriaCustom.value.trim();
+        }
+    }
+
+    document.getElementById('formDarOtroCelular').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.tagName === 'INPUT' && activeEl.type !== 'submit' && activeEl.type !== 'button') {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+</script>
+{% endblock %}

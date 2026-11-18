@@ -552,11 +552,14 @@ class Warranty(db.Model):
     reason = db.Column(db.Text, nullable=False)
     resolution = db.Column(db.String(50), default='Pendiente')
     admin_notes = db.Column(db.Text, nullable=True)
+    devuelto_inventario = db.Column(db.Boolean, default=False, server_default='false', nullable=False)
+    replacement_product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     # Relaciones
     sale = db.relationship('Sale', backref=db.backref('warranties', lazy=True))
-    product = db.relationship('Product', backref=db.backref('warranties', lazy=True))
+    product = db.relationship('Product', foreign_keys=[product_id], backref=db.backref('warranties', lazy=True))
+    replacement_product = db.relationship('Product', foreign_keys=[replacement_product_id])
 
     @property
     def tiempo_transcurrido(self):
@@ -683,6 +686,31 @@ class ServerPayment(db.Model):
 
     def __init__(self, **kwargs):
         super(ServerPayment, self).__init__(**kwargs)
+
+
+class CambioCelular(db.Model):
+    __tablename__ = 'cambios_celulares'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    persona_nombre = db.Column(db.String(150), nullable=False)
+    persona_documento = db.Column(db.String(50), nullable=True)
+    persona_telefono = db.Column(db.String(50), nullable=True)
+    observaciones = db.Column(db.Text, nullable=True)
+    estado = db.Column(db.String(30), default='EN_ESPERA', nullable=False)  # EN_ESPERA, DEVUELTO, COMPLETADO
+    nuevo_product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    resuelto_por_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_resolucion = db.Column(db.DateTime, nullable=True)
+
+    producto = db.relationship('Product', foreign_keys=[product_id], backref=db.backref('cambios_salientes', lazy=True))
+    nuevo_producto = db.relationship('Product', foreign_keys=[nuevo_product_id], backref=db.backref('cambios_entrantes', lazy=True))
+    usuario = db.relationship('User', foreign_keys=[usuario_id])
+    resuelto_por = db.relationship('User', foreign_keys=[resuelto_por_id])
+
+    def __init__(self, **kwargs):
+        super(CambioCelular, self).__init__(**kwargs)
 
 
 

@@ -130,6 +130,13 @@
     
     <div class="border-top mb-3">
         <p class="text-center fw-bold mt-1">ESTADO: {{ warranty.resolution.upper() }}</p>
+        {% if warranty.replacement_product %}
+        <p class="fw-bold mt-2">EQUIPO ENTREGADO EN CAMBIO:</p>
+        <p class="small mt-1">{{ warranty.replacement_product.nombre }}</p>
+        {% if warranty.replacement_product.imei %}
+        <p class="small">IMEI: {{ warranty.replacement_product.imei }}</p>
+        {% endif %}
+        {% endif %}
         {% if warranty.admin_notes %}
         <p class="fw-bold mt-2">OBSERVACIÓN DE GARANTÍA:</p>
         <p class="small mt-1" style="word-wrap: break-word;">{{ warranty.admin_notes }}</p>

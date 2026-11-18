@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, SaleDetail, Warranty, Product, SaleClient
+from sqlalchemy import or_
+from decorators import admin_required
+from models import db, Sale, SaleDetail, Warranty, Product, SaleClient, Maneo, StockAdjustment
 
 warranties_bp = Blueprint('warranties_bp', __name__)
 
@@ -133,3 +135,184 @@ def update_status(id):
         return jsonify({'success': True, 'message': 'Estado actualizado correctamente.'})
     
     return jsonify({'success': False, 'error': 'Estado no válido.'}), 400
+
+
+@warranties_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_garantia(id):
+    warranty = Warranty.query.get_or_404(id)
+    try:
+        db.session.delete(warranty)
+        db.session.commit()
+        flash('Garantía eliminada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la garantía: {str(e)}', 'danger')
+    return redirect(url_for('warranties_bp.index'))
+
+
+@warranties_bp.route('/enviar-inventario/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def enviar_inventario(id):
+    warranty = Warranty.query.get_or_404(id)
+
+    if warranty.devuelto_inventario:
+        flash('Este equipo ya fue reingresado al inventario anteriormente.', 'warning')
+        return redirect(url_for('warranties_bp.index'))
+
+    if not warranty.product:
+        flash('Esta garantía no tiene un producto del inventario asociado.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    producto = Product.query.with_for_update().get(warranty.product.id)
+    if not producto:
+        flash('Producto no encontrado en la base de datos.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    if producto.tipo_inventario != 'celulares' and not producto.imei:
+        flash('Solo se pueden reingresar celulares del módulo de celulares.', 'warning')
+        return redirect(url_for('warranties_bp.index'))
+
+    if producto.maneo_activo:
+        flash('El equipo se encuentra actualmente en un préstamo de Maneo pendiente.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    if producto.cantidad_stock > 0:
+        flash('El equipo ya se encuentra con stock activo en el inventario.', 'warning')
+        return redirect(url_for('warranties_bp.index'))
+
+    try:
+        stock_anterior = producto.cantidad_stock
+        producto.cantidad_stock = 1
+
+        ajuste = StockAdjustment(
+            product_id=producto.id,
+            admin_id=current_user.id,
+            tipo_movimiento=f"Reingreso por Garantía #{warranty.id}",
+            stock_anterior=stock_anterior,
+            stock_nuevo=1
+        )
+        db.session.add(ajuste)
+
+        warranty.devuelto_inventario = True
+        nota_reingreso = f"Reingresado al inventario (Garantía #{warranty.id})."
+        if warranty.admin_notes:
+            warranty.admin_notes = f"{warranty.admin_notes} | {nota_reingreso}"
+        else:
+            warranty.admin_notes = nota_reingreso
+
+        db.session.commit()
+        flash(f'Celular "{producto.nombre}" reingresado al inventario exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al reingresar el celular al inventario: {str(e)}', 'danger')
+
+    return redirect(url_for('warranties_bp.index'))
+
+
+@warranties_bp.route('/api/celulares-disponibles', methods=['GET'])
+@login_required
+def api_celulares_disponibles():
+    q = request.args.get('q', '').strip()
+
+    query = Product.query.filter(
+        Product.tipo_inventario == 'celulares',
+        Product.cantidad_stock > 0,
+        ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
+    )
+
+    if q:
+        query = query.filter(
+            or_(
+                Product.nombre.ilike(f'%{q}%'),
+                Product.marca.ilike(f'%{q}%'),
+                Product.modelo_celular.ilike(f'%{q}%'),
+                Product.imei.ilike(f'%{q}%'),
+                Product.imei2.ilike(f'%{q}%'),
+                Product.color.ilike(f'%{q}%'),
+                Product.memoria.ilike(f'%{q}%')
+            )
+        )
+
+    celulares = query.order_by(Product.fecha_creacion.desc()).limit(50).all()
+
+    return jsonify({
+        'success': True,
+        'celulares': [
+            {
+                'id': c.id,
+                'nombre': c.nombre,
+                'marca': c.marca or '',
+                'modelo': c.modelo_celular or '',
+                'memoria': c.memoria or '',
+                'color': c.color or '',
+                'imei': c.imei or 'Sin IMEI',
+                'inventario': c.inventario or 'Tienda',
+                'precio_sugerido': float(c.precio_sugerido or 0)
+            }
+            for c in celulares
+        ]
+    })
+
+
+@warranties_bp.route('/dar-cambio/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def dar_cambio(id):
+    warranty = Warranty.query.get_or_404(id)
+
+    if warranty.replacement_product_id:
+        flash('Esta garantía ya tiene un celular de cambio entregado.', 'warning')
+        return redirect(url_for('warranties_bp.index'))
+
+    replacement_id = request.form.get('replacement_product_id')
+    nota_extra = request.form.get('nota_cambio', '').strip()
+
+    if not replacement_id or not str(replacement_id).isdigit():
+        flash('Debes seleccionar un celular válido del inventario.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    replacement = Product.query.with_for_update().get(int(replacement_id))
+    if not replacement or replacement.tipo_inventario != 'celulares':
+        flash('El celular seleccionado no existe o no pertenece al inventario de celulares.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    if replacement.cantidad_stock < 1 or replacement.maneo_activo:
+        flash('El celular seleccionado ya no está disponible en stock.', 'danger')
+        return redirect(url_for('warranties_bp.index'))
+
+    try:
+        stock_anterior = replacement.cantidad_stock
+        replacement.cantidad_stock -= 1
+
+        ajuste = StockAdjustment(
+            product_id=replacement.id,
+            admin_id=current_user.id,
+            tipo_movimiento=f"Cambio por Garantía #{warranty.id}",
+            stock_anterior=stock_anterior,
+            stock_nuevo=replacement.cantidad_stock
+        )
+        db.session.add(ajuste)
+
+        warranty.replacement_product_id = replacement.id
+        warranty.resolution = 'Entregada'
+
+        imei_txt = f" (IMEI: {replacement.imei})" if replacement.imei else ""
+        nota_cambio = f"Cambio entregado: {replacement.nombre}{imei_txt}"
+        if nota_extra:
+            nota_cambio = f"{nota_cambio} - {nota_extra}"
+
+        if warranty.admin_notes:
+            warranty.admin_notes = f"{warranty.admin_notes} | {nota_cambio}"
+        else:
+            warranty.admin_notes = nota_cambio
+
+        db.session.commit()
+        flash(f'Celular de cambio "{replacement.nombre}" entregado y descontado del inventario.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al entregar celular de cambio: {str(e)}', 'danger')
+
+    return redirect(url_for('warranties_bp.index'))

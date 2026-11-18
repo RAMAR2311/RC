@@ -251,7 +251,9 @@ def create_app():
             "ALTER TABLE arqueo_caja ADD COLUMN diferencia NUMERIC(14, 2) DEFAULT 0.0;",
             "ALTER TABLE arqueo_caja ADD COLUMN observacion_diferencia TEXT;",
             "ALTER TABLE retomas DROP CONSTRAINT IF EXISTS retomas_imei1_key;",
-            "CREATE INDEX IF NOT EXISTS ix_retomas_imei1 ON retomas (imei1);"
+            "CREATE INDEX IF NOT EXISTS ix_retomas_imei1 ON retomas (imei1);",
+            "ALTER TABLE warranties ADD COLUMN devuelto_inventario BOOLEAN DEFAULT FALSE;",
+            "ALTER TABLE warranties ADD COLUMN replacement_product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;"
         ]
         for q in queries:
             try:
@@ -259,6 +261,12 @@ def create_app():
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+
+        try:
+            from models import CambioCelular
+            CambioCelular.__table__.create(db.engine, checkfirst=True)
+        except Exception:
+            db.session.rollback()
 
         # En SQLite, eliminar restricción UNIQUE de retomas.imei1 si aún existe en la tabla física
         if db.engine.dialect.name == 'sqlite':

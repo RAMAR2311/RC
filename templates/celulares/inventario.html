@@ -16,6 +16,9 @@
         <button type="button" class="btn btn-inv-excel" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
             <i class="fa-solid fa-file-excel text-success me-2"></i> Importar Excel
         </button>
+        <button type="button" class="btn btn-outline-dark rounded-pill px-3 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPrecioMasivoReferencia" onclick="actualizarPreviewPrecioMasivo()">
+            <i class="fa-solid fa-tags text-danger me-1.5"></i> Precio Masivo
+        </button>
         <a href="{{ url_for('celulares_bp.nuevo_celular') }}" class="btn btn-inv-primary">
             <i class="fa-solid fa-plus me-1.5"></i> Ingresar Celular
         </a>
@@ -799,6 +802,73 @@
     </div>
 </div>
 
+<!-- Modal Precio Sugerido Masivo por Referencia -->
+<div class="modal fade" id="modalPrecioMasivoReferencia" tabindex="-1" aria-labelledby="modalPrecioMasivoReferenciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold mb-0" id="modalPrecioMasivoReferenciaLabel">
+                    <i class="fa-solid fa-tags text-danger me-2"></i>Precio Sugerido Masivo por Referencia
+                </h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('celulares_bp.precio_masivo_referencia') }}" method="POST" id="formPrecioMasivoRef">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4 text-start">
+                    <div class="mb-3">
+                        <label for="selectRefPrecioMasivo" class="form-label fw-bold small text-muted text-uppercase">1. Seleccionar Referencia (Modelo) <span class="text-danger">*</span></label>
+                        <select name="referencia" id="selectRefPrecioMasivo" class="form-select form-select-lg fw-semibold" required onchange="actualizarPreviewPrecioMasivo()">
+                            <option value="">-- Elegir referencia --</option>
+                            {% for item in referencias_resumen %}
+                            <option value="{{ item.referencia }}"
+                                data-activos="{{ item.cantidad_activos }}"
+                                data-total="{{ item.cantidad_total }}"
+                                data-pmin-act="{{ item.precio_min_activo|int }}"
+                                data-pmax-act="{{ item.precio_max_activo|int }}"
+                                data-pmin-all="{{ item.precio_min_total|int }}"
+                                data-pmax-all="{{ item.precio_max_total|int }}"
+                                {% if referencias_seleccionadas|length == 1 and referencias_seleccionadas[0] == item.referencia %}selected{% endif %}>
+                                {{ item.referencia }} ({{ item.cantidad_activos }} activos)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="previewPrecioMasivo" class="alert alert-light border rounded-3 mb-3 small" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted">Equipos que se actualizarán:</span>
+                            <strong class="text-dark fs-6" id="previewCantEquipos">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Precio sugerido actual:</span>
+                            <strong class="text-danger" id="previewPrecioActual">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inputNuevoPrecioSugerido" class="form-label fw-bold small text-success text-uppercase">2. Nuevo Precio Sugerido ($) <span class="text-danger">*</span></label>
+                        <input type="text" name="nuevo_precio_sugerido" id="inputNuevoPrecioSugerido" class="form-control form-control-lg fw-bold text-success format-price-masivo" placeholder="Ej: 1.850.000" required>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="checkSoloActivosPrecio" name="solo_activos" checked onchange="actualizarPreviewPrecioMasivo()">
+                        <label class="form-check-label small fw-semibold text-dark" for="checkSoloActivosPrecio">
+                            Aplicar solo a celulares activos en stock (recomendado)
+                        </label>
+                        <div class="text-muted" style="font-size: 0.72rem;">Protege el historial de precios de equipos ya vendidos.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="limpiarPrecioMasivoAntesEnviar()">
+                        <i class="fa-solid fa-check me-1"></i> Actualizar Precio Sugerido
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modales Prestar Celular (fuera de la tabla para compatibilidad PWA y móvil) -->
 {% for c in celulares %}
 {% if not c.maneo_activo and c.total_stock > 0 %}
@@ -969,6 +1039,44 @@
 
     function deseleccionarTodos() {
         toggleSelectAll(false);
+    }
+
+    function actualizarPreviewPrecioMasivo() {
+        const select = document.getElementById('selectRefPrecioMasivo');
+        const preview = document.getElementById('previewPrecioMasivo');
+        const soloActivos = document.getElementById('checkSoloActivosPrecio').checked;
+        if (!select || !select.value) {
+            if (preview) preview.style.display = 'none';
+            return;
+        }
+        const opt = select.options[select.selectedIndex];
+        const cant = soloActivos ? opt.getAttribute('data-activos') : opt.getAttribute('data-total');
+        const pmin = parseInt(soloActivos ? opt.getAttribute('data-pmin-act') : opt.getAttribute('data-pmin-all'), 10) || 0;
+        const pmax = parseInt(soloActivos ? opt.getAttribute('data-pmax-act') : opt.getAttribute('data-pmax-all'), 10) || 0;
+
+        document.getElementById('previewCantEquipos').innerText = `${cant} equipo(s)`;
+        if (pmin === 0 && pmax === 0) {
+            document.getElementById('previewPrecioActual').innerText = '$0';
+        } else if (pmin === pmax) {
+            document.getElementById('previewPrecioActual').innerText = `$${pmin.toLocaleString('es-CO')}`;
+        } else {
+            document.getElementById('previewPrecioActual').innerText = `$${pmin.toLocaleString('es-CO')} - $${pmax.toLocaleString('es-CO')}`;
+        }
+        preview.style.display = 'block';
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price-masivo')) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value !== '' ? parseInt(value, 10).toLocaleString('es-CO') : '';
+        }
+    });
+
+    function limpiarPrecioMasivoAntesEnviar() {
+        const input = document.getElementById('inputNuevoPrecioSugerido');
+        if (input) {
+            input.value = input.value.replace(/\D/g, '');
+        }
     }
 </script>
 {% endblock %}
