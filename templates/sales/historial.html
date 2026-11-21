@@ -414,7 +414,7 @@
                                                             {% elif d.variant_id %}
                                                                 {% set vari = d.variante %}
                                                                 {% set prod = d.producto or (vari.producto if vari else None) %}
-                                                                {% set c_u = (vari.precio_costo if (vari and vari.precio_costo is not None) else (prod.precio_costo if prod else 0)) or 0 %}
+                                                                {% set c_u = (vari.precio_costo if (vari and vari.precio_costo is not none) else (prod.precio_costo if prod else 0)) or 0 %}
                                                                 {% set p_nombre = (prod.nombre if prod else 'Producto') ~ ' [' ~ (vari.nombre_variante if vari else '') ~ ']' %}
                                                             {% elif d.product_id %}
                                                                 {% set prod = d.producto %}
