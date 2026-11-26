@@ -14,7 +14,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Red Cover">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/redcover.png') }}">
-    <meta name="theme-color" content="#F8F9FA">
+    <meta name="theme-color" content="#F8F9FA" id="metaThemeColor">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('rc_theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', saved);
+            const meta = document.getElementById('metaThemeColor');
+            if (meta) meta.setAttribute('content', saved === 'dark' ? '#0B1120' : '#F8F9FA');
+        })();
+    </script>
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -565,6 +573,236 @@
                 padding-right: 0.65rem !important;
             }
         }
+
+        /* ============================================================
+           MODO NOCHE GLOBAL (DARK MODE) CON ALTO CONTRASTE DE TEXTO
+           ============================================================ */
+        html[data-bs-theme="dark"] {
+            --brand-black: #F1F5F9;
+            --brand-bg: #0B1120;
+            --brand-card-bg: #111827;
+        }
+
+        html[data-bs-theme="dark"] body {
+            background-color: #0B1120 !important;
+            color: #E2E8F0 !important;
+        }
+
+        html[data-bs-theme="dark"] .navbar-custom {
+            background-color: #0F172A !important;
+        }
+
+        /* Superficies y Tarjetas */
+        html[data-bs-theme="dark"] .bg-white,
+        html[data-bs-theme="dark"] .btn-white,
+        html[data-bs-theme="dark"] .card,
+        html[data-bs-theme="dark"] .card-custom,
+        html[data-bs-theme="dark"] .table-container-card,
+        html[data-bs-theme="dark"] .saas-table-card,
+        html[data-bs-theme="dark"] .saas-kpi-card,
+        html[data-bs-theme="dark"] .rc-showcase-card,
+        html[data-bs-theme="dark"] .rc-hero-card,
+        html[data-bs-theme="dark"] .pricing-box-saas,
+        html[data-bs-theme="dark"] .modal-content,
+        html[data-bs-theme="dark"] .dropdown-menu,
+        html[data-bs-theme="dark"] .offcanvas,
+        html[data-bs-theme="dark"] .list-group-item {
+            background-color: #111827 !important;
+            background-image: none !important;
+            color: #E2E8F0 !important;
+            border-color: #1F2937 !important;
+        }
+
+        html[data-bs-theme="dark"] .bg-light,
+        html[data-bs-theme="dark"] .card-header.bg-light,
+        html[data-bs-theme="dark"] .card-footer.bg-light,
+        html[data-bs-theme="dark"] .modal-header.bg-light,
+        html[data-bs-theme="dark"] .modal-footer.bg-light,
+        html[data-bs-theme="dark"] .offcanvas-user-card,
+        html[data-bs-theme="dark"] .saas-segmented-control {
+            background-color: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+
+        html[data-bs-theme="dark"] .card-header.bg-white,
+        html[data-bs-theme="dark"] .card-footer.bg-white {
+            background-color: #161F30 !important;
+            color: #F1F5F9 !important;
+            border-color: #1F2937 !important;
+        }
+
+        /* Contraste estricto de textos */
+        html[data-bs-theme="dark"] h1,
+        html[data-bs-theme="dark"] h2,
+        html[data-bs-theme="dark"] h3,
+        html[data-bs-theme="dark"] h4,
+        html[data-bs-theme="dark"] h5,
+        html[data-bs-theme="dark"] h6,
+        html[data-bs-theme="dark"] .text-dark,
+        html[data-bs-theme="dark"] .text-brand-black,
+        html[data-bs-theme="dark"] .rc-card-title,
+        html[data-bs-theme="dark"] .rc-card-amount,
+        html[data-bs-theme="dark"] .form-label,
+        html[data-bs-theme="dark"] strong {
+            color: #F1F5F9 !important;
+        }
+
+        html[data-bs-theme="dark"] .text-secondary,
+        html[data-bs-theme="dark"] .dropdown-item {
+            color: #CBD5E1 !important;
+        }
+
+        html[data-bs-theme="dark"] .dropdown-item:hover {
+            background-color: #1E293B !important;
+            color: #FFFFFF !important;
+        }
+
+        html[data-bs-theme="dark"] .text-muted,
+        html[data-bs-theme="dark"] .rc-card-subtitle,
+        html[data-bs-theme="dark"] small.text-muted {
+            color: #94A3B8 !important;
+        }
+
+        /* Excepciones: botones/badges/alertas con fondos claros o amarillos donde la letra debe ser oscura */
+        html[data-bs-theme="dark"] .bg-warning,
+        html[data-bs-theme="dark"] .bg-warning strong,
+        html[data-bs-theme="dark"] .btn-warning,
+        html[data-bs-theme="dark"] .btn-warning strong,
+        html[data-bs-theme="dark"] .badge.bg-warning,
+        html[data-bs-theme="dark"] .saas-segment-btn.active-warning {
+            color: #0F172A !important;
+        }
+        html[data-bs-theme="dark"] .text-danger,
+        html[data-bs-theme="dark"] strong.text-danger { color: #F87171 !important; }
+        html[data-bs-theme="dark"] .text-success,
+        html[data-bs-theme="dark"] strong.text-success { color: #4ADE80 !important; }
+        html[data-bs-theme="dark"] .text-warning,
+        html[data-bs-theme="dark"] strong.text-warning { color: #FBBF24 !important; }
+        html[data-bs-theme="dark"] .text-primary,
+        html[data-bs-theme="dark"] strong.text-primary { color: #60A5FA !important; }
+        html[data-bs-theme="dark"] .text-info { color: #38BDF8 !important; }
+
+        /* Tablas */
+        html[data-bs-theme="dark"] .table,
+        html[data-bs-theme="dark"] .table-custom,
+        html[data-bs-theme="dark"] .saas-table {
+            --bs-table-bg: #111827;
+            --bs-table-color: #E2E8F0;
+            --bs-table-hover-bg: #1E293B;
+            --bs-table-hover-color: #F8FAFC;
+            --bs-table-striped-bg: #151F32;
+            color: #E2E8F0 !important;
+            border-color: #1F2937 !important;
+        }
+
+        html[data-bs-theme="dark"] .table-custom tbody tr,
+        html[data-bs-theme="dark"] .saas-table tbody tr {
+            background-color: #111827 !important;
+            color: #E2E8F0 !important;
+        }
+
+        html[data-bs-theme="dark"] .table-custom tbody tr:nth-child(even) {
+            background-color: #151F32 !important;
+        }
+
+        html[data-bs-theme="dark"] .table-custom tbody td,
+        html[data-bs-theme="dark"] .saas-table tbody td,
+        html[data-bs-theme="dark"] .table td,
+        html[data-bs-theme="dark"] .table th {
+            color: #E2E8F0 !important;
+            border-color: #1F2937 !important;
+        }
+
+        html[data-bs-theme="dark"] .table-light,
+        html[data-bs-theme="dark"] thead.table-light th {
+            background-color: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+
+        /* Badges y Pills en modo noche */
+        html[data-bs-theme="dark"] .badge.bg-light,
+        html[data-bs-theme="dark"] .spec-pill,
+        html[data-bs-theme="dark"] .imei-badge,
+        html[data-bs-theme="dark"] .badge-dark-code {
+            background-color: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+
+        html[data-bs-theme="dark"] .badge-soft-amber { background-color: rgba(245, 158, 11, 0.2) !important; color: #FCD34D !important; }
+        html[data-bs-theme="dark"] .badge-soft-green { background-color: rgba(16, 185, 129, 0.2) !important; color: #6EE7B7 !important; }
+        html[data-bs-theme="dark"] .badge-soft-red   { background-color: rgba(239, 68, 68, 0.2) !important; color: #FCA5A5 !important; }
+        html[data-bs-theme="dark"] .badge-soft-blue  { background-color: rgba(59, 130, 246, 0.2) !important; color: #93C5FD !important; }
+        html[data-bs-theme="dark"] .badge-soft-slate { background-color: rgba(148, 163, 184, 0.2) !important; color: #CBD5E1 !important; }
+
+        /* Inputs, Selects y Botones */
+        html[data-bs-theme="dark"] .form-control,
+        html[data-bs-theme="dark"] .form-select,
+        html[data-bs-theme="dark"] .form-control-saas,
+        html[data-bs-theme="dark"] .form-select-saas,
+        html[data-bs-theme="dark"] .input-group-text,
+        html[data-bs-theme="dark"] .saas-search-pill,
+        html[data-bs-theme="dark"] .btn-ref-selector {
+            background-color: #1E293B !important;
+            color: #F8FAFC !important;
+            border-color: #334155 !important;
+        }
+        html[data-bs-theme="dark"] .form-control::placeholder { color: #94A3B8 !important; }
+
+        html[data-bs-theme="dark"] .btn-light,
+        html[data-bs-theme="dark"] .btn-table-action,
+        html[data-bs-theme="dark"] .btn-inv-excel {
+            background-color: #1E293B !important;
+            color: #F1F5F9 !important;
+            border-color: #334155 !important;
+        }
+        html[data-bs-theme="dark"] .btn-outline-dark {
+            color: #E2E8F0 !important;
+            border-color: #475569 !important;
+        }
+        html[data-bs-theme="dark"] .btn-outline-dark:hover {
+            background-color: #334155 !important;
+            color: #FFFFFF !important;
+        }
+        html[data-bs-theme="dark"] .btn-close:not(.btn-close-white) {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        /* Sidebar y Bordes */
+        html[data-bs-theme="dark"] .offcanvas .nav-link {
+            color: #E2E8F0 !important;
+        }
+        html[data-bs-theme="dark"] .offcanvas .nav-link:hover {
+            background-color: #1E293B !important;
+            color: #FFFFFF !important;
+        }
+        html[data-bs-theme="dark"] .border,
+        html[data-bs-theme="dark"] .border-top,
+        html[data-bs-theme="dark"] .border-bottom,
+        html[data-bs-theme="dark"] .border-start,
+        html[data-bs-theme="dark"] .border-end,
+        html[data-bs-theme="dark"] hr {
+            border-color: #1F2937 !important;
+        }
+
+        /* Al imprimir reportes, forzar siempre papel blanco y letra oscura */
+        @media print {
+            html[data-bs-theme="dark"] body,
+            html[data-bs-theme="dark"] .card,
+            html[data-bs-theme="dark"] .table,
+            html[data-bs-theme="dark"] .table td,
+            html[data-bs-theme="dark"] .table th {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            html[data-bs-theme="dark"] .text-dark,
+            html[data-bs-theme="dark"] .text-brand-black,
+            html[data-bs-theme="dark"] strong {
+                color: #000000 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -588,35 +826,36 @@
                 RedCover
             </a>
 
-            <!-- Estado de Servidor Zenic (Derecha del Navbar) -->
-            {% if current_user.is_authenticated and current_user.rol == 'admin' %}
-            <div class="d-flex align-items-center">
+            <!-- Controles Derecha del Navbar: Modo Noche + Estado Zenic -->
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" id="btnThemeToggle" onclick="toggleTheme()" class="btn btn-sm rounded-pill px-2.5 py-1 fw-bold d-flex align-items-center gap-1.5 border border-secondary text-white" title="Cambiar Modo Día / Noche" style="background: rgba(255,255,255,0.08); font-size: 0.78rem;">
+                    <i class="fa-solid fa-moon" id="themeToggleIcon"></i>
+                    <span class="d-none d-md-inline" id="themeToggleText">Noche</span>
+                </button>
+                {% if current_user.is_authenticated and current_user.rol == 'admin' %}
                 {% if servidor_estado == 'pagado' %}
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.78rem;">
                     <i class="fa-solid fa-circle-check text-success"></i>
-                    <span>✓ Zenic: Al día</span>
+                    <span class="d-none d-sm-inline">✓ Zenic: Al día</span>
                 </button>
                 {% elif servidor_estado == 'preventivo' %}
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.78rem;">
                     <i class="fa-solid fa-clock text-warning"></i>
-                    <span>🕒 Por Vencer</span>
+                    <span class="d-none d-sm-inline">🕒 Por Vencer</span>
                 </button>
                 {% elif servidor_estado == 'hoy' %}
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm animate-pulse" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.78rem;">
                     <i class="fa-solid fa-bell text-danger"></i>
-                    <span>🔔 Vence Hoy</span>
+                    <span class="d-none d-sm-inline">🔔 Vence Hoy</span>
                 </button>
                 {% else %}
                 <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPagoServidor" style="background: #dc2626; color: #ffffff; font-size: 0.78rem;">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>⚠️ Servidor Pendiente</span>
+                    <span class="d-none d-sm-inline">⚠️ Servidor Pendiente</span>
                 </button>
                 {% endif %}
+                {% endif %}
             </div>
-            {% else %}
-            <!-- Spacer derecho para equilibrar flex -->
-            <div style="width: 40px;"></div>
-            {% endif %}
         </div>
     </nav>
 
@@ -941,6 +1180,33 @@
         }
         document.addEventListener('hidden.bs.modal', limpiarModalesHuerfanos);
         window.addEventListener('pageshow', limpiarModalesHuerfanos);
+
+        // Controlador global Modo Día / Modo Noche
+        function syncThemeButton() {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const icon = document.getElementById('themeToggleIcon');
+            const txt = document.getElementById('themeToggleText');
+            const meta = document.getElementById('metaThemeColor');
+            if (icon) {
+                icon.className = isDark ? 'fa-solid fa-sun text-warning' : 'fa-solid fa-moon';
+            }
+            if (txt) {
+                txt.textContent = isDark ? 'Día' : 'Noche';
+            }
+            if (meta) {
+                meta.setAttribute('content', isDark ? '#0B1120' : '#F8F9FA');
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', next);
+            localStorage.setItem('rc_theme', next);
+            syncThemeButton();
+        }
+
+        document.addEventListener('DOMContentLoaded', syncThemeButton);
     </script>
 
     <script>
