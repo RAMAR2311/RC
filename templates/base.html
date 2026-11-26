@@ -154,14 +154,16 @@
         .table-custom tbody tr:nth-child(even) {
             background: #F8FAFC;
         }
-        /* Hover de Alto Impacto: Borde Rojo RedCover Vivo y Elevación */
-        .table-custom tbody tr:hover {
-            background: #F1F5F9 !important;
-            border-left: 4px solid #DC2626 !important;
-            transform: scale(1.002);
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-            position: relative;
-            z-index: 2;
+        /* Hover de Alto Impacto solo en punteros con hover real (evita stacking/tap pegado en PWA táctil) */
+        @media (hover: hover) {
+            .table-custom tbody tr:hover {
+                background: #F1F5F9 !important;
+                border-left: 4px solid #DC2626 !important;
+                transform: scale(1.002);
+                box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+                position: relative;
+                z-index: 2;
+            }
         }
         .table-custom tbody td {
             padding: 1.15rem 1.25rem !important;
@@ -498,9 +500,13 @@
             touch-action: manipulation; /* Elimina retraso de 300ms en el tap en navegadores móviles */
         }
 
-        /* Asegurar que modales y botones tengan prioridad visual y de toque */
+        /* Asegurar que modales y botones tengan prioridad visual y de toque en PWA */
         .modal {
             z-index: 1060 !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-dialog-scrollable .modal-body {
+            -webkit-overflow-scrolling: touch;
         }
         .modal-backdrop {
             z-index: 1050 !important;
@@ -913,6 +919,29 @@
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Corrección global PWA / Móvil: mover cualquier modal al <body> antes de mostrarse
+        // Evita que modales dentro de .table-responsive o .overflow-hidden queden atrapados detrás del backdrop.
+        document.addEventListener('show.bs.modal', function (event) {
+            const modalEl = event.target;
+            if (modalEl && modalEl.parentElement !== document.body && !modalEl.closest('form')) {
+                document.body.appendChild(modalEl);
+            }
+        });
+
+        // Limpiar backdrops huérfanos o bloqueos de scroll si se cierra rápido o se navega atrás en PWA
+        function limpiarModalesHuerfanos() {
+            if (!document.querySelector('.modal.show')) {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+        }
+        document.addEventListener('hidden.bs.modal', limpiarModalesHuerfanos);
+        window.addEventListener('pageshow', limpiarModalesHuerfanos);
+    </script>
 
     <script>
         function formatCOP(val) {

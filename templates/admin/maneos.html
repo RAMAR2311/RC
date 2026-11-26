@@ -65,13 +65,17 @@
                     <label class="form-label text-dark fw-bold small mb-1">Local Vecino / Receptor <span class="text-danger">*</span></label>
                     <input type="text" name="local_vecino" class="form-control bg-light border-0 py-2 fw-medium rounded-3" placeholder="Ej: Fundas Alex / Local 102" required>
                 </div>
-                <div class="col-lg-2 col-md-6" id="col_cantidad">
-                    <label class="form-label text-dark fw-bold small mb-1">Cantidad <span class="text-danger">*</span></label>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label text-dark fw-bold small mb-1">Valor / Precio Maneo ($)</label>
+                    <input type="text" name="precio_maneo" id="maneo_precio_input" class="form-control bg-light border-0 py-2 fw-bold text-success rounded-3 format-price-maneo" placeholder="Auto al buscar">
+                </div>
+                <div class="col-lg-1 col-md-6" id="col_cantidad">
+                    <label class="form-label text-dark fw-bold small mb-1">Cant. <span class="text-danger">*</span></label>
                     <input type="number" name="cantidad" id="maneo_cantidad_input" class="form-control bg-light border-0 py-2 fw-bold text-center rounded-3" min="1" value="1" required>
                 </div>
-                <div class="col-lg-2 col-md-12 text-end">
-                    <button type="submit" class="btn text-white w-100 py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); transition: all 0.2s ease; border: none; height: 42px;">
-                        <i class="fa-solid fa-paper-plane"></i> Prestar
+                <div class="col-lg-1 col-md-12 text-end">
+                    <button type="submit" onclick="limpiarPrecioManeo()" class="btn text-white w-100 py-2 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-1" style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); transition: all 0.2s ease; border: none; height: 42px;">
+                        <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
@@ -94,12 +98,13 @@
             <table class="table table-custom align-middle mb-0">
                 <thead>
                     <tr>
-                        <th class="ps-4" width="15%">Fecha Préstamo</th>
-                        <th width="20%">Local Vecino</th>
-                        <th width="29%">Artículo / Dispositivo</th>
-                        <th class="text-center" width="10%">Cantidad</th>
-                        <th class="text-center" width="12%">Estado</th>
-                        <th class="pe-4 text-center" width="14%">Acciones Rápidas</th>
+                        <th class="ps-4" width="14%">Fecha Préstamo</th>
+                        <th width="18%">Local Vecino</th>
+                        <th width="26%">Artículo / Dispositivo</th>
+                        <th class="text-end" width="12%">Precio Maneo</th>
+                        <th class="text-center" width="8%">Cant.</th>
+                        <th class="text-center" width="10%">Estado</th>
+                        <th class="pe-4 text-center" width="12%">Acciones Rápidas</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -162,6 +167,15 @@
                                 {% endif %}
                             </div>
                         </td>
+                        <td class="text-end text-nowrap">
+                            {% set val_maneo = m.precio_maneo if m.precio_maneo is not none else (m.variante.precio_sugerido if (m.variante and m.variante.precio_sugerido is not none) else m.producto.precio_sugerido) %}
+                            <div class="fw-bolder text-success" style="font-size: 0.95rem;">${{ val_maneo|cop }}</div>
+                            {% if m.precio_maneo is not none %}
+                            <small class="text-muted extra-small">Pactado</small>
+                            {% else %}
+                            <small class="text-muted extra-small">Sugerido</small>
+                            {% endif %}
+                        </td>
                         <td class="text-center">
                             <span class="badge rounded-pill px-3 py-1.5 fw-bolder border text-dark fs-6" style="background: #FFFFFF; border-color: #CBD5E1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                                 {{ m.cantidad }} <span class="extra-small text-muted fw-normal">uds</span>
@@ -208,7 +222,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <div class="py-4">
                                 <i class="fa-solid fa-handshake-slash fs-1 mb-3 opacity-25"></i>
                                 <h6 class="fw-bold text-secondary mb-1">No hay maneos o préstamos registrados</h6>
@@ -257,9 +271,9 @@
                             <div class="input-group">
                                 <span class="input-group-text border-0 bg-light text-success fw-bold">$</span>
                                 {% if m.variante and m.variante.precio_sugerido %}
-                                    <input type="number" step="1" min="{{ "%.0f"|format((m.variante.precio_minimo or m.producto.precio_minimo)|float) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.variante.precio_sugerido or m.producto.precio_sugerido)|float) }}" required style="border-radius: 0 8px 8px 0;">
+                                    <input type="number" step="1" min="{{ "%.0f"|format((m.variante.precio_minimo or m.producto.precio_minimo)|float) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else (m.variante.precio_sugerido or m.producto.precio_sugerido))|float) }}" required style="border-radius: 0 8px 8px 0;">
                                 {% else %}
-                                    <input type="number" step="1" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format(m.producto.precio_sugerido) }}" required style="border-radius: 0 8px 8px 0;">
+                                    <input type="number" step="1" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else m.producto.precio_sugerido)|float) }}" required style="border-radius: 0 8px 8px 0;">
                                 {% endif %}
                             </div>
                         </div>
@@ -371,6 +385,11 @@
             }
             const producto = await response.json();
 
+            const precioInput = document.getElementById('maneo_precio_input');
+            if (precioInput && producto.precio_sugerido !== undefined && producto.precio_sugerido !== null) {
+                precioInput.value = Math.round(Number(producto.precio_sugerido)).toLocaleString('es-CO');
+            }
+
             // Preview visual
             if (productoPreview) {
                 productoPreview.classList.remove('d-none');
@@ -413,7 +432,7 @@
         variantSelect.innerHTML = '<option value="">— Selecciona una subcategoría —</option>';
         variantes.forEach(v => {
             const stockLabel = v.stock > 0 ? `(Stock: ${v.stock})` : '(Sin stock)';
-            variantSelect.innerHTML += `<option value="${v.id}" data-stock="${v.stock}">${v.nombre} ${stockLabel}</option>`;
+            variantSelect.innerHTML += `<option value="${v.id}" data-stock="${v.stock}" data-precio="${v.precio_sugerido || ''}">${v.nombre} ${stockLabel}</option>`;
         });
         variantCol.style.display = 'block';
         variantHidden.value = '';
@@ -444,8 +463,26 @@
             if (cantidadInput) {
                 cantidadInput.max = selectedOption.dataset.stock;
             }
+            const precioInput = document.getElementById('maneo_precio_input');
+            if (precioInput && selectedOption.dataset.precio) {
+                precioInput.value = Math.round(Number(selectedOption.dataset.precio)).toLocaleString('es-CO');
+            }
         } else {
             variantStockInfo.textContent = '';
+        }
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price-maneo')) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value !== '' ? parseInt(value, 10).toLocaleString('es-CO') : '';
+        }
+    });
+
+    function limpiarPrecioManeo() {
+        const input = document.getElementById('maneo_precio_input');
+        if (input && input.value) {
+            input.value = input.value.replace(/\D/g, '');
         }
     }
 </script>

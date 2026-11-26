@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
 from sqlalchemy import or_
+from decimal import Decimal
 from decorators import admin_required
-from models import db, Sale, SaleDetail, Warranty, Product, SaleClient, Maneo, StockAdjustment
+from models import db, Sale, SaleDetail, SalePayment, Warranty, Product, SaleClient, Maneo, StockAdjustment
 
 warranties_bp = Blueprint('warranties_bp', __name__)
 
@@ -184,6 +185,39 @@ def enviar_inventario(id):
         return redirect(url_for('warranties_bp.index'))
 
     try:
+        nombre_definitivo = request.form.get('nombre_definitivo', '').strip()
+        inventario_input = request.form.get('inventario', '').strip()
+        bateria_input = request.form.get('bateria', '').strip()
+        arreglos_raw = request.form.get('arreglos', '0').replace(',', '').replace('.', '').strip()
+        precio_sugerido_raw = request.form.get('precio_sugerido', '').replace(',', '').replace('.', '').strip()
+        precio_minimo_raw = request.form.get('precio_minimo', '').replace(',', '').replace('.', '').strip()
+
+        if nombre_definitivo:
+            producto.nombre = nombre_definitivo
+        if inventario_input:
+            producto.inventario = inventario_input
+        if bateria_input:
+            producto.bateria = bateria_input
+
+        try:
+            arreglos_val = Decimal(arreglos_raw) if arreglos_raw else Decimal('0')
+        except Exception:
+            arreglos_val = Decimal('0')
+
+        if arreglos_val > 0:
+            producto.precio_costo = Decimal(str(producto.precio_costo or 0)) + arreglos_val
+
+        if precio_sugerido_raw:
+            try:
+                producto.precio_sugerido = Decimal(precio_sugerido_raw)
+            except Exception:
+                pass
+        if precio_minimo_raw:
+            try:
+                producto.precio_minimo = Decimal(precio_minimo_raw)
+            except Exception:
+                pass
+
         stock_anterior = producto.cantidad_stock
         producto.cantidad_stock = 1
 
@@ -284,6 +318,16 @@ def dar_cambio(id):
         return redirect(url_for('warranties_bp.index'))
 
     try:
+        excedente_raw = request.form.get('excedente', '0').replace(',', '').replace('.', '').strip()
+        try:
+            excedente_val = Decimal(excedente_raw) if excedente_raw else Decimal('0')
+            if excedente_val < 0:
+                excedente_val = Decimal('0')
+        except Exception:
+            excedente_val = Decimal('0')
+
+        metodo_pago = request.form.get('metodo_pago', 'efectivo').strip() or 'efectivo'
+
         stock_anterior = replacement.cantidad_stock
         replacement.cantidad_stock -= 1
 
@@ -296,11 +340,60 @@ def dar_cambio(id):
         )
         db.session.add(ajuste)
 
+        if excedente_val > 0:
+            sucursal_venta = (
+                warranty.sale.sucursal
+                if warranty.sale and getattr(warranty.sale, 'sucursal', None)
+                else (getattr(current_user, 'sucursal', None) or 'LOCAL 136')
+            )
+            nueva_venta = Sale(
+                vendedor_id=current_user.id,
+                monto_total=excedente_val,
+                metodo_pago=metodo_pago,
+                tipo_venta='celulares',
+                sucursal=sucursal_venta
+            )
+            db.session.add(nueva_venta)
+            db.session.flush()
+
+            if warranty.sale and warranty.sale.cliente:
+                cli_orig = warranty.sale.cliente
+                nuevo_cliente = SaleClient(
+                    sale_id=nueva_venta.id,
+                    nombre=cli_orig.nombre,
+                    documento=cli_orig.documento,
+                    telefono=cli_orig.telefono,
+                    email=cli_orig.email,
+                    direccion=cli_orig.direccion
+                )
+                db.session.add(nuevo_cliente)
+
+            detalle = SaleDetail(
+                sale_id=nueva_venta.id,
+                product_id=replacement.id,
+                cantidad_vendida=1,
+                precio_venta_final=excedente_val
+            )
+            db.session.add(detalle)
+
+            pago = SalePayment(
+                sale_id=nueva_venta.id,
+                metodo_pago=metodo_pago,
+                monto=excedente_val
+            )
+            db.session.add(pago)
+
+            warranty.cambio_sale_id = nueva_venta.id
+            warranty.excedente_cobrado = excedente_val
+
         warranty.replacement_product_id = replacement.id
         warranty.resolution = 'Entregada'
 
         imei_txt = f" (IMEI: {replacement.imei})" if replacement.imei else ""
         nota_cambio = f"Cambio entregado: {replacement.nombre}{imei_txt}"
+        if excedente_val > 0:
+            exc_fmt = f"${int(excedente_val):,}".replace(',', '.')
+            nota_cambio = f"{nota_cambio} | Excedente: {exc_fmt} (Fac #{warranty.cambio_sale_id})"
         if nota_extra:
             nota_cambio = f"{nota_cambio} - {nota_extra}"
 
@@ -310,7 +403,10 @@ def dar_cambio(id):
             warranty.admin_notes = nota_cambio
 
         db.session.commit()
-        flash(f'Celular de cambio "{replacement.nombre}" entregado y descontado del inventario.', 'success')
+        if excedente_val > 0:
+            flash(f'Celular de cambio "{replacement.nombre}" entregado y venta de excedente #{warranty.cambio_sale_id} registrada.', 'success')
+        else:
+            flash(f'Celular de cambio "{replacement.nombre}" entregado y descontado del inventario.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error al entregar celular de cambio: {str(e)}', 'danger')

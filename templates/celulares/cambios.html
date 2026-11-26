@@ -136,6 +136,10 @@
                                 </td>
                                 <td class="pe-4 text-end text-nowrap">
                                     <div class="d-inline-flex gap-1.5">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 fw-bold" title="Editar información"
+                                            onclick="abrirModalEditarCambio({{ c.id }}, '{{ c.persona_nombre|e }}', '{{ (c.persona_documento or '')|e }}', '{{ (c.persona_telefono or '')|e }}', '{{ (c.observaciones or '')|e }}')">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
                                         <form method="POST" action="{{ url_for('celulares_bp.devolver_cambio', id=c.id) }}" class="d-inline" onsubmit="return confirm('¿Devolver este celular al inventario activo? Su stock volverá a 1.');">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
@@ -212,8 +216,14 @@
                                     <span class="small text-muted">El equipo original regresó al inventario activo.</span>
                                     {% endif %}
                                 </td>
-                                <td class="pe-4">
-                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">{{ h.resuelto_por.nombre if h.resuelto_por else 'N/A' }}</span>
+                                <td class="pe-4 text-nowrap">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">{{ h.resuelto_por.nombre if h.resuelto_por else 'N/A' }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" title="Editar información"
+                                            onclick="abrirModalEditarCambio({{ h.id }}, '{{ h.persona_nombre|e }}', '{{ (h.persona_documento or '')|e }}', '{{ (h.persona_telefono or '')|e }}', '{{ (h.observaciones or '')|e }}')">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             {% else %}
@@ -668,5 +678,57 @@
             }
         }
     });
+
+    function abrirModalEditarCambio(id, nombre, doc, tel, obs) {
+        document.getElementById('formEditarCambio').action = `/celulares/cambios/editar/${id}`;
+        document.getElementById('editCambioTitulo').innerText = `Editar Cambio #${id}`;
+        document.getElementById('editCambioNombre').value = nombre || '';
+        document.getElementById('editCambioDoc').value = doc || '';
+        document.getElementById('editCambioTel').value = tel || '';
+        document.getElementById('editCambioObs').value = obs || '';
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarCambio'));
+        modal.show();
+    }
 </script>
+
+<!-- MODAL 3: EDITAR INFORMACIÓN DE CAMBIO -->
+<div class="modal fade" id="modalEditarCambio" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-light py-3 px-4">
+                <h5 class="modal-title fw-bold text-brand-black mb-0" id="editCambioTitulo">Editar Cambio</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="formEditarCambio">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark mb-1">Persona que Recibe <span class="text-danger">*</span></label>
+                        <input type="text" name="persona_nombre" id="editCambioNombre" class="form-control bg-light border-0 py-2 rounded-3" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark mb-1">Cédula / Doc.</label>
+                            <input type="text" name="persona_documento" id="editCambioDoc" class="form-control bg-light border-0 py-2 rounded-3">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark mb-1">Teléfono</label>
+                            <input type="text" name="persona_telefono" id="editCambioTel" class="form-control bg-light border-0 py-2 rounded-3">
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small text-dark mb-1">Observaciones</label>
+                        <textarea name="observaciones" id="editCambioObs" class="form-control bg-light border-0 py-2 rounded-3" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light py-3 px-4">
+                    <button type="button" class="btn btn-white bg-white border rounded-pill px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

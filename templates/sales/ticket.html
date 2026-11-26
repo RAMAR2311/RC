@@ -277,6 +277,30 @@
     </table>
 
     <div class="totals">
+        {% if venta.garantia_cambio %}
+        <div style="margin-bottom: 12px; padding: 8px; border: 1px dashed #1A1A1A; background: #F8FAFC; font-size: 0.78rem; line-height: 1.4;">
+            <div style="font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+                CAMBIO POR GARANTÍA #{{ venta.garantia_cambio.id }} (Fac. Origen #{{ venta.garantia_cambio.sale_id }})
+            </div>
+            <div>
+                <strong>Equipo en Garantía:</strong>
+                {{ venta.garantia_cambio.product.nombre if venta.garantia_cambio.product else venta.garantia_cambio.nombre_manual }}
+                {% if venta.garantia_cambio.product and venta.garantia_cambio.product.imei %}
+                    (IMEI: {{ venta.garantia_cambio.product.imei }})
+                {% endif %}
+            </div>
+            {% if venta.garantia_cambio.replacement_product %}
+            <div>
+                <strong>Equipo Entregado:</strong>
+                {{ venta.garantia_cambio.replacement_product.nombre }}
+                {% if venta.garantia_cambio.replacement_product.imei %}
+                    (IMEI: {{ venta.garantia_cambio.replacement_product.imei }})
+                {% endif %}
+            </div>
+            {% endif %}
+            <div><strong>Excedente Pagado:</strong> ${{ venta.monto_total|cop }}</div>
+        </div>
+        {% endif %}
         {% set ns = namespace(subtotal=0, total_retomas=0) %}
         {% for detalle in venta.detalles %}
             {% set ns.subtotal = ns.subtotal + (detalle.precio_venta_final * detalle.cantidad_vendida) %}

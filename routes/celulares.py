@@ -109,9 +109,11 @@ def inventario():
         page=page, per_page=per_page, error_out=False
     )
 
-    # Resumen por referencia para cambio masivo de precio sugerido
+    # Resumen por referencia (SOLO celulares activos en stock) + desglose por capacidad
     resumen_refs_map = {}
     for c in todos_celulares:
+        if c.cantidad_stock <= 0:
+            continue
         ref = (c.modelo_celular or '').strip()
         if not ref:
             continue
@@ -119,31 +121,39 @@ def inventario():
             resumen_refs_map[ref] = {
                 'referencia': ref,
                 'cantidad_activos': 0,
-                'cantidad_total': 0,
                 'precios_activos': [],
-                'precios_todos': []
+                'capacidades': {}
             }
         entry = resumen_refs_map[ref]
-        entry['cantidad_total'] += 1
+        entry['cantidad_activos'] += 1
         p_sug = float(c.precio_sugerido or 0)
-        entry['precios_todos'].append(p_sug)
-        if c.cantidad_stock > 0:
-            entry['cantidad_activos'] += 1
-            entry['precios_activos'].append(p_sug)
+        entry['precios_activos'].append(p_sug)
+
+        cap = (c.memoria or 'Sin especificar').strip() or 'Sin especificar'
+        if cap not in entry['capacidades']:
+            entry['capacidades'][cap] = {'cantidad': 0, 'precios': []}
+        entry['capacidades'][cap]['cantidad'] += 1
+        entry['capacidades'][cap]['precios'].append(p_sug)
 
     referencias_resumen = []
     for ref in sorted(resumen_refs_map.keys()):
         entry = resumen_refs_map[ref]
         p_act = entry['precios_activos']
-        p_all = entry['precios_todos']
+        caps_list = []
+        for cap_name in sorted(entry['capacidades'].keys()):
+            c_info = entry['capacidades'][cap_name]
+            caps_list.append({
+                'capacidad': cap_name,
+                'cantidad': c_info['cantidad'],
+                'precio_min': int(min(c_info['precios'])) if c_info['precios'] else 0,
+                'precio_max': int(max(c_info['precios'])) if c_info['precios'] else 0,
+            })
         referencias_resumen.append({
             'referencia': ref,
             'cantidad_activos': entry['cantidad_activos'],
-            'cantidad_total': entry['cantidad_total'],
-            'precio_min_activo': min(p_act) if p_act else 0,
-            'precio_max_activo': max(p_act) if p_act else 0,
-            'precio_min_total': min(p_all) if p_all else 0,
-            'precio_max_total': max(p_all) if p_all else 0,
+            'precio_min_activo': int(min(p_act)) if p_act else 0,
+            'precio_max_activo': int(max(p_act)) if p_act else 0,
+            'capacidades': caps_list
         })
 
     return render_template('celulares/inventario.html', 
@@ -185,6 +195,7 @@ def prestar_celular(id):
             product_id=celular.id,
             local_vecino=local_vecino,
             cantidad=1,
+            precio_maneo=celular.precio_sugerido,
             estado='PENDIENTE'
         )
         db.session.add(nuevo_maneo)
@@ -457,6 +468,7 @@ def editar_masivo_celulares():
 @admin_required
 def precio_masivo_referencia():
     referencia = request.form.get('referencia', '').strip()
+    capacidad = request.form.get('capacidad', '').strip()
     precio_raw = request.form.get('nuevo_precio_sugerido', '').replace(',', '').replace('.', '').strip()
     solo_activos = request.form.get('solo_activos') == 'on'
 
@@ -476,6 +488,11 @@ def precio_masivo_referencia():
         Product.tipo_inventario == 'celulares',
         Product.modelo_celular == referencia
     )
+    if capacidad and capacidad != 'TODAS':
+        if capacidad == 'Sin especificar':
+            query = query.filter(or_(Product.memoria == None, Product.memoria == ''))
+        else:
+            query = query.filter(Product.memoria == capacidad)
     if solo_activos:
         query = query.filter(Product.cantidad_stock > 0)
 
@@ -1240,16 +1257,13 @@ def nuevo_cambio():
     if not product_id or not str(product_id).isdigit() or not persona_nombre:
         flash('Debes seleccionar un celular del inventario activo e indicar la persona que lo recibe.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     producto = Product.query.with_for_update().get(int(product_id))
     if not producto or producto.tipo_inventario != 'celulares':
         flash('El celular seleccionado no existe en el inventario de celulares.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     if producto.cantidad_stock < 1 or producto.maneo_activo:
         flash('El celular seleccionado ya no está disponible en stock.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     try:
         stock_anterior = producto.cantidad_stock
         producto.cantidad_stock -= 1
@@ -1282,7 +1296,6 @@ def nuevo_cambio():
 
     return redirect(url_for('celulares_bp.cambios'))
 
-
 @celulares_bp.route('/cambios/devolver/<int:id>', methods=['POST'])
 @login_required
 def devolver_cambio(id):
@@ -1294,20 +1307,16 @@ def devolver_cambio(id):
     if cambio.estado != 'EN_ESPERA':
         flash('Este registro de cambio ya fue resuelto anteriormente.', 'warning')
         return redirect(url_for('celulares_bp.cambios'))
-
     producto = Product.query.with_for_update().get(cambio.product_id)
     if not producto:
         flash('No se encontró el celular asociado en la base de datos.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     if producto.maneo_activo:
         flash('El celular tiene un maneo pendiente y no puede devolverse aquí.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     if producto.cantidad_stock > 0:
         flash('El celular ya figura con stock activo en el inventario.', 'warning')
         return redirect(url_for('celulares_bp.cambios'))
-
     try:
         stock_anterior = producto.cantidad_stock
         producto.cantidad_stock = 1
@@ -1332,7 +1341,6 @@ def devolver_cambio(id):
 
     return redirect(url_for('celulares_bp.cambios'))
 
-
 @celulares_bp.route('/cambios/dar-otro/<int:id>', methods=['POST'])
 @login_required
 def dar_otro_cambio(id):
@@ -1344,7 +1352,6 @@ def dar_otro_cambio(id):
     if cambio.estado != 'EN_ESPERA':
         flash('Este registro de cambio ya fue resuelto anteriormente.', 'warning')
         return redirect(url_for('celulares_bp.cambios'))
-
     marca = request.form.get('marca', '').strip()
     modelo_celular = request.form.get('modelo_celular', '').strip()
     color = request.form.get('color', '').strip()
@@ -1359,7 +1366,6 @@ def dar_otro_cambio(id):
     if not marca or not modelo_celular or not imei:
         flash('Marca, referencia e IMEI 1 son obligatorios para ingresar el nuevo dispositivo.', 'danger')
         return redirect(url_for('celulares_bp.cambios'))
-
     try:
         if imei:
             existente = Product.query.filter_by(imei=imei).first()
@@ -1437,6 +1443,37 @@ def dar_otro_cambio(id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error al registrar el nuevo celular del cambio: {str(e)}', 'danger')
+
+    return redirect(url_for('celulares_bp.cambios'))
+
+
+@celulares_bp.route('/cambios/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_cambio(id):
+    if not _verificar_acceso_cambios():
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('index'))
+
+    cambio = CambioCelular.query.get_or_404(id)
+    persona_nombre = request.form.get('persona_nombre', '').strip()
+    persona_documento = request.form.get('persona_documento', '').strip() or None
+    persona_telefono = request.form.get('persona_telefono', '').strip() or None
+    observaciones = request.form.get('observaciones', '').strip() or None
+
+    if not persona_nombre:
+        flash('El nombre de la persona es obligatorio.', 'danger')
+        return redirect(url_for('celulares_bp.cambios'))
+
+    try:
+        cambio.persona_nombre = persona_nombre
+        cambio.persona_documento = persona_documento
+        cambio.persona_telefono = persona_telefono
+        cambio.observaciones = observaciones
+        db.session.commit()
+        flash(f'Cambio #{cambio.id} actualizado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar el cambio: {str(e)}', 'danger')
 
     return redirect(url_for('celulares_bp.cambios'))
 

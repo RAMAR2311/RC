@@ -321,6 +321,7 @@ class Maneo(db.Model):
     variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     local_vecino = db.Column(db.String(150), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
+    precio_maneo = db.Column(db.Numeric(10, 2), nullable=True)
     estado = db.Column(db.String(50), nullable=False, default='PENDIENTE') # PENDIENTE, FACTURADO, DEVUELTO
     fecha_prestamo = db.Column(db.DateTime, default=obtener_hora_bogota)
     fecha_resolucion = db.Column(db.DateTime, nullable=True)
@@ -554,12 +555,15 @@ class Warranty(db.Model):
     admin_notes = db.Column(db.Text, nullable=True)
     devuelto_inventario = db.Column(db.Boolean, default=False, server_default='false', nullable=False)
     replacement_product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    cambio_sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=True)
+    excedente_cobrado = db.Column(db.Numeric(10, 2), nullable=True, default=0.00)
     created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     # Relaciones
-    sale = db.relationship('Sale', backref=db.backref('warranties', lazy=True))
+    sale = db.relationship('Sale', foreign_keys=[sale_id], backref=db.backref('warranties', lazy=True))
     product = db.relationship('Product', foreign_keys=[product_id], backref=db.backref('warranties', lazy=True))
     replacement_product = db.relationship('Product', foreign_keys=[replacement_product_id])
+    cambio_sale = db.relationship('Sale', foreign_keys=[cambio_sale_id], backref=db.backref('garantia_cambio', uselist=False, lazy=True))
 
     @property
     def tiempo_transcurrido(self):

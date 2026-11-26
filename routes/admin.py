@@ -247,11 +247,21 @@ def maneos_prestar():
             stock_anterior = producto.cantidad_stock
             producto.cantidad_stock -= cantidad
 
+        precio_maneo_raw = request.form.get('precio_maneo', '').replace(',', '').replace('.', '').strip()
+        if precio_maneo_raw:
+            try:
+                precio_maneo_val = float(precio_maneo_raw)
+            except Exception:
+                precio_maneo_val = float(variante.precio_sugerido if (variante and variante.precio_sugerido is not None) else (producto.precio_sugerido or 0))
+        else:
+            precio_maneo_val = float(variante.precio_sugerido if (variante and variante.precio_sugerido is not None) else (producto.precio_sugerido or 0))
+
         nuevo_maneo = Maneo(
             product_id=producto.id,
             variant_id=variante.id if variante else None,
             local_vecino=local_vecino,
             cantidad=cantidad,
+            precio_maneo=precio_maneo_val,
             estado='PENDIENTE'
         )
         db.session.add(nuevo_maneo)
@@ -944,6 +954,23 @@ def toggle_asesor(id):
     except Exception as e:
         db.session.rollback()
         flash('Error al cambiar el estado del asesor.', 'danger')
+    return redirect(url_for('admin_bp.asesores'))
+
+@admin_bp.route('/asesores/<int:id>/eliminar', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_asesor(id):
+    from models import Asesor, Sale, Vale
+    asesor = Asesor.query.get_or_404(id)
+    try:
+        Sale.query.filter_by(asesor_id=asesor.id).update({'asesor_id': None})
+        Vale.query.filter_by(asesor_id=asesor.id).delete()
+        db.session.delete(asesor)
+        db.session.commit()
+        flash(f"Asesor '{asesor.nombre}' eliminado correctamente.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el asesor: {str(e)}', 'danger')
     return redirect(url_for('admin_bp.asesores'))
 
 # ==========================================

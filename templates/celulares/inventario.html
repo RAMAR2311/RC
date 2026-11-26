@@ -816,17 +816,15 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4 text-start">
                     <div class="mb-3">
-                        <label for="selectRefPrecioMasivo" class="form-label fw-bold small text-muted text-uppercase">1. Seleccionar Referencia (Modelo) <span class="text-danger">*</span></label>
-                        <select name="referencia" id="selectRefPrecioMasivo" class="form-select form-select-lg fw-semibold" required onchange="actualizarPreviewPrecioMasivo()">
-                            <option value="">-- Elegir referencia --</option>
+                        <label for="selectRefPrecioMasivo" class="form-label fw-bold small text-muted text-uppercase">1. Seleccionar Referencia Activa (Modelo) <span class="text-danger">*</span></label>
+                        <select name="referencia" id="selectRefPrecioMasivo" class="form-select form-select-lg fw-semibold" required onchange="onCambioReferenciaPrecioMasivo()">
+                            <option value="">-- Elegir referencia activa --</option>
                             {% for item in referencias_resumen %}
                             <option value="{{ item.referencia }}"
                                 data-activos="{{ item.cantidad_activos }}"
-                                data-total="{{ item.cantidad_total }}"
-                                data-pmin-act="{{ item.precio_min_activo|int }}"
-                                data-pmax-act="{{ item.precio_max_activo|int }}"
-                                data-pmin-all="{{ item.precio_min_total|int }}"
-                                data-pmax-all="{{ item.precio_max_total|int }}"
+                                data-pmin-act="{{ item.precio_min_activo }}"
+                                data-pmax-act="{{ item.precio_max_activo }}"
+                                data-caps='{{ item.capacidades|tojson }}'
                                 {% if referencias_seleccionadas|length == 1 and referencias_seleccionadas[0] == item.referencia %}selected{% endif %}>
                                 {{ item.referencia }} ({{ item.cantidad_activos }} activos)
                             </option>
@@ -834,9 +832,15 @@
                         </select>
                     </div>
 
+                    <div id="bloqueCapacidadesPrecioMasivo" class="mb-3" style="display: none;">
+                        <label class="form-label fw-bold small text-muted text-uppercase d-block mb-1.5">2. Seleccionar Capacidad</label>
+                        <input type="hidden" name="capacidad" id="inputCapacidadPrecioMasivo" value="TODAS">
+                        <div id="botonesCapacidadesPrecioMasivo" class="d-flex flex-wrap gap-1.5"></div>
+                    </div>
+
                     <div id="previewPrecioMasivo" class="alert alert-light border rounded-3 mb-3 small" style="display: none;">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-muted">Equipos que se actualizarán:</span>
+                            <span class="text-muted">Equipos activos que se actualizarán:</span>
                             <strong class="text-dark fs-6" id="previewCantEquipos">0</strong>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
@@ -846,17 +850,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="inputNuevoPrecioSugerido" class="form-label fw-bold small text-success text-uppercase">2. Nuevo Precio Sugerido ($) <span class="text-danger">*</span></label>
+                        <label for="inputNuevoPrecioSugerido" class="form-label fw-bold small text-success text-uppercase">3. Nuevo Precio Sugerido ($) <span class="text-danger">*</span></label>
                         <input type="text" name="nuevo_precio_sugerido" id="inputNuevoPrecioSugerido" class="form-control form-control-lg fw-bold text-success format-price-masivo" placeholder="Ej: 1.850.000" required>
                     </div>
 
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="checkSoloActivosPrecio" name="solo_activos" checked onchange="actualizarPreviewPrecioMasivo()">
-                        <label class="form-check-label small fw-semibold text-dark" for="checkSoloActivosPrecio">
-                            Aplicar solo a celulares activos en stock (recomendado)
-                        </label>
-                        <div class="text-muted" style="font-size: 0.72rem;">Protege el historial de precios de equipos ya vendidos.</div>
-                    </div>
+                    <input type="hidden" name="solo_activos" value="on">
                 </div>
                 <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
@@ -1042,18 +1040,69 @@
     }
 
     function actualizarPreviewPrecioMasivo() {
+        onCambioReferenciaPrecioMasivo();
+    }
+
+    function onCambioReferenciaPrecioMasivo() {
         const select = document.getElementById('selectRefPrecioMasivo');
         const preview = document.getElementById('previewPrecioMasivo');
-        const soloActivos = document.getElementById('checkSoloActivosPrecio').checked;
+        const bloqueCaps = document.getElementById('bloqueCapacidadesPrecioMasivo');
+        const contCaps = document.getElementById('botonesCapacidadesPrecioMasivo');
+        const inputCap = document.getElementById('inputCapacidadPrecioMasivo');
+
         if (!select || !select.value) {
             if (preview) preview.style.display = 'none';
+            if (bloqueCaps) bloqueCaps.style.display = 'none';
             return;
         }
-        const opt = select.options[select.selectedIndex];
-        const cant = soloActivos ? opt.getAttribute('data-activos') : opt.getAttribute('data-total');
-        const pmin = parseInt(soloActivos ? opt.getAttribute('data-pmin-act') : opt.getAttribute('data-pmin-all'), 10) || 0;
-        const pmax = parseInt(soloActivos ? opt.getAttribute('data-pmax-act') : opt.getAttribute('data-pmax-all'), 10) || 0;
 
+        const opt = select.options[select.selectedIndex];
+        const cantTotal = parseInt(opt.getAttribute('data-activos') || '0', 10);
+        const pminTotal = parseInt(opt.getAttribute('data-pmin-act') || '0', 10);
+        const pmaxTotal = parseInt(opt.getAttribute('data-pmax-act') || '0', 10);
+        let caps = [];
+        try {
+            caps = JSON.parse(opt.getAttribute('data-caps') || '[]');
+        } catch (e) {
+            caps = [];
+        }
+
+        inputCap.value = 'TODAS';
+        contCaps.innerHTML = '';
+
+        const btnTodas = document.createElement('button');
+        btnTodas.type = 'button';
+        btnTodas.className = 'btn btn-sm btn-danger rounded-pill px-3 fw-bold cap-btn-masivo';
+        btnTodas.innerText = `Todas (${cantTotal})`;
+        btnTodas.onclick = () => seleccionarCapacidadPrecioMasivo(btnTodas, 'TODAS', cantTotal, pminTotal, pmaxTotal);
+        contCaps.appendChild(btnTodas);
+
+        caps.forEach(c => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold cap-btn-masivo';
+            b.innerText = `${c.capacidad} (${c.cantidad})`;
+            b.onclick = () => seleccionarCapacidadPrecioMasivo(b, c.capacidad, c.cantidad, c.precio_min, c.precio_max);
+            contCaps.appendChild(b);
+        });
+
+        bloqueCaps.style.display = 'block';
+        renderPreviewPrecio(cantTotal, pminTotal, pmaxTotal);
+    }
+
+    function seleccionarCapacidadPrecioMasivo(btn, cap, cant, pmin, pmax) {
+        document.getElementById('inputCapacidadPrecioMasivo').value = cap;
+        document.querySelectorAll('.cap-btn-masivo').forEach(b => {
+            b.classList.remove('btn-danger', 'text-white');
+            b.classList.add('btn-outline-dark');
+        });
+        btn.classList.remove('btn-outline-dark');
+        btn.classList.add('btn-danger', 'text-white');
+        renderPreviewPrecio(cant, pmin, pmax);
+    }
+
+    function renderPreviewPrecio(cant, pmin, pmax) {
+        const preview = document.getElementById('previewPrecioMasivo');
         document.getElementById('previewCantEquipos').innerText = `${cant} equipo(s)`;
         if (pmin === 0 && pmax === 0) {
             document.getElementById('previewPrecioActual').innerText = '$0';

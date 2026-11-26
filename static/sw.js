@@ -1,4 +1,4 @@
-const CACHE_NAME = 'redcover-app-v3';
+const CACHE_NAME = 'redcover-app-v4';
 const ASSETS_TO_CACHE = [
     '/static/manifest.json',
     '/static/img/redcover.png',

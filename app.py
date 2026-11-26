@@ -253,7 +253,10 @@ def create_app():
             "ALTER TABLE retomas DROP CONSTRAINT IF EXISTS retomas_imei1_key;",
             "CREATE INDEX IF NOT EXISTS ix_retomas_imei1 ON retomas (imei1);",
             "ALTER TABLE warranties ADD COLUMN devuelto_inventario BOOLEAN DEFAULT FALSE;",
-            "ALTER TABLE warranties ADD COLUMN replacement_product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;"
+            "ALTER TABLE warranties ADD COLUMN replacement_product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;",
+            "ALTER TABLE warranties ADD COLUMN cambio_sale_id INTEGER REFERENCES sales(id) ON DELETE SET NULL;",
+            "ALTER TABLE warranties ADD COLUMN excedente_cobrado NUMERIC(10, 2) DEFAULT 0.00;",
+            "ALTER TABLE maneos ADD COLUMN precio_maneo NUMERIC(10, 2);"
         ]
         for q in queries:
             try:
