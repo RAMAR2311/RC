@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin_bp', __name__)
 
@@ -117,6 +117,33 @@ def dashboard():
     
     mes_filtro = request.args.get('mes')
     hoy = obtener_hora_bogota()
+
+    fecha_limite_3m = hoy - timedelta(days=90)
+    celulares_estancados_raw = Product.query.filter(
+        Product.tipo_inventario == 'celulares',
+        Product.cantidad_stock > 0,
+        Product.fecha_creacion != None,
+        Product.fecha_creacion <= fecha_limite_3m
+    ).order_by(Product.fecha_creacion.asc()).all()
+
+    celulares_estancados = []
+    for c in celulares_estancados_raw:
+        dias = (hoy - c.fecha_creacion).days if c.fecha_creacion else 0
+        celulares_estancados.append({
+            'id': c.id,
+            'nombre': c.nombre,
+            'marca': c.marca or '-',
+            'modelo': c.modelo_celular or '-',
+            'memoria': c.memoria or '-',
+            'color': c.color or '-',
+            'imei': c.imei or 'Sin IMEI',
+            'inventario': c.inventario or 'Tienda',
+            'fecha_creacion': c.fecha_creacion,
+            'dias': dias,
+            'precio_costo': float(c.precio_costo or 0),
+            'precio_sugerido': float(c.precio_sugerido or 0)
+        })
+    celulares_estancados_count = len(celulares_estancados)
     
     if mes_filtro:
         try:
@@ -149,6 +176,8 @@ def dashboard():
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            productos_bajo_stock=productos_bajo_stock,
+                           celulares_estancados=celulares_estancados,
+                           celulares_estancados_count=celulares_estancados_count,
                            total_ventas=total_ventas,
                            conteo_ventas=conteo_ventas,
                            mes_filtro=mes_filtro,
@@ -523,7 +552,7 @@ def balance_financiero():
         fecha_inicio_str = primer_dia.strftime('%Y-%m-%d')
         fecha_fin_str = ultimo_dia.strftime('%Y-%m-%d')
 
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timedelta
     try:
         inicio_dt = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
         fin_dt = datetime.strptime(fecha_fin_str, '%Y-%m-%d')
@@ -818,7 +847,7 @@ def limpiar_accesorios_prueba():
 def ventas_vendedores():
     from models import Asesor, Sale
     import calendar
-    from datetime import datetime
+    from datetime import datetime, timedelta
     
     # Obtener todos los asesores (ordenados por nombre)
     asesores_lista = Asesor.query.order_by(Asesor.nombre).all()

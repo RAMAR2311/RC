@@ -448,33 +448,33 @@
                         </div>
                         <i class="fa-solid fa-star text-danger small opacity-75"></i>
                     </div>
-                    <span class="rc-pill-badge rc-pill-badge-red">Crítico</span>
+                    <span class="rc-pill-badge rc-pill-badge-red">+3 Meses</span>
                 </div>
                 
-                <div class="rc-card-title text-danger">Alertas de Stock</div>
-                <div class="rc-card-amount text-danger">{{ productos_bajo_stock }} <span class="fs-5 text-muted fw-normal">items</span></div>
+                <div class="rc-card-title text-danger">Alertas Stock Celulares</div>
+                <div class="rc-card-amount text-danger">{{ celulares_estancados_count }} <span class="fs-5 text-muted fw-normal">equipos</span></div>
                 
                 <div class="rc-card-subtitle">
                     <i class="fa-solid fa-bell text-danger opacity-75"></i>
-                    <span>Existencias bajas (≤ 10 uds)</span>
+                    <span>Con más de 3 meses en inventario (≥ 90 días)</span>
                 </div>
 
                 <div class="rc-split-metrics" style="border-color: rgba(217, 22, 22, 0.2);">
                     <div class="d-flex align-items-center gap-1.5 text-danger">
-                        <i class="fa-solid fa-arrow-trend-down"></i>
-                        <span class="text-danger fw-bold">Reponer pronto</span>
+                        <i class="fa-regular fa-clock"></i>
+                        <span class="text-danger fw-bold">Baja rotación</span>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 text-muted">
-                        <i class="fa-solid fa-shield-virus"></i>
-                        <span class="fw-bold">Urgente</span>
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span class="fw-bold">Revisar precio</span>
                     </div>
                 </div>
             </div>
 
             <div class="pt-3 mt-auto">
-                <a href="/inventory/" class="rc-card-cta-btn" style="background: #D91616;">
-                    <i class="fa-solid fa-eye text-white"></i> Revisar Urgencias
-                </a>
+                <button type="button" class="rc-card-cta-btn w-100 border-0" style="background: #D91616;" data-bs-toggle="modal" data-bs-target="#modalCelularesAntiguos">
+                    <i class="fa-solid fa-eye text-white"></i> Revisar Celulares ({{ celulares_estancados_count }})
+                </button>
             </div>
         </div>
     </div>
@@ -603,5 +603,86 @@
         </div>
     </div>
 
+</div>
+
+<!-- Modal Alertas de Celulares con +3 Meses en Inventario -->
+<div class="modal fade" id="modalCelularesAntiguos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Celulares con Más de 3 Meses en Inventario</h5>
+                        <small class="text-white-50">Equipos activos cuyo ingreso supera los 90 días ({{ celulares_estancados_count }} encontrados)</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-nowrap small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Dispositivo</th>
+                                <th>IMEI</th>
+                                <th>Inventario</th>
+                                <th>Fecha Ingreso</th>
+                                <th class="text-center">Antigüedad</th>
+                                <th class="text-end">Costo</th>
+                                <th class="text-end">Precio Sugerido</th>
+                                <th class="pe-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in celulares_estancados %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ c.nombre }}</div>
+                                    <small class="text-muted">{{ c.marca }} · {{ c.modelo }} · {{ c.memoria }} · {{ c.color }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border font-monospace">{{ c.imei }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill">{{ c.inventario }}</span>
+                                </td>
+                                <td class="text-nowrap small text-muted">
+                                    {{ c.fecha_creacion.strftime('%d/%m/%Y') if c.fecha_creacion else '-' }}
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold">
+                                        {{ c.dias }} días
+                                    </span>
+                                </td>
+                                <td class="text-end fw-semibold text-muted">${{ c.precio_costo|cop }}</td>
+                                <td class="text-end fw-bolder text-success">${{ c.precio_sugerido|cop }}</td>
+                                <td class="pe-4 text-center text-nowrap">
+                                    <a href="{{ url_for('celulares_bp.editar_celular', id=c.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                                        <i class="fa-solid fa-pen me-1"></i>Editar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-circle-check text-success fs-1 mb-2"></i>
+                                    <h6 class="fw-bold text-dark mb-1">¡Inventario al día!</h6>
+                                    <p class="small mb-0">No hay celulares activos con más de 3 meses en inventario.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light py-3 px-4">
+                <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-outline-danger rounded-pill px-4 fw-bold">
+                    <i class="fa-solid fa-mobile-screen-button me-1"></i> Ir a Inventario Celulares
+                </a>
+                <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
