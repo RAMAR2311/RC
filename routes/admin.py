@@ -352,15 +352,38 @@ def maneos_facturar(id):
             maneo.cantidad = cantidad_vendida
 
         metodo_pago_seleccionado = request.form.get('metodo_pago', 'efectivo')
-        
+        pagos_metodos = request.form.getlist('pagos_metodo[]')
+        pagos_montos_raw = request.form.getlist('pagos_monto[]')
+
+        total_venta_calc = round(float(precio_venta) * cantidad_vendida, 2)
+        pagos_finales = []
+        if pagos_metodos and pagos_montos_raw and len(pagos_metodos) == len(pagos_montos_raw):
+            suma_pagos = 0.0
+            for mp, m_raw in zip(pagos_metodos, pagos_montos_raw):
+                m_clean = str(m_raw or '').replace(',', '').replace('.', '').strip()
+                if not m_clean:
+                    continue
+                m_val = float(m_clean)
+                if m_val > 0:
+                    pagos_finales.append((mp.strip() or 'efectivo', m_val))
+                    suma_pagos += m_val
+            if not pagos_finales or abs(suma_pagos - total_venta_calc) > 1.0:
+                db.session.rollback()
+                flash(f'La suma de los métodos de pago (${suma_pagos:,.0f}) debe coincidir con el total a cobrar (${total_venta_calc:,.0f}).', 'danger')
+                return redirect(url_for('admin_bp.maneos'))
+        else:
+            pagos_finales = [(metodo_pago_seleccionado, total_venta_calc)]
+
+        metodo_principal = pagos_finales[0][0] if len(pagos_finales) == 1 else 'mixto'
+
         sucursal_actual = getattr(current_user, 'sucursal', 'LOCAL 136') or 'LOCAL 136'
         es_celular = (maneo.producto.tipo_inventario == 'celulares' or bool(maneo.producto.imei))
 
         # Registrar la venta real del Maneo
         nueva_venta = Sale(
             vendedor_id=current_user.id,
-            monto_total=(precio_venta * cantidad_vendida),
-            metodo_pago=metodo_pago_seleccionado,
+            monto_total=total_venta_calc,
+            metodo_pago=metodo_principal,
             sucursal=sucursal_actual,
             tipo_venta='celulares' if es_celular else 'general'
         )
@@ -376,13 +399,14 @@ def maneos_facturar(id):
         )
         db.session.add(detalle)
 
-        # Registrar el pago en SalePayment para consistencia con pagos mixtos
-        pago = SalePayment(
-            sale_id=nueva_venta.id,
-            metodo_pago=metodo_pago_seleccionado,
-            monto=(precio_venta * cantidad_vendida)
-        )
-        db.session.add(pago)
+        # Registrar los pagos en SalePayment (soporta único o múltiples métodos)
+        for mp_item, monto_item in pagos_finales:
+            pago = SalePayment(
+                sale_id=nueva_venta.id,
+                metodo_pago=mp_item,
+                monto=monto_item
+            )
+            db.session.add(pago)
 
         # Facturación automática al proveedor si es un celular/externo con proveedor y costo
         prod = maneo.producto

@@ -205,7 +205,7 @@
                             {% if m.estado == 'PENDIENTE' %}
                                 <div class="d-flex justify-content-center align-items-center gap-2">
                                     <!-- Botón Facturar -->
-                                    <button type="button" class="btn btn-sm btn-success rounded-pill fw-bold px-3 py-1.5 shadow-sm d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#facturarModal{{ m.id }}" title="Facturar Venta" style="font-size: 0.82rem; transition: all 0.2s ease;">
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill fw-bold px-3 py-1.5 shadow-sm d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#facturarModal{{ m.id }}" onclick="actualizarTotalManeo({{ m.id }})" title="Facturar Venta" style="font-size: 0.82rem; transition: all 0.2s ease;">
                                         <i class="fa-solid fa-cash-register"></i> Cobrar
                                     </button>
                                     <!-- Botón Devolver -->
@@ -262,7 +262,7 @@
                         <div class="col-md-6">
                             <label class="form-label text-dark fw-bold small mb-1">Cantidad a Cobrar</label>
                             <div class="input-group">
-                                <input type="number" name="cantidad_vendida" class="form-control bg-light border-0 py-2 fw-bold text-center" min="1" max="{{ m.cantidad }}" value="{{ m.cantidad }}" required style="border-radius: 8px 0 0 8px;">
+                                <input type="number" name="cantidad_vendida" id="cantFacturar{{ m.id }}" class="form-control bg-light border-0 py-2 fw-bold text-center" min="1" max="{{ m.cantidad }}" value="{{ m.cantidad }}" required style="border-radius: 8px 0 0 8px;" oninput="actualizarTotalManeo({{ m.id }})">
                                 <span class="input-group-text border-0 bg-light text-muted small">/ {{ m.cantidad }}</span>
                             </div>
                         </div>
@@ -271,22 +271,48 @@
                             <div class="input-group">
                                 <span class="input-group-text border-0 bg-light text-success fw-bold">$</span>
                                 {% if m.variante and m.variante.precio_sugerido %}
-                                    <input type="number" step="1" min="{{ "%.0f"|format((m.variante.precio_minimo or m.producto.precio_minimo)|float) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else (m.variante.precio_sugerido or m.producto.precio_sugerido))|float) }}" required style="border-radius: 0 8px 8px 0;">
+                                    <input type="number" step="1" id="precioFacturar{{ m.id }}" min="{{ "%.0f"|format((m.variante.precio_minimo or m.producto.precio_minimo)|float) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else (m.variante.precio_sugerido or m.producto.precio_sugerido))|float) }}" required style="border-radius: 0 8px 8px 0;" oninput="actualizarTotalManeo({{ m.id }})">
                                 {% else %}
-                                    <input type="number" step="1" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else m.producto.precio_sugerido)|float) }}" required style="border-radius: 0 8px 8px 0;">
+                                    <input type="number" step="1" id="precioFacturar{{ m.id }}" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0 py-2 fw-bold text-dark" name="precio_venta" value="{{ "%.0f"|format((m.precio_maneo if m.precio_maneo is not none else m.producto.precio_sugerido)|float) }}" required style="border-radius: 0 8px 8px 0;" oninput="actualizarTotalManeo({{ m.id }})">
                                 {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-dark fw-bold small mb-1">Medio de Pago a Recibir <span class="text-danger">*</span></label>
-                        <select name="metodo_pago" class="form-select bg-light border-0 py-2 fw-medium rounded-3" required>
-                            <option value="efectivo">💵 Efectivo directo a Caja</option>
-                            <option value="nequi">📱 Ingresará a Medio Digital (Nequi)</option>
-                            <option value="bancolombia">🏦 Ingresará a Medio Digital (Bancolombia)</option>
-                            <option value="daviplata">📱 Ingresará a Medio Digital (Daviplata)</option>
+                    <div class="d-flex justify-content-between align-items-center p-2.5 rounded-3 bg-light border mb-3">
+                        <span class="small fw-bold text-muted">Total a Cobrar:</span>
+                        <span class="fs-5 fw-bolder text-success" id="totalFacturarLabel{{ m.id }}">$0</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label text-dark fw-bold small mb-0">Medio de Pago a Recibir <span class="text-danger">*</span></label>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="toggleMixtoManeo{{ m.id }}" onchange="togglePagoMixtoManeo({{ m.id }})">
+                            <label class="form-check-label extra-small fw-bold text-primary" for="toggleMixtoManeo{{ m.id }}">Pago dividido</label>
+                        </div>
+                    </div>
+
+                    <!-- Pago Único -->
+                    <div id="pagoUnicoManeo{{ m.id }}" class="mb-3">
+                        <select name="metodo_pago" class="form-select bg-light border-0 py-2 fw-medium rounded-3">
+                            <option value="efectivo">💵 Efectivo</option>
+                            <option value="bancolombia">🏦 Bancolombia</option>
+                            <option value="daviplata">📲 Daviplata</option>
+                            <option value="tarjeta_credito">💳 T. Crédito</option>
+                            <option value="addi">🛒 Addi</option>
+                            <option value="sitecredito">💳 Sitecredito</option>
                         </select>
+                    </div>
+
+                    <!-- Pago Dividido / Múltiples Métodos -->
+                    <div id="pagoMixtoManeo{{ m.id }}" class="mb-3 p-2.5 rounded-3 border bg-light" style="display: none;">
+                        <div id="filasPagosManeo{{ m.id }}" class="d-flex flex-column gap-2 mb-2"></div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold" onclick="agregarFilaPagoManeo({{ m.id }})">
+                                <i class="fa-solid fa-plus me-1"></i>Agregar método
+                            </button>
+                            <small class="fw-bold" id="resumenMixtoManeo{{ m.id }}"></small>
+                        </div>
                     </div>
                     
                     <small class="text-muted extra-small d-block">Nota: Si cobras menos de {{ m.cantidad }}, el sistema devolverá automáticamente el resto de unidades al inventario.</small>
@@ -483,6 +509,84 @@
         const input = document.getElementById('maneo_precio_input');
         if (input && input.value) {
             input.value = input.value.replace(/\D/g, '');
+        }
+    }
+
+    const METODOS_MANEO = [
+        { value: 'efectivo', label: '💵 Efectivo' },
+        { value: 'bancolombia', label: '🏦 Bancolombia' },
+        { value: 'daviplata', label: '📲 Daviplata' },
+        { value: 'tarjeta_credito', label: '💳 T. Crédito' },
+        { value: 'addi', label: '🛒 Addi' },
+        { value: 'sitecredito', label: '💳 Sitecredito' }
+    ];
+
+    function getTotalFacturarManeo(id) {
+        const cant = parseInt(document.getElementById(`cantFacturar${id}`)?.value || '1', 10) || 1;
+        const precio = parseFloat(document.getElementById(`precioFacturar${id}`)?.value || '0') || 0;
+        return Math.round(cant * precio);
+    }
+
+    function actualizarTotalManeo(id) {
+        const total = getTotalFacturarManeo(id);
+        const lbl = document.getElementById(`totalFacturarLabel${id}`);
+        if (lbl) lbl.innerText = '$' + total.toLocaleString('es-CO');
+        validarMixtoManeo(id);
+    }
+
+    function togglePagoMixtoManeo(id) {
+        const checked = document.getElementById(`toggleMixtoManeo${id}`).checked;
+        const unico = document.getElementById(`pagoUnicoManeo${id}`);
+        const mixto = document.getElementById(`pagoMixtoManeo${id}`);
+        const cont = document.getElementById(`filasPagosManeo${id}`);
+
+        if (checked) {
+            unico.style.display = 'none';
+            mixto.style.display = 'block';
+            if (cont.children.length === 0) {
+                const total = getTotalFacturarManeo(id);
+                agregarFilaPagoManeo(id, 'efectivo', total);
+                agregarFilaPagoManeo(id, 'bancolombia', 0);
+            }
+            validarMixtoManeo(id);
+        } else {
+            unico.style.display = 'block';
+            mixto.style.display = 'none';
+            cont.innerHTML = '';
+        }
+    }
+
+    function agregarFilaPagoManeo(id, metodoDefault = 'efectivo', montoDefault = 0) {
+        const cont = document.getElementById(`filasPagosManeo${id}`);
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center gap-2 fila-pago-maneo';
+        const opts = METODOS_MANEO.map(m => `<option value="${m.value}" ${m.value === metodoDefault ? 'selected' : ''}>${m.label}</option>`).join('');
+        row.innerHTML = `
+            <select name="pagos_metodo[]" class="form-select form-select-sm bg-white border rounded-3 fw-semibold" style="flex: 1.2;">${opts}</select>
+            <input type="text" name="pagos_monto[]" class="form-control form-control-sm bg-white border rounded-3 fw-bold text-end format-price-maneo" style="flex: 1;" value="${montoDefault > 0 ? montoDefault.toLocaleString('es-CO') : ''}" placeholder="Monto $" oninput="validarMixtoManeo(${id})">
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="this.parentElement.remove(); validarMixtoManeo(${id});" title="Quitar">&times;</button>
+        `;
+        cont.appendChild(row);
+        validarMixtoManeo(id);
+    }
+
+    function validarMixtoManeo(id) {
+        const mixto = document.getElementById(`pagoMixtoManeo${id}`);
+        const resumen = document.getElementById(`resumenMixtoManeo${id}`);
+        if (!mixto || mixto.style.display === 'none' || !resumen) return;
+        const total = getTotalFacturarManeo(id);
+        let suma = 0;
+        mixto.querySelectorAll('input[name="pagos_monto[]"]').forEach(inp => {
+            const val = parseInt((inp.value || '').replace(/\D/g, ''), 10) || 0;
+            suma += val;
+        });
+        const diff = total - suma;
+        if (Math.abs(diff) <= 1 && suma > 0) {
+            resumen.className = 'fw-bold text-success';
+            resumen.innerText = `✓ Completo ($${suma.toLocaleString('es-CO')})`;
+        } else {
+            resumen.className = 'fw-bold text-danger';
+            resumen.innerText = diff > 0 ? `Faltan $${diff.toLocaleString('es-CO')}` : `Excede por $${Math.abs(diff).toLocaleString('es-CO')}`;
         }
     }
 </script>
