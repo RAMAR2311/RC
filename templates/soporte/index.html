@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}Soporte Técnico - RedCover{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2 py-3">
+    <!-- Header Principal -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill px-3 py-1" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;">
+                    LABORATORIO & REPARACIONES
+                </span>
+            </div>
+            <h2 class="fw-bolder m-0 text-brand-black" style="font-size: 1.75rem; letter-spacing: -0.5px;">
+                <i class="fa-solid fa-screwdriver-wrench me-2" style="color: #DC2626;"></i>Soporte Técnico
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Control de equipos enviados desde Inventario, Retomas y Garantías con asignación de técnico.</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            {% if current_user.rol == 'admin' %}
+            <button type="button" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTecnicos">
+                <i class="fa-solid fa-user-gear me-1.5 text-danger"></i>Gestionar Técnicos ({{ tecnicos_activos|length }})
+            </button>
+            <a href="{{ url_for('celulares_bp.inventario') }}" class="btn btn-white bg-white border rounded-pill px-4 py-2 fw-bold text-secondary shadow-sm">
+                <i class="fa-solid fa-mobile-screen-button me-1.5"></i>Inventario Celulares
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">Equipos en Soporte</div>
+                        <div class="fs-3 fw-bolder text-warning">{{ en_soporte|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning-subtle text-warning" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-screwdriver-wrench fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">Devueltos / Finalizados</div>
+                        <div class="fs-3 fw-bolder text-success">{{ historial|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-success-subtle text-success" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-check-double fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted extra-small fw-bold text-uppercase">Técnicos Registrados</div>
+                        <div class="fs-3 fw-bolder text-primary">{{ tecnicos_activos|length }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle text-primary" style="width: 46px; height: 46px;">
+                        <i class="fa-solid fa-users-gear fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas -->
+    <ul class="nav nav-pills mb-3 gap-2" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 fw-bold" data-bs-toggle="pill" data-bs-target="#pane-activos" type="button" role="tab">
+                <i class="fa-solid fa-wrench me-1.5"></i>En Soporte ({{ en_soporte|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-bold" data-bs-toggle="pill" data-bs-target="#pane-historial" type="button" role="tab">
+                <i class="fa-solid fa-clock-rotate-left me-1.5"></i>Historial ({{ historial|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- TAB 1: EN SOPORTE -->
+        <div class="tab-pane fade show active" id="pane-activos" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark text-nowrap" style="font-size: 0.82rem;">
+                            <tr>
+                                <th class="ps-4">Orden / Ingreso</th>
+                                <th>Origen</th>
+                                <th>Equipo / IMEI</th>
+                                <th>Técnico Encargado</th>
+                                <th>Cosas de Soporte / Falla</th>
+                                <th class="text-center">Estado</th>
+                                <th class="pe-4 text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in en_soporte %}
+                            <tr>
+                                <td class="ps-4 text-nowrap">
+                                    <div class="fw-bolder text-dark">#{{ s.id }}</div>
+                                    <small class="text-muted">{{ s.fecha_ingreso.strftime('%d/%m/%Y %I:%M %p') }}</small>
+                                </td>
+                                <td class="text-nowrap">
+                                    {% if s.origen == 'inventario' %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">Inventario</span>
+                                    {% elif s.origen == 'retoma' %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">Retoma #{{ s.retoma_id }}</span>
+                                    {% elif s.origen == 'garantia' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">Garantía #{{ s.warranty_id }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bolder text-dark">{{ s.equipo_nombre }}</div>
+                                    {% if s.imei %}
+                                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.74rem;">IMEI: {{ s.imei }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 fw-bold">
+                                        <i class="fa-solid fa-user-gear text-danger me-1"></i>{{ s.tecnico_nombre }}
+                                    </span>
+                                    {% if s.asesor_nombre %}
+                                    <div class="extra-small text-muted mt-1">
+                                        <i class="fa-solid fa-user-tie me-1"></i>Asesor: <strong>{{ s.asesor_nombre }}</strong>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td style="max-width: 260px;">
+                                    {% if s.tipo_arreglo %}
+                                    <span class="badge bg-secondary-subtle text-dark border rounded-pill mb-1" style="font-size: 0.7rem;">{{ s.tipo_arreglo }}</span>
+                                    {% endif %}
+                                    <div class="small text-dark fw-medium">{{ s.falla_reportada }}</div>
+                                    {% if s.fecha_entrega_estimada %}
+                                    <div class="extra-small text-primary fw-semibold mt-1">
+                                        <i class="fa-regular fa-calendar me-1"></i>Entrega est.: {{ s.fecha_entrega_estimada.strftime('%d/%m/%Y') }}
+                                    </div>
+                                    {% endif %}
+                                    {% if s.trabajo_realizado %}
+                                    <div class="extra-small text-success fw-bold mt-1">
+                                        <i class="fa-solid fa-check me-1"></i>{{ s.trabajo_realizado }}
+                                    </div>
+                                    {% endif %}
+                                    {% if s.costo_reparacion and s.costo_reparacion > 0 %}
+                                    <span class="badge bg-light text-dark border mt-1">Costo: ${{ s.costo_reparacion|cop }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    {% if s.estado == 'LISTO' %}
+                                    <span class="badge bg-success rounded-pill px-3 py-1">Listo / Reparado</span>
+                                    {% elif s.estado == 'EN_REPARACION' %}
+                                    <span class="badge bg-primary rounded-pill px-3 py-1">En Reparación</span>
+                                    {% elif s.estado == 'NO_REPARABLE' %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-1">No Reparable</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1">En Revisión</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-end text-nowrap">
+                                    {% set sede_origen = s.producto.inventario if (s.producto and s.producto.inventario) else ('LOCAL 136') %}
+                                    <div class="d-inline-flex gap-1.5">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"
+                                            onclick="abrirModalActualizar({{ s.id }}, '{{ s.equipo_nombre|e }}', '{{ s.origen|upper }}', '{{ (s.imei or 'N/A')|e }}', '{{ (s.falla_reportada or '')|e }}', '{{ sede_origen|e }}', '{{ s.estado }}', '{{ s.tecnico_id or '' }}', '{{ s.asesor_id or '' }}', {{ (s.costo_reparacion or 0)|int }}, '{{ (s.diagnostico or '')|e }}', '{{ (s.trabajo_realizado or '')|e }}')">
+                                            <i class="fa-solid fa-wrench me-1"></i>Gestionar
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm"
+                                            onclick="abrirModalDevolver({{ s.id }}, '{{ s.origen }}', '{{ s.equipo_nombre|e }}', '{{ (s.trabajo_realizado or '')|e }}', {{ (s.costo_reparacion or 0)|int }})">
+                                            <i class="fa-solid fa-rotate-left me-1"></i>Devolver
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-screwdriver-wrench fs-1 mb-3 opacity-25"></i>
+                                    <h6 class="fw-bold text-secondary mb-1">No hay equipos en soporte técnico</h6>
+                                    <p class="small mb-0">Puedes enviar equipos desde Inventario de Celulares, Retomas o Garantías.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: HISTORIAL -->
+        <div class="tab-pane fade" id="pane-historial" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark text-nowrap" style="font-size: 0.82rem;">
+                            <tr>
+                                <th class="ps-4">Orden / Salida</th>
+                                <th>Origen</th>
+                                <th>Equipo / IMEI</th>
+                                <th>Técnico</th>
+                                <th>Trabajo Realizado</th>
+                                <th class="text-end pe-4">Costo Rep.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in historial %}
+                            <tr>
+                                <td class="ps-4 text-nowrap">
+                                    <div class="fw-bold text-dark">#{{ h.id }}</div>
+                                    <small class="text-muted">{{ h.fecha_salida.strftime('%d/%m/%Y %I:%M %p') if h.fecha_salida else '-' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill text-capitalize">{{ h.origen }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ h.equipo_nombre }}</div>
+                                    {% if h.imei %}<span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem;">IMEI: {{ h.imei }}</span>{% endif %}
+                                </td>
+                                <td>{{ h.tecnico_nombre }}</td>
+                                <td style="max-width: 280px;">
+                                    <div class="small text-dark">{{ h.trabajo_realizado or h.falla_reportada }}</div>
+                                </td>
+                                <td class="text-end pe-4 fw-bold text-success">${{ (h.costo_reparacion or 0)|cop }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <p class="mb-0">No hay órdenes finalizadas en el historial.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GESTIONAR TÉCNICOS -->
+<div class="modal fade" id="modalTecnicos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold mb-0"><i class="fa-solid fa-user-gear text-danger me-2"></i>Técnicos de Soporte</h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{{ url_for('soporte_bp.nuevo_tecnico') }}" class="row g-2 mb-4 p-3 rounded-3 bg-light">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="col-md-4">
+                        <input type="text" name="nombre" class="form-control bg-white" placeholder="Nombre del técnico *" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="telefono" class="form-control bg-white" placeholder="Teléfono">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="especialidad" class="form-control bg-white" placeholder="Especialidad (ej: Microsoldadura)">
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-danger fw-bold">Agregar</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr class="small text-muted text-uppercase">
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Especialidad</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tecnicos %}
+                            <tr>
+                                <td class="fw-bold">{{ t.nombre }}</td>
+                                <td>{{ t.telefono or '-' }}</td>
+                                <td>{{ t.especialidad or '-' }}</td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('soporte_bp.eliminar_tecnico', id=t.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar técnico {{ t.nombre|e }}?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5"><i class="fa-solid fa-trash-can"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No hay técnicos registrados todavía.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GESTIONAR SERVICIO TÉCNICO (IDÉNTICO AL DISEÑO SOLICITADO) -->
+<div class="modal fade" id="modalActualizarSoporte" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-white border-0 pt-4 px-4 pb-2">
+                <h5 class="modal-title fw-bolder text-dark d-flex align-items-center gap-2 mb-0" style="font-size: 1.08rem;">
+                    <i class="fa-solid fa-wrench text-primary"></i>
+                    <span id="tituloActualizarSoporte">Gestionar Servicio Técnico #--</span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formActualizarSoporte">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body px-4 pt-2 pb-3 text-start">
+                    <!-- Tarjeta Resumen del Equipo -->
+                    <div class="p-3 rounded-3 border bg-light mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                            <div class="fw-bolder text-dark" id="updEquipoNombre" style="font-size: 0.98rem;">Equipo</div>
+                            <span class="badge bg-info text-dark rounded-pill px-2.5 py-1 fw-bold" id="updOrigenBadge" style="font-size: 0.68rem;">INVENTARIO</span>
+                        </div>
+                        <div class="font-monospace text-muted small mb-1" id="updEquipoImei">IMEI: -</div>
+                        <div class="small text-secondary mb-2"><strong>Falla reportada:</strong> <span id="updFallaReportada">-</span></div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="fa-solid fa-store text-primary me-1"></i>Sede de origen:</span>
+                            <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 fw-bold" id="updSedeOrigen" style="font-size: 0.72rem;">LOCAL 136</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary mb-1">Estado del Arreglo <span class="text-danger">*</span></label>
+                        <select name="estado" id="updEstadoSoporte" class="form-select rounded-3 py-2 fw-medium" required onchange="onEstadoGestionSoporteChange()">
+                            <option value="EN_SOPORTE">En Revisión</option>
+                            <option value="EN_REPARACION">En Reparación</option>
+                            <option value="LISTO">Listo / Entregado (Enviar a Inventario)</option>
+                            <option value="NO_REPARABLE">Sin Solución / No Reparable</option>
+                        </select>
+                        <div class="form-check form-switch mt-2 d-none" id="wrapUpdSumarCosto">
+                            <input class="form-check-input" type="checkbox" name="sumar_al_costo" id="checkUpdSumarCosto" checked>
+                            <label class="form-check-label small fw-semibold text-success" for="checkUpdSumarCosto">
+                                Sumar el costo del arreglo al costo del equipo / retoma al devolver
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Técnico Responsable</label>
+                            <select name="tecnico_id" id="updTecnicoSoporte" class="form-select rounded-3 py-2">
+                                <option value="">-- Mantener actual --</option>
+                                {% for t in tecnicos_activos %}
+                                <option value="{{ t.id }}">{{ t.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Asesor Responsable</label>
+                            <select name="asesor_id" id="updAsesorSoporte" class="form-select rounded-3 py-2">
+                                <option value="">-- Sin asesor --</option>
+                                {% for a in asesores_activos %}
+                                <option value="{{ a.id }}">{{ a.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary mb-1">Costo del Arreglo ($ COP)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border fw-bold text-secondary">$</span>
+                            <input type="text" name="costo_reparacion" id="updCostoSoporte" class="form-control fw-bold format-price-soporte" value="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary mb-1">Diagnóstico / Revisión del Técnico</label>
+                        <textarea name="diagnostico" id="updDiagnosticoSoporte" class="form-control rounded-3 py-2" rows="2" placeholder="Ej: Pantalla con flex dañado, tarjeta madre sin corto..."></textarea>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label fw-bold small text-secondary mb-1">Solución / Repuestos Utilizados</label>
+                        <textarea name="trabajo_realizado" id="updTrabajoSoporte" class="form-control rounded-3 py-2" rows="2" placeholder="Ej: Se instaló nuevo módulo OLED original y batería..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0 pt-1 pb-4 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if current_user.rol == 'admin' %}
+                        <button type="button" id="btnEliminarDesdeModal" class="btn btn-outline-danger rounded-pill px-3 fw-bold btn-sm" onclick="eliminarSoporteDesdeModal()">
+                            <i class="fa-solid fa-trash-can me-1"></i>Eliminar Registro
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light border rounded-pill px-3 fw-bold text-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="limpiarCostoSoporte(this.form)">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <form method="POST" id="formEliminarSoporteModal" class="d-none">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DEVOLVER DE SOPORTE -->
+<div class="modal fade" id="modalDevolverSoporte" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold mb-0" id="tituloDevolverSoporte">Finalizar y Devolver Equipo</h5>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formDevolverSoporte">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 small py-2 mb-3" id="infoDevolverSoporte"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Trabajo Realizado / Diagnóstico Final</label>
+                        <textarea name="trabajo_realizado" id="devTrabajoSoporte" class="form-control bg-light" rows="3" placeholder="Detalle final de la reparación..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Costo Final de Reparación ($)</label>
+                        <input type="text" name="costo_reparacion" id="devCostoSoporte" class="form-control bg-light fw-bold format-price-soporte" value="0">
+                    </div>
+                    <div class="form-check form-switch" id="wrapSumarCostoSoporte">
+                        <input class="form-check-input" type="checkbox" name="sumar_al_costo" id="checkSumarCostoSoporte" checked>
+                        <label class="form-check-label small fw-semibold" for="checkSumarCostoSoporte">
+                            Sumar el costo de reparación al costo del equipo / arreglos de retoma
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold" onclick="limpiarCostoSoporte(this.form)">
+                        <i class="fa-solid fa-check me-1"></i> Confirmar Devolución
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let soporteModalActualId = null;
+
+    function abrirModalActualizar(id, equipo, origen, imei, falla, sede, estado, tecnicoId, asesorId, costo, diagnostico, trabajo) {
+        soporteModalActualId = id;
+        document.getElementById('formActualizarSoporte').action = `/soporte/actualizar/${id}`;
+        document.getElementById('formEliminarSoporteModal').action = `/soporte/eliminar/${id}`;
+        document.getElementById('tituloActualizarSoporte').innerText = `Gestionar Servicio Técnico #${id}`;
+        document.getElementById('updEquipoNombre').innerText = equipo || 'Equipo';
+        document.getElementById('updOrigenBadge').innerText = origen || 'INVENTARIO';
+        document.getElementById('updEquipoImei').innerText = `IMEI: ${imei || 'N/A'}`;
+        document.getElementById('updFallaReportada').innerText = falla || '-';
+        document.getElementById('updSedeOrigen').innerText = (sede || 'LOCAL 136').toUpperCase();
+
+        document.getElementById('updEstadoSoporte').value = estado || 'EN_SOPORTE';
+        document.getElementById('updTecnicoSoporte').value = tecnicoId || '';
+        document.getElementById('updAsesorSoporte').value = asesorId || '';
+        document.getElementById('updCostoSoporte').value = Number(costo || 0).toLocaleString('es-CO');
+        document.getElementById('updDiagnosticoSoporte').value = diagnostico || '';
+        document.getElementById('updTrabajoSoporte').value = trabajo || '';
+        onEstadoGestionSoporteChange();
+        new bootstrap.Modal(document.getElementById('modalActualizarSoporte')).show();
+    }
+
+    function onEstadoGestionSoporteChange() {
+        const est = document.getElementById('updEstadoSoporte').value;
+        const wrap = document.getElementById('wrapUpdSumarCosto');
+        if (wrap) wrap.classList.toggle('d-none', est !== 'LISTO');
+    }
+
+    function eliminarSoporteDesdeModal() {
+        if (!soporteModalActualId) return;
+        if (confirm(`¿Estás seguro de eliminar la orden de servicio técnico #${soporteModalActualId}?`)) {
+            document.getElementById('formEliminarSoporteModal').submit();
+        }
+    }
+
+    function abrirModalDevolver(id, origen, equipo, trabajo, costo) {
+        document.getElementById('formDevolverSoporte').action = `/soporte/devolver/${id}`;
+        document.getElementById('tituloDevolverSoporte').innerText = `Finalizar Orden #${id}`;
+        document.getElementById('devTrabajoSoporte').value = trabajo || '';
+        document.getElementById('devCostoSoporte').value = Number(costo || 0).toLocaleString('es-CO');
+        const info = document.getElementById('infoDevolverSoporte');
+        const wrapSumar = document.getElementById('wrapSumarCostoSoporte');
+        info.innerText = `El equipo "${equipo}" se enviará al Inventario de Celulares (stock = 1) y la orden pasará al Historial.`;
+        wrapSumar.style.display = 'block';
+        new bootstrap.Modal(document.getElementById('modalDevolverSoporte')).show();
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price-soporte')) {
+            let val = e.target.value.replace(/\D/g, '');
+            e.target.value = val !== '' ? parseInt(val, 10).toLocaleString('es-CO') : '0';
+        }
+    });
+
+    function limpiarCostoSoporte(form) {
+        form.querySelectorAll('.format-price-soporte').forEach(inp => {
+            inp.value = inp.value.replace(/\D/g, '') || '0';
+        });
+    }
+</script>
+{% endblock %}

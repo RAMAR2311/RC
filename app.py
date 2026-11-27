@@ -98,6 +98,10 @@ def create_app():
     from routes.warranties import warranties_bp
     app.register_blueprint(warranties_bp, url_prefix='/garantias')
 
+    # Registro de Blueprint Soporte Técnico
+    from routes.soporte import soporte_bp
+    app.register_blueprint(soporte_bp, url_prefix='/soporte')
+
     # Registro de Blueprint Aprobaciones
     from routes.approvals import approvals_bp
     app.register_blueprint(approvals_bp)
@@ -256,7 +260,12 @@ def create_app():
             "ALTER TABLE warranties ADD COLUMN replacement_product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;",
             "ALTER TABLE warranties ADD COLUMN cambio_sale_id INTEGER REFERENCES sales(id) ON DELETE SET NULL;",
             "ALTER TABLE warranties ADD COLUMN excedente_cobrado NUMERIC(10, 2) DEFAULT 0.00;",
-            "ALTER TABLE maneos ADD COLUMN precio_maneo NUMERIC(10, 2);"
+            "ALTER TABLE maneos ADD COLUMN precio_maneo NUMERIC(10, 2);",
+            "ALTER TABLE soporte_tecnico ADD COLUMN asesor_id INTEGER REFERENCES asesores(id) ON DELETE SET NULL;",
+            "ALTER TABLE soporte_tecnico ADD COLUMN asesor_nombre VARCHAR(120);",
+            "ALTER TABLE soporte_tecnico ADD COLUMN tipo_arreglo VARCHAR(120);",
+            "ALTER TABLE soporte_tecnico ADD COLUMN fecha_entrega_estimada DATE;",
+            "ALTER TABLE soporte_tecnico ADD COLUMN diagnostico TEXT;"
         ]
         for q in queries:
             try:
@@ -266,8 +275,10 @@ def create_app():
                 db.session.rollback()
 
         try:
-            from models import CambioCelular
+            from models import CambioCelular, Tecnico, SoporteTecnico
             CambioCelular.__table__.create(db.engine, checkfirst=True)
+            Tecnico.__table__.create(db.engine, checkfirst=True)
+            SoporteTecnico.__table__.create(db.engine, checkfirst=True)
         except Exception:
             db.session.rollback()
 

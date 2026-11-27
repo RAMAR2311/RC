@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
-from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant, ArqueoCaja, Maneo, StockAdjustment, CambioCelular
+from models import db, Product, Sale, SaleDetail, SalePayment, ProductVariant, ArqueoCaja, Maneo, StockAdjustment, CambioCelular, SoporteTecnico
 from decorators import admin_required
 from datetime import datetime
 import pytz
@@ -53,9 +53,12 @@ def inventario():
         ref_filter.append(Product.cantidad_stock > 0)
     elif estado == 'maneo':
         ref_filter.append(Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+    elif estado == 'soporte':
+        ref_filter.append(Product.soportes.any(SoporteTecnico.estado.in_(['EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE'])))
     elif estado == 'vendidos':
         ref_filter.append(Product.cantidad_stock == 0)
         ref_filter.append(~Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+        ref_filter.append(~Product.soportes.any(SoporteTecnico.estado.in_(['EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE'])))
 
     referencias_query = db.session.query(Product.modelo_celular).filter(*ref_filter).distinct().order_by(Product.modelo_celular.asc()).all()
     referencias_disponibles = [r[0] for r in referencias_query if r[0]]
@@ -72,23 +75,33 @@ def inventario():
         Product.maneos.any(Maneo.estado == 'PENDIENTE')
     ).count()
 
+    # Celulares actualmente en Soporte Técnico
+    celulares_en_soporte = Product.query.filter(
+        Product.tipo_inventario == 'celulares',
+        Product.soportes.any(SoporteTecnico.estado.in_(['EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE']))
+    ).count()
+
     from sqlalchemy.orm import selectinload, joinedload
 
-    # Base query for table with eager loading of ventas and maneos
+    # Base query for table with eager loading of ventas, maneos y soportes
     base_query = Product.query.options(
         selectinload(Product.detalles_venta).joinedload(SaleDetail.venta),
-        selectinload(Product.maneos)
+        selectinload(Product.maneos),
+        selectinload(Product.soportes)
     ).filter_by(tipo_inventario='celulares')
 
     if estado == 'activos':
         base_query = base_query.filter(Product.cantidad_stock > 0)
     elif estado == 'maneo':
         base_query = base_query.filter(Product.maneos.any(Maneo.estado == 'PENDIENTE'))
+    elif estado == 'soporte':
+        base_query = base_query.filter(Product.soportes.any(SoporteTecnico.estado.in_(['EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE'])))
     elif estado == 'vendidos':
-        # Vendidos reales: sin stock y que no estén en préstamo de maneo
+        # Vendidos reales: sin stock y que no estén en préstamo de maneo ni soporte técnico
         base_query = base_query.filter(
             Product.cantidad_stock == 0,
-            ~Product.maneos.any(Maneo.estado == 'PENDIENTE')
+            ~Product.maneos.any(Maneo.estado == 'PENDIENTE'),
+            ~Product.soportes.any(SoporteTecnico.estado.in_(['EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE']))
         )
 
     if referencias_seleccionadas:
@@ -168,7 +181,8 @@ def inventario():
                            stock_activo=stock_activo,
                            costo_total=costo_total,
                            ventas_estimadas=ventas_estimadas,
-                           celulares_en_maneo=celulares_en_maneo)
+                           celulares_en_maneo=celulares_en_maneo,
+                           celulares_en_soporte=celulares_en_soporte)
 
 @celulares_bp.route('/prestar/<int:id>', methods=['POST'])
 @login_required

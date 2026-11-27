@@ -121,6 +121,15 @@ class Product(db.Model):
                 return m
         return None
 
+    @property
+    def soporte_activo(self):
+        if not self.soportes:
+            return None
+        for s in self.soportes:
+            if s.estado in ('EN_SOPORTE', 'EN_REPARACION', 'LISTO', 'NO_REPARABLE'):
+                return s
+        return None
+
 class ProductVariant(db.Model):
     __tablename__ = 'product_variants'
 
@@ -715,6 +724,58 @@ class CambioCelular(db.Model):
 
     def __init__(self, **kwargs):
         super(CambioCelular, self).__init__(**kwargs)
+
+
+class Tecnico(db.Model):
+    __tablename__ = 'tecnicos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(120), nullable=False)
+    telefono = db.Column(db.String(50), nullable=True)
+    especialidad = db.Column(db.String(120), nullable=True)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    def __init__(self, **kwargs):
+        super(Tecnico, self).__init__(**kwargs)
+
+
+class SoporteTecnico(db.Model):
+    __tablename__ = 'soporte_tecnico'
+
+    id = db.Column(db.Integer, primary_key=True)
+    origen = db.Column(db.String(30), nullable=False, default='inventario')  # inventario, retoma, garantia
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    retoma_id = db.Column(db.Integer, db.ForeignKey('retomas.id'), nullable=True)
+    warranty_id = db.Column(db.Integer, db.ForeignKey('warranties.id'), nullable=True)
+    tecnico_id = db.Column(db.Integer, db.ForeignKey('tecnicos.id'), nullable=True)
+    tecnico_nombre = db.Column(db.String(120), nullable=False)
+    asesor_id = db.Column(db.Integer, db.ForeignKey('asesores.id'), nullable=True)
+    asesor_nombre = db.Column(db.String(120), nullable=True)
+    tipo_arreglo = db.Column(db.String(120), nullable=True)
+    equipo_nombre = db.Column(db.String(200), nullable=False)
+    imei = db.Column(db.String(60), nullable=True)
+    falla_reportada = db.Column(db.Text, nullable=False)
+    diagnostico = db.Column(db.Text, nullable=True)
+    trabajo_realizado = db.Column(db.Text, nullable=True)
+    costo_reparacion = db.Column(db.Numeric(10, 2), default=0.00, nullable=True)
+    estado = db.Column(db.String(30), default='EN_SOPORTE', nullable=False)  # EN_SOPORTE, LISTO, DEVUELTO
+    fecha_entrega_estimada = db.Column(db.Date, nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    resuelto_por_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    fecha_ingreso = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_salida = db.Column(db.DateTime, nullable=True)
+
+    producto = db.relationship('Product', foreign_keys=[product_id], backref=db.backref('soportes', lazy=True))
+    retoma = db.relationship('Retoma', foreign_keys=[retoma_id], backref=db.backref('soportes', lazy=True))
+    garantia = db.relationship('Warranty', foreign_keys=[warranty_id], backref=db.backref('soportes', lazy=True))
+    tecnico = db.relationship('Tecnico', foreign_keys=[tecnico_id])
+    asesor = db.relationship('Asesor', foreign_keys=[asesor_id])
+    usuario = db.relationship('User', foreign_keys=[usuario_id])
+    resuelto_por = db.relationship('User', foreign_keys=[resuelto_por_id])
+
+    def __init__(self, **kwargs):
+        super(SoporteTecnico, self).__init__(**kwargs)
 
 
 

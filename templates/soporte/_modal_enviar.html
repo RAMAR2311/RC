@@ -1,0 +1,221 @@
+<!-- Modal Compartido: Enviar Celular a Soporte Técnico -->
+<div class="modal fade" id="modalEnviarSoporteGlobal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-white pt-4 px-4 pb-2">
+                <h5 class="modal-title fw-bolder text-dark d-flex align-items-center gap-2 mb-0" style="font-size: 1.1rem;">
+                    <i class="fa-solid fa-screwdriver-wrench text-danger"></i>
+                    <span>Enviar Celular a Soporte Técnico</span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('soporte_bp.enviar_soporte') }}" id="formEnviarSoporteGlobal">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="origen" id="soporteOrigenInput" value="inventario">
+                <input type="hidden" name="item_ids_str" id="soporteItemIdsInput" value="">
+                <div class="modal-body px-4 pt-2 pb-3 text-start">
+                    <!-- Tarjeta resumen del equipo -->
+                    <div class="p-3 rounded-3 border bg-light mb-3">
+                        <div class="fw-bolder text-dark mb-1" id="soporteEquipoTitulo" style="font-size: 0.98rem;">Equipo</div>
+                        <div class="font-monospace text-muted small" id="soporteEquipoImei"></div>
+                        <div class="text-muted small" id="soporteEquipoSpecs"></div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Asesor Responsable <span class="text-danger">*</span></label>
+                            <select name="asesor_id" id="soporteAsesorSelect" class="form-select rounded-3 py-2" required>
+                                <option value="">-- Seleccionar Asesor --</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Técnico Encargado <span class="text-danger">*</span></label>
+                            <select name="tecnico_id" id="soporteTecnicoSelect" class="form-select rounded-3 py-2" onchange="onChangeTecnicoSoporte(this.value)">
+                                <option value="">-- Seleccionar Técnico --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 d-none" id="wrapSoporteTecnicoManual">
+                        <input type="text" name="tecnico_manual" id="soporteTecnicoManual" class="form-control rounded-3 py-2" placeholder="Escribe el nombre del técnico encargado...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary mb-1">Tipo de Arreglo <span class="text-danger">*</span></label>
+                        <select name="tipo_arreglo" id="soporteTipoArreglo" class="form-select rounded-3 py-2 fw-medium" required>
+                            <option value="Diagnóstico General / Revisión" selected>Diagnóstico General / Revisión</option>
+                            <option value="Cambio de Pantalla / Display">Cambio de Pantalla / Display</option>
+                            <option value="Cambio de Batería">Cambio de Batería</option>
+                            <option value="Pin de Carga / Flex">Pin de Carga / Flex</option>
+                            <option value="Cámara / Altavoz / Micrófono">Cámara / Altavoz / Micrófono</option>
+                            <option value="Humedad / Baño Químico">Humedad / Baño Químico</option>
+                            <option value="Software / Flasheo / Desbloqueo">Software / Flasheo / Desbloqueo</option>
+                            <option value="Microsoldadura / Placa">Microsoldadura / Placa</option>
+                            <option value="Otro Arreglo">Otro Arreglo</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary mb-1">Motivo o Falla Detectada <span class="text-danger">*</span></label>
+                        <textarea name="falla_reportada" id="soporteFallaInput" class="form-control rounded-3 py-2" rows="3" placeholder="Describe detalladamente qué falla técnica presenta el celular..." required></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-1">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Valor del Arreglo ($ COP)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border fw-bold text-secondary">$</span>
+                                <input type="text" name="costo_reparacion" id="soporteCostoInput" class="form-control fw-bold format-price-soporte-envio" value="0" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-secondary mb-1">Fecha de Entrega (Opcional)</label>
+                            <input type="date" name="fecha_entrega_estimada" id="soporteFechaEntrega" class="form-control rounded-3 py-2">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-white pt-1 pb-4 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4 fw-bold text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" onclick="limpiarCostoEnvioSoporte(this.form)" style="background: linear-gradient(135deg, #E11D48 0%, #DC2626 100%); border: none;">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Enviar a Taller
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function abrirModalEnviarSoporte(origen, ids, descripcion = '', meta = {}) {
+        const cleanIds = (Array.isArray(ids) ? ids : [ids]).map(x => String(x).trim()).filter(Boolean);
+        if (!cleanIds.length) {
+            alert('Debes seleccionar al menos un equipo.');
+            return;
+        }
+
+        document.getElementById('soporteOrigenInput').value = origen;
+        document.getElementById('soporteItemIdsInput').value = cleanIds.join(',');
+        document.getElementById('soporteFallaInput').value = '';
+        document.getElementById('soporteCostoInput').value = '0';
+        document.getElementById('soporteFechaEntrega').value = '';
+        document.getElementById('soporteTipoArreglo').selectedIndex = 0;
+
+        const tituloEl = document.getElementById('soporteEquipoTitulo');
+        const imeiEl = document.getElementById('soporteEquipoImei');
+        const specsEl = document.getElementById('soporteEquipoSpecs');
+
+        if (cleanIds.length === 1) {
+            tituloEl.innerText = descripcion || `Equipo #${cleanIds[0]}`;
+            imeiEl.innerText = meta.imei ? `IMEI: ${meta.imei}` : '';
+            const parts = [];
+            if (meta.color) parts.push(`Color: ${meta.color}`);
+            if (meta.bateria) parts.push(`Batería: ${meta.bateria}`);
+            specsEl.innerText = parts.join(' | ');
+        } else {
+            tituloEl.innerText = `${cleanIds.length} equipos seleccionados`;
+            imeiEl.innerText = `Origen: ${origen.toUpperCase()}`;
+            specsEl.innerText = 'Se creará una orden individual en taller para cada equipo.';
+        }
+
+        const asesorSelect = document.getElementById('soporteAsesorSelect');
+        const select = document.getElementById('soporteTecnicoSelect');
+        const wrapManual = document.getElementById('wrapSoporteTecnicoManual');
+        const manual = document.getElementById('soporteTecnicoManual');
+
+        asesorSelect.innerHTML = '<option value="">Cargando asesores...</option>';
+        select.innerHTML = '<option value="">Cargando técnicos...</option>';
+        wrapManual.classList.add('d-none');
+        manual.required = false;
+        manual.value = '';
+
+        new bootstrap.Modal(document.getElementById('modalEnviarSoporteGlobal')).show();
+
+        try {
+            const res = await fetch('{{ url_for("soporte_bp.api_tecnicos") }}');
+            const data = await res.json();
+
+            // Poblar Asesores
+            asesorSelect.innerHTML = '<option value="">-- Seleccionar Asesor --</option>';
+            if (data.success && data.asesores && data.asesores.length) {
+                data.asesores.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    asesorSelect.appendChild(opt);
+                });
+                asesorSelect.required = true;
+            } else {
+                asesorSelect.required = false;
+            }
+
+            // Poblar Técnicos
+            select.innerHTML = '';
+            if (data.success && data.tecnicos && data.tecnicos.length) {
+                const def = document.createElement('option');
+                def.value = '';
+                def.textContent = '-- Seleccionar Técnico --';
+                def.disabled = true;
+                def.selected = true;
+                select.appendChild(def);
+
+                data.tecnicos.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.especialidad ? `${t.nombre} (${t.especialidad})` : t.nombre;
+                    select.appendChild(opt);
+                });
+
+                const otro = document.createElement('option');
+                otro.value = '__OTRO__';
+                otro.textContent = '-- Otro Técnico (Escribir) --';
+                select.appendChild(otro);
+                select.required = true;
+            } else {
+                const otro = document.createElement('option');
+                otro.value = '__OTRO__';
+                otro.textContent = '-- Escribir Técnico --';
+                otro.selected = true;
+                select.appendChild(otro);
+                select.required = false;
+                wrapManual.classList.remove('d-none');
+                manual.required = true;
+            }
+        } catch (e) {
+            asesorSelect.innerHTML = '<option value="">-- Seleccionar Asesor --</option>';
+            asesorSelect.required = false;
+            select.innerHTML = '<option value="__OTRO__" selected>-- Escribir Técnico --</option>';
+            wrapManual.classList.remove('d-none');
+            manual.required = true;
+        }
+    }
+
+    function onChangeTecnicoSoporte(val) {
+        const select = document.getElementById('soporteTecnicoSelect');
+        const wrapManual = document.getElementById('wrapSoporteTecnicoManual');
+        const manual = document.getElementById('soporteTecnicoManual');
+        if (val === '__OTRO__') {
+            wrapManual.classList.remove('d-none');
+            manual.required = true;
+            select.required = false;
+            manual.focus();
+        } else {
+            wrapManual.classList.add('d-none');
+            manual.required = false;
+            manual.value = '';
+            select.required = true;
+        }
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('format-price-soporte-envio')) {
+            let val = e.target.value.replace(/\D/g, '');
+            e.target.value = val !== '' ? parseInt(val, 10).toLocaleString('es-CO') : '0';
+        }
+    });
+
+    function limpiarCostoEnvioSoporte(form) {
+        form.querySelectorAll('.format-price-soporte-envio').forEach(inp => {
+            inp.value = inp.value.replace(/\D/g, '') || '0';
+        });
+    }
+</script>

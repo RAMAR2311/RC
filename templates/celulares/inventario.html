@@ -590,6 +590,10 @@
            class="saas-segment-btn {% if estado == 'maneo' %}active-warning{% endif %}">
             <i class="fa-solid fa-handshake me-1.5"></i> En Maneo ({{ celulares_en_maneo }})
         </a>
+        <a href="{{ url_for('celulares_bp.inventario', estado='soporte', q=q, referencias=referencias_seleccionadas) }}" 
+           class="saas-segment-btn {% if estado == 'soporte' %}active-dark{% endif %}">
+            <i class="fa-solid fa-screwdriver-wrench me-1.5"></i> En Soporte ({{ celulares_en_soporte }})
+        </a>
         <a href="{{ url_for('celulares_bp.inventario', estado='vendidos', q=q, referencias=referencias_seleccionadas) }}" 
            class="saas-segment-btn {% if estado == 'vendidos' %}active-dark{% endif %}">
             <i class="fa-solid fa-check me-1.5"></i> Vendidos
@@ -604,6 +608,9 @@
         <span class="small text-light d-none d-sm-inline">Dispositivos listos para edición en lote</span>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" onclick="enviarSeleccionadosASoporte()">
+            <i class="fa-solid fa-screwdriver-wrench me-1.5"></i> Enviar a Soporte
+        </button>
         <button type="button" class="btn btn-danger btn-sm rounded-pill px-3.5 py-1.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarMasivo">
             <i class="fa-solid fa-pen-to-square me-1.5"></i> Editar Marca / Referencia
         </button>
@@ -695,6 +702,15 @@
                                     <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Gestionar
                                 </a>
                             </div>
+                        {% elif c.soporte_activo %}
+                            <div class="d-flex flex-column align-items-center gap-1">
+                                <span class="badge bg-info text-dark fw-bold shadow-sm rounded-pill px-2.5 py-1" style="font-size: 0.7rem;" title="Técnico: {{ c.soporte_activo.tecnico_nombre }}">
+                                    <i class="fa-solid fa-screwdriver-wrench me-1"></i>{{ c.soporte_activo.tecnico_nombre }}
+                                </span>
+                                <a href="{{ url_for('soporte_bp.index') }}" class="btn btn-xs btn-outline-dark rounded-pill py-0.5 px-2.5 shadow-sm fw-bold" style="font-size: 0.68rem;">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Ver Soporte
+                                </a>
+                            </div>
                         {% elif c.total_stock <= 0 %}
                             <div class="d-flex justify-content-center align-items-center gap-1.5">
                                 <span class="badge bg-dark fw-bold rounded-pill px-2.5 py-1" style="font-size: 0.7rem; letter-spacing: 0.3px;">VENDIDO</span>
@@ -709,6 +725,10 @@
                             </div>
                         {% else %}
                             <div class="d-flex justify-content-center gap-1.5">
+                                <!-- Botón Rápido: Enviar a Soporte Técnico -->
+                                <button type="button" class="btn-table-action" style="color: #0284c7;" title="Enviar a Soporte Técnico" onclick="abrirModalEnviarSoporte('inventario', [{{ c.id }}], '{{ c.nombre|e }}', { imei: '{{ (c.imei or '')|e }}', color: '{{ (c.color or '')|e }}', bateria: '{{ (c.bateria or '')|e }}' })">
+                                    <i class="fa-solid fa-screwdriver-wrench" style="font-size: 0.75rem;"></i>
+                                </button>
                                 <!-- Botón Rápido: Prestar a Local Vecino (Maneo) -->
                                 <button type="button" class="btn-table-action" style="color: #d97706;" title="Prestar a Local Vecino (Maneo)" data-bs-toggle="modal" data-bs-target="#modalPrestarCelular{{ c.id }}">
                                     <i class="fa-solid fa-handshake" style="font-size: 0.75rem;"></i>
@@ -1127,5 +1147,12 @@
             input.value = input.value.replace(/\D/g, '');
         }
     }
+
+    function enviarSeleccionadosASoporte() {
+        const idsStr = document.getElementById('inputModalCelularIds')?.value || '';
+        const ids = idsStr.split(',').map(x => x.trim()).filter(Boolean);
+        abrirModalEnviarSoporte('inventario', ids);
+    }
 </script>
+{% include 'soporte/_modal_enviar.html' %}
 {% endblock %}

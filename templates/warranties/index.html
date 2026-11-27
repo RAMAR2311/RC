@@ -27,6 +27,19 @@
         </div>
     </div>
 
+    <div id="bulkSoporteGarantiasBar" class="d-none alert alert-dark border-0 rounded-pill px-4 py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger rounded-pill px-3 py-1.5 fw-bold" id="garantiasSelectedCount">0 seleccionadas</span>
+            <span class="small">Listas para enviar a Soporte Técnico</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold" onclick="enviarGarantiasSeleccionadasSoporte()">
+                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Enviar a Soporte
+            </button>
+            <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="toggleSelectAllGarantias(false)">Cancelar</button>
+        </div>
+    </div>
+
     <!-- Tabla de Garantías (Data Table Moderna) -->
     <div class="card border-0 table-container-card">
         <div class="card-header bg-white border-0 pt-4 px-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -43,7 +56,10 @@
             <table class="table table-custom align-middle mb-0 text-center w-100">
                 <thead class="text-nowrap">
                     <tr>
-                        <th class="ps-4 text-start" width="13%">Recibido</th>
+                        <th class="ps-3 text-center" width="3%">
+                            <input type="checkbox" class="form-check-input" id="checkSelectAllGarantias" onchange="toggleSelectAllGarantias(this.checked)">
+                        </th>
+                        <th class="text-start" width="13%">Recibido</th>
                         <th class="text-start" width="16%">Factura / Cliente</th>
                         <th class="text-start" width="23%">Artículo / Dispositivo</th>
                         <th class="text-start" width="18%">Motivo (Falla)</th>
@@ -57,7 +73,10 @@
                 <tbody class="text-nowrap">
                     {% for w in warranties %}
                     <tr>
-                        <td class="ps-4 text-start">
+                        <td class="ps-3 text-center">
+                            <input type="checkbox" class="form-check-input garantia-checkbox" value="{{ w.id }}" onchange="actualizarBarraGarantias()">
+                        </td>
+                        <td class="text-start">
                             <div class="d-flex align-items-center gap-2.5">
                                 <div class="rounded-3 d-flex align-items-center justify-content-center text-secondary border" style="width: 34px; height: 34px; background: #F8FAFC; border-color: #E2E8F0 !important; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                                     <i class="fa-regular fa-calendar-check text-danger" style="font-size: 0.85rem;"></i>
@@ -153,6 +172,11 @@
                         {% if current_user.rol == 'admin' %}
                         <td class="pe-4 text-end">
                             <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fw-bold" title="Enviar a Soporte Técnico"
+                                    onclick="abrirModalEnviarSoporte('garantia', [{{ w.id }}], '{{ (w.product.nombre if w.product else w.nombre_manual)|e }}', { imei: '{{ (w.product.imei if w.product and w.product.imei else '')|e }}', color: '{{ (w.product.color if w.product and w.product.color else '')|e }}', bateria: '{{ (w.product.bateria if w.product and w.product.bateria else '')|e }}' })"
+                                    style="font-size: 0.75rem;">
+                                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                                </button>
                                 {% if w.product and (w.product.tipo_inventario == 'celulares' or w.product.imei) %}
                                     {% if not w.devuelto_inventario %}
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-bold" title="Volver a enviar este celular al inventario"
@@ -189,7 +213,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="{% if current_user.rol == 'admin' %}7{% else %}6{% endif %}" class="text-center py-5 text-muted">
+                        <td colspan="{% if current_user.rol == 'admin' %}8{% else %}7{% endif %}" class="text-center py-5 text-muted">
                             <div class="py-4">
                                 <i class="fa-solid fa-shield-cat fs-1 mb-3 opacity-25"></i>
                                 <h6 class="fw-bold text-secondary mb-1">No hay garantías en el historial</h6>
@@ -634,5 +658,30 @@
             input.value = input.value.replace(/\D/g, '') || '0';
         });
     }
+
+    function toggleSelectAllGarantias(checked) {
+        document.querySelectorAll('.garantia-checkbox').forEach(cb => cb.checked = checked);
+        const all = document.getElementById('checkSelectAllGarantias');
+        if (all) all.checked = checked;
+        actualizarBarraGarantias();
+    }
+
+    function actualizarBarraGarantias() {
+        const checked = Array.from(document.querySelectorAll('.garantia-checkbox:checked'));
+        const bar = document.getElementById('bulkSoporteGarantiasBar');
+        const badge = document.getElementById('garantiasSelectedCount');
+        if (checked.length > 0) {
+            bar.classList.remove('d-none');
+            badge.innerText = `${checked.length} seleccionada${checked.length > 1 ? 's' : ''}`;
+        } else {
+            bar.classList.add('d-none');
+        }
+    }
+
+    function enviarGarantiasSeleccionadasSoporte() {
+        const ids = Array.from(document.querySelectorAll('.garantia-checkbox:checked')).map(cb => cb.value);
+        abrirModalEnviarSoporte('garantia', ids);
+    }
 </script>
+{% include 'soporte/_modal_enviar.html' %}
 {% endblock %}
